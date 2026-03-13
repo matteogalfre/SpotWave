@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import {
   View,
   Text,
@@ -7,29 +7,44 @@ import {
   RefreshControl,
   ActivityIndicator,
   TouchableOpacity,
+  TextInput,
+  Animated,
 } from 'react-native';
 import { useProfile } from '../context/ProfileContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLocation } from '../context/LocationContext';
 import { fetchSpotData } from '../services/api';
 import { computeSpotForecast } from '../utils/scoring';
 import { getFavorites, toggleFavorite } from '../services/favorites';
+import { getNearbySpotsWithFallback, haversineDistance, formatDistance } from '../services/location';
+import { setStoredForecasts } from '../context/ForecastStore';
 import SPOTS from '../data/spots';
 import ScoreBadge from '../components/ScoreBadge';
-import { SpotForecast, HourlyCondition } from '../types';
+import SkeletonCard from '../components/SkeletonCard';
+import Logo from '../components/Logo';
+import { SpotConfig, SpotForecast, HourlyCondition } from '../types';
 import { Ionicons } from '@expo/vector-icons';
-import { scoreColor, scoreBg, scoreLabel, scoreEmoji, scoreShort, dirLabel, windLabel, isDaytime } from '../theme';
+import { scoreColor, scoreBg, scoreLabel, scoreEmoji, scoreShort, dirLabel, windLabel, isDaytime, weatherIcon } from '../theme';
 import { SurferProfile } from '../types';
 import { SpotsScreenProps } from '../navigation/types';
+import * as Haptics from 'expo-haptics';
 
-const DAY_FULL = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '../components/Toast';
+import { LEVEL_BADGE, DAY_NAMES_FULL, fmtDayLabel, fmtRange, fmtElapsed } from '../utils/constants';
 
-function fmtElapsed(d: Date): string {
-  const mins = Math.round((Date.now() - d.getTime()) / 60_000);
-  if (mins < 1) return "à l'instant";
-  if (mins < 60) return `il y a ${mins} min`;
-  return `il y a ${Math.floor(mins / 60)}h`;
-}
-const ALL_REGIONS = ['Tous', ...Array.from(new Set(SPOTS.map(s => s.region)))];
+const DESTINATIONS = [
+  { country: 'Indonésie', emoji: '🇮🇩', spots: SPOTS.filter(s => s.country === 'Indonésie').length },
+  { country: 'USA - Hawaii', emoji: '🌺', spots: SPOTS.filter(s => s.country === 'USA - Hawaii').length },
+  { country: 'Australie', emoji: '🇦🇺', spots: SPOTS.filter(s => s.country === 'Australie').length },
+  { country: 'France', emoji: '🇫🇷', spots: SPOTS.filter(s => s.country === 'France').length },
+  { country: 'Portugal', emoji: '🇵🇹', spots: SPOTS.filter(s => s.country === 'Portugal').length },
+  { country: 'Maroc', emoji: '🇲🇦', spots: SPOTS.filter(s => s.country === 'Maroc').length },
+  { country: 'Espagne', emoji: '🇪🇸', spots: SPOTS.filter(s => s.country === 'Espagne').length },
+  { country: 'USA - Californie', emoji: '🌴', spots: SPOTS.filter(s => s.country === 'USA - Californie').length },
+  { country: 'Costa Rica', emoji: '🇨🇷', spots: SPOTS.filter(s => s.country === 'Costa Rica').length },
+  { country: 'Afrique du Sud', emoji: '🇿🇦', spots: SPOTS.filter(s => s.country === 'Afrique du Sud').length },
+];
 
 interface BestPick {
   spotName: string;
@@ -39,26 +54,6 @@ interface BestPick {
   beachOrientation: number;
   dayLabel: string;
   timeRange: string;
-}
-
-function fmtRange(iso: string, duration: number, maxH: number): string {
-  const h = parseInt(iso.slice(11, 13), 10);
-  const end = Math.min(h + duration, maxH);
-  return `${h}h–${end}h`;
-}
-
-function fmtDayLabel(iso: string, now: Date): string {
-  const d = new Date(iso);
-  const todayStr = now.toISOString().slice(0, 10);
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
-  const dateStr = d.toISOString().slice(0, 10);
-
-  if (dateStr === todayStr) return "Aujourd'hui";
-  if (dateStr === tomorrowStr) return 'Demain';
-  const day = DAY_FULL[d.getDay()];
-  return `${day} ${d.getDate()}/${d.getMonth() + 1}`;
 }
 
 function findBestPicks(forecasts: SpotForecast[], profile: SurferProfile): { bestToday: BestPick | null; bestWeek: BestPick[] } {
@@ -74,77 +69,105 @@ function findBestPicks(forecasts: SpotForecast[], profile: SurferProfile): { bes
     for (const c of f.hourlyConditions) {
       if (c.time.slice(0, 13) < nowStr) continue;
       if (!isDaytime(c.time, availableFrom, availableTo)) continue;
-
       const dateKey = c.time.slice(0, 10);
       const isToday = dateKey === todayStr;
-
       const pick: BestPick = {
-        spotName: f.spot.name,
-        spotId: f.spot.id,
-        forecast: f,
-        cond: c,
+        spotName: f.spot.name, spotId: f.spot.id, forecast: f, cond: c,
         beachOrientation: f.spot.beachOrientation,
         dayLabel: fmtDayLabel(c.time, now),
         timeRange: fmtRange(c.time, sessionDuration, availableTo),
       };
-
-      if (isToday) {
-        if (!bestToday || c.score > bestToday.cond.score) {
-          bestToday = pick;
-        }
-      }
-
-      if (!dayBest[dateKey] || c.score > dayBest[dateKey].cond.score) {
-        dayBest[dateKey] = pick;
-      }
+      if (isToday && (!bestToday || c.score > bestToday.cond.score)) bestToday = pick;
+      if (!dayBest[dateKey] || c.score > dayBest[dateKey].cond.score) dayBest[dateKey] = pick;
     }
   }
 
-  const bestWeek = Object.values(dayBest)
-    .sort((a, b) => a.cond.time.localeCompare(b.cond.time))
-    .slice(0, 5);
-
-  return { bestToday, bestWeek };
+  return { bestToday, bestWeek: Object.values(dayBest).sort((a, b) => a.cond.time.localeCompare(b.cond.time)).slice(0, 5) };
 }
 
 export default function SpotsScreen({ navigation }: SpotsScreenProps) {
-  const { profile } = useProfile();
+  const { profile, version } = useProfile();
   const { colors } = useTheme();
+  const { location, loading: locLoading, denied: locDenied } = useLocation();
+  const { show: showToast } = useToast();
+  const insets = useSafeAreaInsets();
+
   const [forecasts, setForecasts] = useState<SpotForecast[]>([]);
   const [favs, setFavs] = useState<string[]>([]);
-  const [regionFilter, setRegionFilter] = useState('Tous');
+  const [countryFilter, setCountryFilter] = useState<string | null>(null);
+  const [regionFilter, setRegionFilter] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [loadedCount, setLoadedCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
-  const [totalCount] = useState(SPOTS.length);
+  const [totalCount, setTotalCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingSearchSpot, setLoadingSearchSpot] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const initialLoad = useRef(true);
+  const prevVersion = useRef(version);
+  const prevLocationKey = useRef('');
+
+  const distanceMap = useMemo(() => {
+    if (!location) return new Map<string, number>();
+    const map = new Map<string, number>();
+    for (const spot of SPOTS) {
+      map.set(spot.id, haversineDistance(location.latitude, location.longitude, spot.latitude, spot.longitude));
+    }
+    return map;
+  }, [location]);
+
+  const activeSpots = useMemo((): SpotConfig[] => {
+    if (location) {
+      return getNearbySpotsWithFallback(SPOTS, location.latitude, location.longitude, 200, 5, 1000);
+    }
+    return SPOTS.slice(0, 20);
+  }, [location]);
+
+  const favSpotsOutsideZone = useMemo(() => {
+    return SPOTS.filter(s => favs.includes(s.id) && !activeSpots.find(a => a.id === s.id));
+  }, [favs, activeSpots]);
+
+  const allSpotsToLoad = useMemo(() => {
+    const ids = new Set(activeSpots.map(s => s.id));
+    const extra = favSpotsOutsideZone.filter(s => !ids.has(s.id));
+    return [...activeSpots, ...extra];
+  }, [activeSpots, favSpotsOutsideZone]);
+
+  const countries = useMemo(() => {
+    const loaded = new Set(forecasts.map(f => f.spot.country));
+    return Array.from(loaded);
+  }, [forecasts]);
+
+  const regions = useMemo(() => {
+    const filtered = countryFilter ? forecasts.filter(f => f.spot.country === countryFilter) : forecasts;
+    return Array.from(new Set(filtered.map(f => f.spot.region)));
+  }, [forecasts, countryFilter]);
 
   useEffect(() => { getFavorites().then(setFavs); }, []);
 
   const handleToggleFav = useCallback(async (spotId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     const next = await toggleFavorite(spotId);
     setFavs(next);
-  }, []);
+    showToast(next.includes(spotId) ? 'Ajouté aux favoris ⭐' : 'Retiré des favoris', 'success');
+  }, [showToast]);
 
   const loadData = useCallback(async (force = false) => {
+    const spotsToLoad = allSpotsToLoad;
     try {
       setError(null);
-      if (force) {
-        setForecasts([]);
-        setLoadedCount(0);
-        setFailedCount(0);
-      }
-
+      if (force) { setForecasts([]); setLoadedCount(0); setFailedCount(0); }
+      setTotalCount(spotsToLoad.length);
       const results: SpotForecast[] = force ? [] : [...forecasts];
       let count = force ? 0 : loadedCount;
       let failed = 0;
-      const spots = [...SPOTS];
 
       const BATCH_SIZE = 4;
-      for (let i = 0; i < spots.length; i += BATCH_SIZE) {
-        const batch = spots.slice(i, i + BATCH_SIZE).filter(
+      for (let i = 0; i < spotsToLoad.length; i += BATCH_SIZE) {
+        const batch = spotsToLoad.slice(i, i + BATCH_SIZE).filter(
           sp => force || !results.find(r => r.spot.id === sp.id)
         );
         if (batch.length === 0) continue;
@@ -163,9 +186,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
             if (existing >= 0) results[existing] = forecast;
             else results.push(forecast);
             count++;
-          } else {
-            failed++;
-          }
+          } else { failed++; }
         }
 
         setForecasts([...results].sort((a, b) => b.currentScore - a.currentScore));
@@ -176,39 +197,76 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     } catch (e: any) {
       setError(e.message || 'Erreur de chargement');
     }
-  }, [profile]);
+  }, [profile, allSpotsToLoad]);
 
   useEffect(() => {
-    if (initialLoad.current) {
+    if (locLoading) return;
+    const locKey = location ? `${location.latitude.toFixed(2)}_${location.longitude.toFixed(2)}` : 'none';
+    if (initialLoad.current || prevLocationKey.current !== locKey) {
       initialLoad.current = false;
+      prevLocationKey.current = locKey;
       loadData(true);
     }
-  }, [loadData]);
+  }, [locLoading, location, loadData]);
+
+  useEffect(() => {
+    if (prevVersion.current !== version && forecasts.length > 0) {
+      prevVersion.current = version;
+      loadData(true);
+    }
+  }, [version, forecasts.length, loadData]);
 
   const onRefresh = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     setRefreshing(true);
     await loadData(true);
     setRefreshing(false);
   }, [loadData]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const searchResults = useMemo(() => {
+    if (!debouncedQuery.trim()) return [];
+    const q = debouncedQuery.toLowerCase().trim();
+    return SPOTS.filter(s =>
+      s.name.toLowerCase().includes(q) ||
+      s.region.toLowerCase().includes(q) ||
+      s.country.toLowerCase().includes(q)
+    ).slice(0, 15);
+  }, [debouncedQuery]);
+
   const filteredForBest = useMemo(() => {
-    if (regionFilter === 'Tous') return forecasts;
-    return forecasts.filter(f => f.spot.region === regionFilter);
-  }, [forecasts, regionFilter]);
+    let list = forecasts;
+    if (countryFilter) list = list.filter(f => f.spot.country === countryFilter);
+    if (regionFilter) list = list.filter(f => f.spot.region === regionFilter);
+    return list;
+  }, [forecasts, countryFilter, regionFilter]);
+
   const { bestToday, bestWeek } = useMemo(() => findBestPicks(filteredForBest, profile), [filteredForBest, profile]);
   const levelTxt = profile.level === 'beginner' ? 'Débutant' : profile.level === 'intermediate' ? 'Intermédiaire' : 'Expert';
 
+  const locationLabel = useMemo(() => {
+    if (locLoading) return 'Localisation...';
+    if (location && activeSpots.length > 0) {
+      const nearCountries = Array.from(new Set(activeSpots.slice(0, 10).map(s => s.country)));
+      return nearCountries.length <= 2 ? nearCountries.join(' · ') : `${activeSpots.length} spots proches`;
+    }
+    return 'Mondial';
+  }, [locLoading, location, activeSpots]);
+
   const sortedForecasts = useMemo(() => {
     let list = forecasts;
-    if (regionFilter !== 'Tous') {
-      list = list.filter(f => f.spot.region === regionFilter);
-    }
+    if (countryFilter) list = list.filter(f => f.spot.country === countryFilter);
+    if (regionFilter) list = list.filter(f => f.spot.region === regionFilter);
     const fav = list.filter(f => favs.includes(f.spot.id));
     const rest = list.filter(f => !favs.includes(f.spot.id));
     return [...fav, ...rest];
-  }, [forecasts, favs, regionFilter]);
+  }, [forecasts, favs, countryFilter, regionFilter]);
 
-  const regions = useMemo(() => {
+  const regionGroups = useMemo(() => {
     const map: Record<string, SpotForecast[]> = {};
     for (const f of sortedForecasts) {
       const r = f.spot.region || 'Autre';
@@ -218,18 +276,57 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     return Object.entries(map);
   }, [sortedForecasts]);
 
-  const navigateToPick = useCallback((pick: BestPick) => {
-    navigation.navigate('SpotDetail', { forecast: pick.forecast });
-  }, [navigation]);
+  useEffect(() => {
+    if (sortedForecasts.length > 0) setStoredForecasts(sortedForecasts);
+    else if (forecasts.length > 0) setStoredForecasts(forecasts);
+  }, [sortedForecasts, forecasts]);
 
-  const isLoading = loadedCount === 0 && forecasts.length === 0 && !error;
+  const navigateToSpot = useCallback((forecast: SpotForecast) => {
+    const allList = sortedForecasts.length > 0 ? sortedForecasts : forecasts;
+    setStoredForecasts(allList);
+    const idx = allList.findIndex(f => f.spot.id === forecast.spot.id);
+    navigation.navigate('SpotDetail', { forecast, spotIndex: idx >= 0 ? idx : 0 });
+  }, [navigation, sortedForecasts, forecasts]);
+
+  const navigateToPick = useCallback((pick: BestPick) => { navigateToSpot(pick.forecast); }, [navigateToSpot]);
+
+  const loadAndNavigateToSpot = useCallback(async (spot: SpotConfig) => {
+    setLoadingSearchSpot(spot.id);
+    try {
+      const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude);
+      const forecast = computeSpotForecast(spot, marine, weather, profile);
+      setForecasts(prev => {
+        const next = [...prev.filter(f => f.spot.id !== spot.id), forecast].sort((a, b) => b.currentScore - a.currentScore);
+        setStoredForecasts(next);
+        return next;
+      });
+      setSearchOpen(false);
+      setSearchQuery('');
+      const allList = [...forecasts.filter(f => f.spot.id !== spot.id), forecast];
+      setStoredForecasts(allList);
+      navigation.navigate('SpotDetail', { forecast, spotIndex: 0 });
+    } catch {
+      setLoadingSearchSpot(null);
+    }
+  }, [profile, forecasts, navigation]);
+
+  const isLoading = (loadedCount === 0 && forecasts.length === 0 && !error) || locLoading;
 
   if (isLoading) {
     return (
-      <View style={[ss.loadWrap, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator size="large" color={colors.accent} />
-        <Text style={[ss.loadTxt, { color: colors.white40 }]}>Analyse des conditions...</Text>
-      </View>
+      <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} showsVerticalScrollIndicator={false}>
+        <View style={[ss.header, { paddingTop: insets.top + 12 }]}>
+          <View style={ss.headerLeft}>
+            <Text style={[ss.logo, { color: colors.white }]}>SpotWave</Text>
+            <Text style={[ss.subtitle, { color: colors.white40 }]}>
+              {locLoading ? 'Recherche de votre position...' : 'Analyse des conditions...'}
+            </Text>
+          </View>
+        </View>
+        <View style={{ marginTop: 20 }}>
+          {[0, 1, 2, 3].map(i => <SkeletonCard key={i} />)}
+        </View>
+      </ScrollView>
     );
   }
 
@@ -244,201 +341,371 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     );
   }
 
+  const filterChips: { key: string; label: string; active: boolean; onPress: () => void }[] = [];
+  filterChips.push({ key: 'all', label: 'Tous', active: !countryFilter && !regionFilter, onPress: () => { setCountryFilter(null); setRegionFilter(null); } });
+
+  if (countries.length > 1) {
+    for (const c of countries) {
+      filterChips.push({
+        key: `c-${c}`, label: c, active: countryFilter === c && !regionFilter,
+        onPress: () => { setCountryFilter(prev => prev === c ? null : c); setRegionFilter(null); },
+      });
+    }
+  }
+
+  if (countryFilter && regions.length > 1) {
+    for (const r of regions) {
+      filterChips.push({ key: `r-${r}`, label: r, active: regionFilter === r, onPress: () => setRegionFilter(prev => prev === r ? null : r) });
+    }
+  }
+
+  if (!countryFilter && countries.length <= 1 && regions.length > 1) {
+    for (const r of regions) {
+      filterChips.push({ key: `r-${r}`, label: r, active: regionFilter === r, onPress: () => setRegionFilter(prev => prev === r ? null : r) });
+    }
+  }
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bg }}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
     >
       {/* Header */}
-      <View style={ss.header}>
+      <View style={[ss.header, { paddingTop: insets.top + 12 }]}>
         <View style={ss.headerLeft}>
-          <Text style={[ss.logo, { color: colors.white }]}>SpotWave</Text>
-          <Text style={[ss.subtitle, { color: colors.white40 }]}>Portugal · {levelTxt}</Text>
+          <View style={ss.logoRow}>
+            <Logo size={26} color={colors.accent} />
+            <Text style={[ss.logo, { color: colors.white }]}>SpotWave</Text>
+          </View>
+          <Text style={[ss.subtitle, { color: colors.white40 }]}>
+            {location ? '📍 ' : ''}{locationLabel} · {levelTxt}
+          </Text>
         </View>
         <View style={ss.headerRight}>
-          {loadedCount < totalCount && (
+          {loadedCount < totalCount && totalCount > 0 && (
             <View style={[ss.loadingPill, { backgroundColor: colors.cardLight }]}>
               <ActivityIndicator size="small" color={colors.accent} />
               <Text style={[ss.loadingTxt, { color: colors.white40 }]}>{loadedCount}/{totalCount}</Text>
             </View>
           )}
-          <TouchableOpacity style={[ss.headerBtn, { backgroundColor: colors.cardLight }]} onPress={() => navigation.navigate('Map', { forecasts })} activeOpacity={0.7}>
-            <Ionicons name="map-outline" size={20} color={colors.white70} />
+          <TouchableOpacity style={[ss.headerBtn, { backgroundColor: searchOpen ? colors.accentDim : colors.cardLight }]} onPress={() => { setSearchOpen(!searchOpen); if (searchOpen) setSearchQuery(''); }} activeOpacity={0.7} accessibilityLabel="Rechercher" accessibilityRole="button">
+            <Ionicons name={searchOpen ? 'close' : 'search'} size={20} color={searchOpen ? colors.accent : colors.white70} />
           </TouchableOpacity>
-          <TouchableOpacity style={[ss.headerBtn, { backgroundColor: colors.cardLight }]} onPress={() => navigation.navigate('Profile')} activeOpacity={0.7}>
-            <Ionicons name="settings-outline" size={20} color={colors.white70} />
+          <TouchableOpacity style={[ss.headerBtn, { backgroundColor: colors.cardLight }]} onPress={() => navigation.navigate('MapTab')} activeOpacity={0.7} accessibilityLabel="Carte mondiale" accessibilityRole="button">
+            <Ionicons name="earth-outline" size={20} color={colors.white70} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Region filter */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={ss.filterRow} contentContainerStyle={ss.filterContent}>
-        {ALL_REGIONS.map(r => {
-          const active = regionFilter === r;
-          return (
-            <TouchableOpacity
-              key={r}
-              style={[ss.filterChip, { backgroundColor: active ? colors.accentDim : colors.cardLight, borderColor: active ? colors.accent : 'transparent' }]}
-              onPress={() => setRegionFilter(r)}
-              activeOpacity={0.7}
-            >
-              <Text style={[ss.filterTxt, { color: active ? colors.accent : colors.white40 }]}>{r}</Text>
+      {/* Search bar */}
+      {searchOpen && (
+        <View style={[ss.searchWrap, { backgroundColor: colors.card }]}>
+          <Ionicons name="search" size={18} color={colors.white40} />
+          <TextInput
+            style={[ss.searchInput, { color: colors.white }]}
+            placeholder="Rechercher un spot, pays, région..."
+            placeholderTextColor={colors.white40}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+            accessibilityLabel="Rechercher un spot"
+            accessibilityRole="search"
+            returnKeyType="search"
+          />
+          {searchQuery.length > 0 && searchOpen && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} accessibilityLabel="Effacer la recherche" accessibilityRole="button">
+              <Ionicons name="close-circle" size={18} color={colors.white40} />
             </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
-      {/* Last update + failed count */}
-      <View style={ss.metaRow}>
-        {lastUpdate && (
-          <Text style={[ss.metaTxt, { color: colors.white40 }]}>Mis à jour {fmtElapsed(lastUpdate)}</Text>
-        )}
-        {failedCount > 0 && (
-          <Text style={[ss.metaTxt, { color: colors.orange }]}>{failedCount} spot{failedCount > 1 ? 's' : ''} indisponible{failedCount > 1 ? 's' : ''}</Text>
-        )}
-      </View>
-
-      {/* HERO — Aujourd'hui */}
-      {bestToday ? (
-        <TouchableOpacity
-          style={[ss.hero, { backgroundColor: colors.card, borderColor: `${colors.accent}25` }]}
-          activeOpacity={0.8}
-          onPress={() => navigateToPick(bestToday)}
-        >
-          <Text style={[ss.heroQ, { color: colors.white }]}>Où surfer aujourd'hui ?</Text>
-          <View style={ss.heroMain}>
-            <View style={ss.heroLeft}>
-              <Text style={ss.heroEmoji}>{scoreEmoji(bestToday.cond.score)}</Text>
-              <ScoreBadge score={bestToday.cond.score} size="hero" />
-            </View>
-            <View style={ss.heroRight}>
-              <Text style={[ss.heroSpot, { color: colors.white }]}>{bestToday.spotName}</Text>
-              <Text style={[ss.heroRange, { color: colors.white70 }]}>{bestToday.timeRange}</Text>
-              <Text style={[ss.heroLabel, { color: scoreColor(bestToday.cond.score) }]}>
-                {scoreLabel(bestToday.cond.score)}
-              </Text>
-            </View>
-          </View>
-          <View style={[ss.heroBar, { backgroundColor: colors.white08 }]}>
-            <MiniStat icon="🌊" value={`${bestToday.cond.swellHeight.toFixed(1)}m`} sub="houle" colors={colors} />
-            <View style={[ss.heroDiv, { backgroundColor: colors.white15 }]} />
-            <MiniStat icon="⏱" value={`${bestToday.cond.swellPeriod.toFixed(0)}s`} sub="période" colors={colors} />
-            <View style={[ss.heroDiv, { backgroundColor: colors.white15 }]} />
-            <MiniStat icon="💨" value={windLabel(bestToday.cond.windSpeed, bestToday.cond.windDirection, bestToday.beachOrientation)} sub={`${bestToday.cond.windSpeed.toFixed(0)} km/h`} colors={colors} />
-            <View style={[ss.heroDiv, { backgroundColor: colors.white15 }]} />
-            <MiniStat icon="🧭" value={dirLabel(bestToday.cond.swellDirection)} sub="houle dir." colors={colors} />
-          </View>
-        </TouchableOpacity>
-      ) : (
-        <View style={[ss.emptyHero, { backgroundColor: colors.card }]}>
-          <Text style={ss.emptyEmoji}>🏖️</Text>
-          <Text style={[ss.emptyTitle, { color: colors.white }]}>Pas de bonnes conditions aujourd'hui</Text>
-          <Text style={[ss.emptySubtitle, { color: colors.white40 }]}>
-            {bestWeek.length > 0
-              ? `Prochain bon créneau : ${bestWeek[0].dayLabel} à ${bestWeek[0].spotName}`
-              : 'Aucun bon créneau cette semaine'}
-          </Text>
+          )}
         </View>
       )}
 
-      {/* Top 5 jours */}
-      {bestWeek.length > 0 && (
-        <View style={ss.weekSection}>
-          <Text style={[ss.weekTitle, { color: colors.white }]}>Meilleurs créneaux cette semaine</Text>
-          {bestWeek.map((pick, idx) => (
-            <TouchableOpacity
-              key={`${pick.spotId}-${pick.cond.time}`}
-              style={[ss.weekCard, { backgroundColor: colors.card }, idx === 0 && { borderColor: scoreColor(pick.cond.score), borderWidth: 1 }]}
-              activeOpacity={0.7}
-              onPress={() => navigateToPick(pick)}
-            >
-              <View style={ss.weekLeft}>
-                <View style={[ss.weekRank, { backgroundColor: idx === 0 ? scoreBg(pick.cond.score) : colors.white08 }]}>
-                  <Text style={[ss.weekRankTxt, { color: idx === 0 ? scoreColor(pick.cond.score) : colors.white40 }]}>#{idx + 1}</Text>
-                </View>
-                <View style={ss.weekInfo}>
-                  <Text style={[ss.weekDay, { color: colors.white }]}>{pick.dayLabel}</Text>
-                  <Text style={[ss.weekSpot, { color: colors.white70 }]}>{pick.spotName} · {pick.timeRange}</Text>
-                  <View style={ss.weekStats}>
-                    <Text style={[ss.weekStat, { color: colors.white40 }]}>🌊 {pick.cond.swellHeight.toFixed(1)}m</Text>
-                    <Text style={[ss.weekStat, { color: colors.white40 }]}>⏱ {pick.cond.swellPeriod.toFixed(0)}s</Text>
-                    <Text style={[ss.weekStat, { color: colors.white40 }]}>💨 {pick.cond.windSpeed.toFixed(0)} km/h</Text>
-                  </View>
-                </View>
-              </View>
-              <View style={ss.weekRight}>
-                <ScoreBadge score={pick.cond.score} size="md" />
-                <Text style={[ss.weekLabel, { color: scoreColor(pick.cond.score) }]}>{scoreShort(pick.cond.score)}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {/* Spots par région */}
-      {regions.map(([region, regionForecasts]) => (
-        <View key={region}>
-          <Text style={[ss.secTitle, { color: colors.white }]}>{region}</Text>
-          {regionForecasts.map((f) => {
-            const cc = f.currentCondition;
-            const wl = cc ? windLabel(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : '';
-            const isOnshore = wl === 'Onshore' || wl === 'Cross-on';
-            const isFav = favs.includes(f.spot.id);
-            return (
-              <TouchableOpacity
-                key={f.spot.id}
-                style={[ss.spot, { backgroundColor: colors.card }]}
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate('SpotDetail', { forecast: f })}
-              >
-                <View style={ss.spotHead}>
-                  <ScoreBadge score={f.currentScore} size="lg" />
-                  <View style={ss.spotInfo}>
-                    <View style={ss.spotNameRow}>
-                      <Text style={[ss.spotName, { color: colors.white }]}>{f.spot.name}</Text>
-                      {isFav && <Text style={ss.favStar}>★</Text>}
-                    </View>
-                    <Text style={[ss.spotLabel, { color: scoreColor(f.currentScore) }]}>
-                      {scoreEmoji(f.currentScore)} {scoreLabel(f.currentScore)}
+      {/* Search results */}
+      {searchOpen && searchQuery.length > 0 && (
+        <View style={ss.searchResults}>
+          {searchResults.length === 0 ? (
+            <Text style={[ss.searchEmpty, { color: colors.white40 }]}>Aucun résultat pour "{searchQuery}"</Text>
+          ) : (
+            searchResults.map((spot) => {
+              const forecast = forecasts.find(f => f.spot.id === spot.id);
+              const dist = distanceMap.get(spot.id);
+              const badge = LEVEL_BADGE[spot.recommendedLevel];
+              const isLoadingThis = loadingSearchSpot === spot.id;
+              return (
+                <TouchableOpacity
+                  key={spot.id}
+                  style={[ss.searchItem, { backgroundColor: colors.card }, isLoadingThis && { opacity: 0.6 }]}
+                  activeOpacity={0.7}
+                  disabled={isLoadingThis}
+                  onPress={() => {
+                    if (forecast) {
+                      navigateToSpot(forecast);
+                      setSearchOpen(false);
+                      setSearchQuery('');
+                    } else {
+                      loadAndNavigateToSpot(spot);
+                    }
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={[ss.searchName, { color: colors.white }]}>{spot.name}</Text>
+                    <Text style={[ss.searchMeta, { color: colors.white40 }]}>
+                      {spot.region} · {spot.country}
+                      {dist != null ? `  ·  📍 ${formatDistance(dist)}` : ''}
                     </Text>
-                  </View>
-                  <TouchableOpacity onPress={() => handleToggleFav(f.spot.id)} style={ss.favBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Ionicons name={isFav ? 'star' : 'star-outline'} size={22} color={isFav ? colors.yellow : colors.white40} />
-                  </TouchableOpacity>
-                </View>
-
-                {cc && (
-                  <View style={ss.spotBar}>
-                    <Text style={[ss.spotStat, { color: colors.white70 }]}>🌊 {cc.swellHeight.toFixed(1)}m</Text>
-                    <Text style={[ss.spotDot, { color: colors.white15 }]}>·</Text>
-                    <Text style={[ss.spotStat, { color: colors.white70 }]}>{cc.swellPeriod.toFixed(0)}s</Text>
-                    <Text style={[ss.spotDot, { color: colors.white15 }]}>·</Text>
-                    <Text style={[ss.spotStat, isOnshore && { color: colors.red }]}>💨 {wl} {cc.windSpeed.toFixed(0)}</Text>
-                    {cc.windGusts > 20 && (
-                      <>
-                        <Text style={[ss.spotDot, { color: colors.white15 }]}>·</Text>
-                        <Text style={[ss.spotStat, { color: colors.orange }]}>💥 {cc.windGusts.toFixed(0)}</Text>
-                      </>
+                    {isLoadingThis && (
+                      <Text style={[ss.searchLoading, { color: colors.accent }]}>Chargement des conditions…</Text>
                     )}
                   </View>
-                )}
+                  <View style={[ss.levelBadge, { backgroundColor: badge.bg }]}>
+                    <Text style={[ss.levelBadgeTxt, { color: badge.color }]}>{badge.label}</Text>
+                  </View>
+                  {forecast && <ScoreBadge score={forecast.currentScore} size="sm" />}
+                  {isLoadingThis && <ActivityIndicator size="small" color={colors.accent} />}
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </View>
+      )}
 
-                <View style={[ss.spotBest, { backgroundColor: scoreBg(f.bestTime.score) }]}>
-                  <Text style={[ss.spotBestTxt, { color: scoreColor(f.bestTime.score) }]}>
-                    ⏰ {f.bestTime.label} — {scoreShort(f.bestTime.score)} ({f.bestTime.score.toFixed(1)})
-                  </Text>
-                </View>
+      {/* Filters */}
+      {!searchOpen && (
+        <>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={ss.filterRow} contentContainerStyle={ss.filterContent}>
+            {filterChips.map(chip => (
+              <TouchableOpacity
+                key={chip.key}
+                style={[ss.filterChip, { backgroundColor: chip.active ? colors.accentDim : colors.cardLight, borderColor: chip.active ? colors.accent : 'transparent' }]}
+                onPress={chip.onPress}
+                activeOpacity={0.7}
+              >
+                <Text style={[ss.filterTxt, { color: chip.active ? colors.accent : colors.white40 }]}>{chip.label}</Text>
               </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Meta */}
+          <View style={ss.metaRow}>
+            {lastUpdate && <Text style={[ss.metaTxt, { color: colors.white40 }]}>Mis à jour {fmtElapsed(lastUpdate)}</Text>}
+            {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.orange }]}>{failedCount} spot{failedCount > 1 ? 's' : ''} indisponible{failedCount > 1 ? 's' : ''}</Text>}
+          </View>
+
+          {/* HERO */}
+          {bestToday ? (
+            <TouchableOpacity style={[ss.hero, { backgroundColor: colors.card, borderColor: `${colors.accent}25` }]} activeOpacity={0.8} onPress={() => navigateToPick(bestToday)}>
+              <Text style={[ss.heroQ, { color: colors.white }]}>Où surfer aujourd'hui ?</Text>
+              <View style={ss.heroMain}>
+                <View style={ss.heroLeft}>
+                  <Text style={ss.heroEmoji}>{scoreEmoji(bestToday.cond.score)}</Text>
+                  <ScoreBadge score={bestToday.cond.score} size="hero" animated />
+                </View>
+                <View style={ss.heroRight}>
+                  <Text style={[ss.heroSpot, { color: colors.white }]}>{bestToday.spotName}</Text>
+                  <Text style={[ss.heroRange, { color: colors.white70 }]}>{bestToday.timeRange}</Text>
+                  <Text style={[ss.heroLabel, { color: scoreColor(bestToday.cond.score) }]}>{scoreLabel(bestToday.cond.score)}</Text>
+                  {location && distanceMap.has(bestToday.spotId) && (
+                    <Text style={[ss.heroDistance, { color: colors.white40 }]}>📍 {formatDistance(distanceMap.get(bestToday.spotId)!)}</Text>
+                  )}
+                </View>
+              </View>
+              <View style={[ss.heroBar, { backgroundColor: colors.white08 }]}>
+                <MiniStat icon="🌊" value={`${bestToday.cond.swellHeight.toFixed(1)}m`} sub="houle" colors={colors} />
+                <View style={[ss.heroDiv, { backgroundColor: colors.white15 }]} />
+                <MiniStat icon="⏱" value={`${bestToday.cond.swellPeriod.toFixed(0)}s`} sub="période" colors={colors} />
+                <View style={[ss.heroDiv, { backgroundColor: colors.white15 }]} />
+                <MiniStat icon="💨" value={windLabel(bestToday.cond.windSpeed, bestToday.cond.windDirection, bestToday.beachOrientation)} sub={`${bestToday.cond.windSpeed.toFixed(0)} km/h`} colors={colors} />
+                <View style={[ss.heroDiv, { backgroundColor: colors.white15 }]} />
+                <MiniStat icon="🧭" value={dirLabel(bestToday.cond.swellDirection)} sub="houle dir." colors={colors} />
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <View style={[ss.emptyHero, { backgroundColor: colors.card }]}>
+              <Text style={ss.emptyEmoji}>🏖️</Text>
+              <Text style={[ss.emptyTitle, { color: colors.white }]}>Pas de bonnes conditions aujourd'hui</Text>
+              <Text style={[ss.emptySubtitle, { color: colors.white40 }]}>
+                {bestWeek.length > 0 ? `Prochain bon créneau : ${bestWeek[0].dayLabel} à ${bestWeek[0].spotName}` : 'Aucun bon créneau cette semaine'}
+              </Text>
+            </View>
+          )}
+
+          {/* Best week */}
+          {bestWeek.length > 0 && (
+            <View style={ss.weekSection}>
+              <Text style={[ss.weekTitle, { color: colors.white }]}>Meilleurs créneaux cette semaine</Text>
+              {bestWeek.map((pick, idx) => (
+                <SlideFromRight key={`${pick.spotId}-${pick.cond.time}`} index={idx}>
+                  <TouchableOpacity
+                    style={[ss.weekCard, { backgroundColor: colors.card }, idx === 0 && { borderColor: scoreColor(pick.cond.score), borderWidth: 1 }]}
+                    activeOpacity={0.7} onPress={() => navigateToPick(pick)}
+                  >
+                    <View style={ss.weekLeft}>
+                      <View style={[ss.weekRank, { backgroundColor: idx === 0 ? scoreBg(pick.cond.score) : colors.white08 }]}>
+                        <Text style={[ss.weekRankTxt, { color: idx === 0 ? scoreColor(pick.cond.score) : colors.white40 }]}>#{idx + 1}</Text>
+                      </View>
+                      <View style={ss.weekInfo}>
+                        <Text style={[ss.weekDay, { color: colors.white }]}>{pick.dayLabel}</Text>
+                        <Text style={[ss.weekSpot, { color: colors.white70 }]}>{pick.spotName} · {pick.timeRange}</Text>
+                        <View style={ss.weekStats}>
+                          <Text style={[ss.weekStat, { color: colors.white40 }]}>🌊 {pick.cond.swellHeight.toFixed(1)}m</Text>
+                          <Text style={[ss.weekStat, { color: colors.white40 }]}>⏱ {pick.cond.swellPeriod.toFixed(0)}s</Text>
+                          <Text style={[ss.weekStat, { color: colors.white40 }]}>💨 {pick.cond.windSpeed.toFixed(0)} km/h</Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View style={ss.weekRight}>
+                      <ScoreBadge score={pick.cond.score} size="md" />
+                      <Text style={[ss.weekLabel, { color: scoreColor(pick.cond.score) }]}>{scoreShort(pick.cond.score)}</Text>
+                    </View>
+                  </TouchableOpacity>
+                </SlideFromRight>
+              ))}
+            </View>
+          )}
+
+          {/* Spots by region */}
+          {regionGroups.map(([region, regionForecasts]) => {
+            let cardIdx = 0;
+            return (
+              <View key={region}>
+                <Text style={[ss.secTitle, { color: colors.white }]}>{region}</Text>
+                {regionForecasts.map((f) => (
+                  <StaggerIn key={f.spot.id} index={cardIdx++}>
+                    <SpotCard
+                      forecast={f} isFav={favs.includes(f.spot.id)}
+                      distance={distanceMap.get(f.spot.id)}
+                      onPress={() => navigateToSpot(f)}
+                      onToggleFav={() => handleToggleFav(f.spot.id)}
+                      colors={colors}
+                    />
+                  </StaggerIn>
+                ))}
+              </View>
             );
           })}
-        </View>
-      ))}
 
-      <View style={{ height: 100 }} />
+          {/* Destinations populaires */}
+          <View style={ss.destSection}>
+            <Text style={[ss.secTitle, { color: colors.white }]}>Explorer le monde</Text>
+            <Text style={[ss.destSub, { color: colors.white40 }]}>
+              {SPOTS.length} spots dans {Array.from(new Set(SPOTS.map(s => s.country))).length} pays · Ouvre la carte pour tous les voir
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={ss.destRow}>
+              {DESTINATIONS.map((d) => (
+                <TouchableOpacity
+                  key={d.country}
+                  style={[ss.destCard, { backgroundColor: colors.card }]}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate('MapTab', { focusCountry: d.country })}
+                >
+                  <Text style={ss.destEmoji}>{d.emoji}</Text>
+                  <Text style={[ss.destName, { color: colors.white }]} numberOfLines={1}>{d.country}</Text>
+                  <Text style={[ss.destCount, { color: colors.white40 }]}>{d.spots} spots</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          <View style={{ height: 100 }} />
+        </>
+      )}
     </ScrollView>
   );
 }
+
+function SlideFromRight({ index, children }: { index: number; children: React.ReactNode }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  const slideX = useRef(new Animated.Value(80)).current;
+  useEffect(() => {
+    const delay = 150 + index * 100;
+    const timer = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(anim, { toValue: 1, duration: 300, useNativeDriver: true }),
+        Animated.spring(slideX, { toValue: 0, friction: 8, tension: 60, useNativeDriver: true }),
+      ]).start();
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [anim, slideX, index]);
+  return <Animated.View style={{ opacity: anim, transform: [{ translateX: slideX }] }}>{children}</Animated.View>;
+}
+
+function StaggerIn({ index, children }: { index: number; children: React.ReactNode }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  const slide = useRef(new Animated.Value(20)).current;
+  useEffect(() => {
+    const delay = Math.min(index * 60, 400);
+    const timer = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(anim, { toValue: 1, duration: 350, useNativeDriver: true }),
+        Animated.timing(slide, { toValue: 0, duration: 350, useNativeDriver: true }),
+      ]).start();
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [anim, slide, index]);
+  return <Animated.View style={{ opacity: anim, transform: [{ translateY: slide }] }}>{children}</Animated.View>;
+}
+
+const SpotCard = memo(function SpotCard({
+  forecast: f, isFav, distance, onPress, onToggleFav, colors,
+}: {
+  forecast: SpotForecast; isFav: boolean; distance?: number; onPress: () => void; onToggleFav: () => void; colors: any;
+}) {
+  const cc = f.currentCondition;
+  const wl = cc ? windLabel(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : '';
+  const isOnshore = wl === 'Onshore' || wl === 'Cross-on';
+  const badge = LEVEL_BADGE[f.spot.recommendedLevel];
+  return (
+    <TouchableOpacity
+      style={[ss.spot, { backgroundColor: colors.card }]} activeOpacity={0.7} onPress={onPress}
+      accessibilityLabel={`${f.spot.name}, score ${f.currentScore.toFixed(1)}`} accessibilityRole="button"
+    >
+      <View style={ss.spotHead}>
+        <ScoreBadge score={f.currentScore} size="lg" animated />
+        <View style={ss.spotInfo}>
+          <View style={ss.spotNameRow}>
+            <Text style={[ss.spotName, { color: colors.white }]} numberOfLines={1}>{f.spot.name}</Text>
+            {isFav && <Text style={ss.favStar}>★</Text>}
+          </View>
+          <Text style={[ss.spotLabel, { color: scoreColor(f.currentScore) }]}>
+            {scoreEmoji(f.currentScore)} {scoreLabel(f.currentScore)}
+          </Text>
+          <View style={ss.spotMeta}>
+            <View style={[ss.levelBadgeSm, { backgroundColor: badge.bg }]}>
+              <Text style={[ss.levelBadgeSmTxt, { color: badge.color }]}>{badge.label}</Text>
+            </View>
+            {distance != null && (
+              <Text style={[ss.spotDistance, { color: colors.accent }]}>📍 {formatDistance(distance)}</Text>
+            )}
+          </View>
+        </View>
+        <TouchableOpacity onPress={onToggleFav} style={ss.favBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'} accessibilityRole="button">
+          <Ionicons name={isFav ? 'star' : 'star-outline'} size={22} color={isFav ? colors.yellow : colors.white40} />
+        </TouchableOpacity>
+      </View>
+      {cc && (
+        <View style={ss.spotBar}>
+          <Text style={[ss.spotStat, { color: colors.white70 }]}>{weatherIcon(cc.weatherCode)}</Text>
+          <Text style={[ss.spotDot, { color: colors.white15 }]}>·</Text>
+          <Text style={[ss.spotStat, { color: colors.white70 }]}>🌊 {cc.swellHeight.toFixed(1)}m</Text>
+          <Text style={[ss.spotDot, { color: colors.white15 }]}>·</Text>
+          <Text style={[ss.spotStat, { color: colors.white70 }]}>{cc.swellPeriod.toFixed(0)}s</Text>
+          <Text style={[ss.spotDot, { color: colors.white15 }]}>·</Text>
+          <Text style={[ss.spotStat, { color: isOnshore ? colors.red : colors.white70 }]}>💨 {wl} {cc.windSpeed.toFixed(0)}</Text>
+          {cc.windGusts > 20 && (
+            <><Text style={[ss.spotDot, { color: colors.white15 }]}>·</Text><Text style={[ss.spotStat, { color: colors.orange }]}>💥 {cc.windGusts.toFixed(0)}</Text></>
+          )}
+        </View>
+      )}
+      <View style={[ss.spotBest, { backgroundColor: scoreBg(f.bestTime.score) }]}>
+        <Text style={[ss.spotBestTxt, { color: scoreColor(f.bestTime.score) }]}>
+          ⏰ {f.bestTime.label} — {scoreShort(f.bestTime.score)} ({f.bestTime.score.toFixed(1)})
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+});
 
 function MiniStat({ icon, value, sub, colors }: { icon: string; value: string; sub: string; colors: any }) {
   return (
@@ -452,19 +719,30 @@ function MiniStat({ icon, value, sub, colors }: { icon: string; value: string; s
 
 const ss = StyleSheet.create({
   loadWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadTxt: { marginTop: 14, fontSize: 14, fontWeight: '500' },
   errTxt: { fontSize: 15, textAlign: 'center', paddingHorizontal: 30 },
   retryBtn: { marginTop: 16, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 20 },
   retryTxt: { fontWeight: '700', fontSize: 14 },
 
-  header: { paddingTop: 56, paddingHorizontal: 20, paddingBottom: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  header: { paddingTop: 12, paddingHorizontal: 20, paddingBottom: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   headerLeft: { flex: 1 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerBtn: { width: 38, height: 38, borderRadius: 19, justifyContent: 'center', alignItems: 'center' },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   logo: { fontSize: 30, fontWeight: '900', letterSpacing: -1 },
   subtitle: { fontSize: 12, marginTop: 3 },
   loadingPill: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5, gap: 6 },
   loadingTxt: { fontSize: 11, fontWeight: '600' },
+
+  searchWrap: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, gap: 10 },
+  searchInput: { flex: 1, fontSize: 15, fontWeight: '500', padding: 0 },
+  searchResults: { marginHorizontal: 16, marginTop: 6 },
+  searchEmpty: { fontSize: 13, fontWeight: '500', textAlign: 'center', paddingVertical: 20 },
+  searchItem: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 6, gap: 10 },
+  searchName: { fontSize: 15, fontWeight: '700' },
+  searchMeta: { fontSize: 11, fontWeight: '500', marginTop: 2 },
+  searchLoading: { fontSize: 11, fontWeight: '600', marginTop: 3 },
+  levelBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  levelBadgeTxt: { fontSize: 10, fontWeight: '700' },
 
   filterRow: { marginTop: 10, maxHeight: 44 },
   filterContent: { paddingHorizontal: 16, gap: 8 },
@@ -488,6 +766,7 @@ const ss = StyleSheet.create({
   heroSpot: { fontSize: 24, fontWeight: '800' },
   heroRange: { fontSize: 32, fontWeight: '200', marginTop: 4 },
   heroLabel: { fontSize: 14, fontWeight: '700', marginTop: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
+  heroDistance: { fontSize: 12, fontWeight: '500', marginTop: 4 },
   heroBar: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingVertical: 14 },
   heroDiv: { width: 1, height: 32 },
   ms: { flex: 1, alignItems: 'center' },
@@ -511,13 +790,25 @@ const ss = StyleSheet.create({
 
   secTitle: { fontSize: 20, fontWeight: '800', marginLeft: 20, marginTop: 22, marginBottom: 10 },
 
+  destSection: { marginTop: 10 },
+  destSub: { fontSize: 12, fontWeight: '500', marginLeft: 20, marginBottom: 12 },
+  destRow: { paddingHorizontal: 16, gap: 10 },
+  destCard: { width: 110, borderRadius: 14, padding: 14, alignItems: 'center' },
+  destEmoji: { fontSize: 28, marginBottom: 6 },
+  destName: { fontSize: 12, fontWeight: '700', textAlign: 'center' },
+  destCount: { fontSize: 10, fontWeight: '500', marginTop: 2 },
+
   spot: { marginHorizontal: 16, marginBottom: 10, borderRadius: 16, padding: 16 },
   spotHead: { flexDirection: 'row', alignItems: 'center' },
   spotInfo: { flex: 1, marginLeft: 14 },
   spotNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  spotName: { fontSize: 17, fontWeight: '800' },
+  spotName: { fontSize: 17, fontWeight: '800', flexShrink: 1 },
   favStar: { color: '#FFD060', fontSize: 14 },
   spotLabel: { fontSize: 13, fontWeight: '600', marginTop: 3 },
+  spotMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  levelBadgeSm: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
+  levelBadgeSmTxt: { fontSize: 9, fontWeight: '700' },
+  spotDistance: { fontSize: 11, fontWeight: '600' },
   favBtn: { padding: 4 },
   spotBar: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: 12, paddingLeft: 4, gap: 2 },
   spotStat: { fontSize: 12, fontWeight: '500' },

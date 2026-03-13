@@ -1,0 +1,80 @@
+import * as Location from 'expo-location';
+import { SpotConfig } from '../types';
+
+export interface UserLocation {
+  latitude: number;
+  longitude: number;
+}
+
+export async function requestLocation(): Promise<UserLocation | null> {
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') return null;
+
+    const loc = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.Balanced,
+    });
+
+    return { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
+  } catch {
+    return null;
+  }
+}
+
+export function haversineDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export function formatDistance(km: number): string {
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  if (km < 10) return `${km.toFixed(1)} km`;
+  return `${Math.round(km)} km`;
+}
+
+export function getSpotsInRadius(
+  spots: SpotConfig[],
+  userLat: number,
+  userLon: number,
+  radiusKm: number,
+): (SpotConfig & { distance: number })[] {
+  return spots
+    .map((spot) => ({
+      ...spot,
+      distance: haversineDistance(userLat, userLon, spot.latitude, spot.longitude),
+    }))
+    .filter((s) => s.distance <= radiusKm)
+    .sort((a, b) => a.distance - b.distance);
+}
+
+export function getNearbySpotsWithFallback(
+  spots: SpotConfig[],
+  userLat: number,
+  userLon: number,
+  radiusKm = 200,
+  minSpots = 5,
+  maxRadius = 1000,
+): (SpotConfig & { distance: number })[] {
+  let radius = radiusKm;
+  let nearby = getSpotsInRadius(spots, userLat, userLon, radius);
+
+  while (nearby.length < minSpots && radius < maxRadius) {
+    radius = Math.min(radius * 1.5, maxRadius);
+    nearby = getSpotsInRadius(spots, userLat, userLon, radius);
+  }
+
+  return nearby;
+}

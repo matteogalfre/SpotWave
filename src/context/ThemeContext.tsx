@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const THEME_KEY = '@spotwave_theme';
@@ -22,11 +22,11 @@ export const DARK = {
   yellowDim: 'rgba(255,208,96,0.12)',
   blue: '#4A90FF',
   blueDim: 'rgba(74,144,255,0.15)',
-  statusBar: 'light' as const,
+  statusBar: 'light' as 'light' | 'dark',
   mapTile: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
 };
 
-export const LIGHT = {
+export const LIGHT: ThemePalette = {
   bg: '#F2F4F8',
   card: '#FFFFFF',
   cardLight: '#E8EBF0',
@@ -45,7 +45,7 @@ export const LIGHT = {
   yellowDim: 'rgba(212,168,64,0.10)',
   blue: '#3A7BDB',
   blueDim: 'rgba(58,123,219,0.12)',
-  statusBar: 'dark' as const,
+  statusBar: 'dark',
   mapTile: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
 };
 
@@ -69,18 +69,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.getItem(THEME_KEY).then((v) => {
       if (v === 'light') setIsDark(false);
-    }).catch(() => {});
+    }).catch((e) => console.warn('[SpotWave] Theme load error:', e));
   }, []);
 
   const toggleTheme = useCallback(() => {
     setIsDark((prev) => {
       const next = !prev;
-      AsyncStorage.setItem(THEME_KEY, next ? 'dark' : 'light').catch(() => {});
+      AsyncStorage.setItem(THEME_KEY, next ? 'dark' : 'light').catch((e) => console.warn('[SpotWave] Theme save error:', e));
       return next;
     });
   }, []);
 
-  const colors = isDark ? DARK : LIGHT;
+  const colors = useMemo(() => isDark ? DARK : LIGHT, [isDark]);
 
   return (
     <ThemeContext.Provider value={{ isDark, colors, toggleTheme }}>

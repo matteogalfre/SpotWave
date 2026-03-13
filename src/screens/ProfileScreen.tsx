@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProfile } from '../context/ProfileContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLocation } from '../context/LocationContext';
+import { useToast } from '../components/Toast';
 import { SurferLevel, WaveHeightPref, SurferProfile } from '../types';
 import { ProfileScreenProps } from '../navigation/types';
 
@@ -87,29 +90,39 @@ const hs = StyleSheet.create({
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { profile, updateProfile } = useProfile();
   const { colors, isDark, toggleTheme } = useTheme();
+  const { location, loading: locLoading, denied: locDenied, refresh: refreshLoc } = useLocation();
+  const { show: showToast } = useToast();
+  const insets = useSafeAreaInsets();
   const [form, setForm] = useState<SurferProfile>({ ...profile });
   const [saved, setSaved] = useState(false);
 
   useEffect(() => { setForm({ ...profile }); }, [profile]);
 
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const save = async () => {
+    if (form.availableFrom >= form.availableTo) {
+      setValidationError("L'heure de début doit être avant l'heure de fin");
+      setTimeout(() => setValidationError(null), 3000);
+      return;
+    }
+    if (form.preferredHeight.length === 0) {
+      setValidationError('Sélectionne au moins une hauteur préférée');
+      setTimeout(() => setValidationError(null), 3000);
+      return;
+    }
+    setValidationError(null);
     await updateProfile(form);
     setSaved(true);
+    showToast('Profil sauvegardé', 'success');
     setTimeout(() => setSaved(false), 2000);
   };
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} showsVerticalScrollIndicator={false}>
-      <View style={s.header}>
-        <View style={s.headerRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={[s.backBtn, { backgroundColor: colors.cardLight }]}>
-            <Text style={[s.backTxt, { color: colors.white }]}>‹</Text>
-          </TouchableOpacity>
-          <View style={s.headerText}>
-            <Text style={[s.title, { color: colors.white }]}>Réglages</Text>
-            <Text style={[s.sub, { color: colors.white40 }]}>Personnalise tes recommandations</Text>
-          </View>
-        </View>
+      <View style={[s.header, { paddingTop: insets.top + 12 }]}>
+        <Text style={[s.title, { color: colors.white }]}>Réglages</Text>
+        <Text style={[s.sub, { color: colors.white40 }]}>Personnalise tes recommandations</Text>
       </View>
 
       <Section label="Niveau" colors={colors}>
@@ -189,6 +202,46 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         </Text>
       </Section>
 
+      <Section label="Localisation" colors={colors}>
+        <View style={s.notifRow}>
+          <View style={s.notifLeft}>
+            <Text style={s.notifIcon}>📍</Text>
+            <View>
+              <Text style={[s.notifTitle, { color: colors.white }]}>
+                {locLoading ? 'Recherche...' : location ? 'Position activée' : 'Position désactivée'}
+              </Text>
+              <Text style={[s.notifSub, { color: colors.white40 }]}>
+                {location
+                  ? `${location.latitude.toFixed(2)}°, ${location.longitude.toFixed(2)}° — Les spots proches de toi seront affichés en priorité`
+                  : locDenied
+                    ? 'Autorise la localisation pour voir les spots proches de toi'
+                    : 'Active la localisation pour des recommandations géolocalisées'}
+              </Text>
+            </View>
+          </View>
+          {!location && !locLoading && (
+            <TouchableOpacity
+              style={[s.chip, { backgroundColor: colors.accentDim, borderColor: colors.accent }]}
+              onPress={refreshLoc}
+              activeOpacity={0.7}
+            >
+              <Text style={[s.chipTxt, { color: colors.accent }]}>Activer</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </Section>
+
+      {validationError && (
+        <View style={[s.errorBox, { backgroundColor: colors.redDim }]}>
+          <Text style={[s.errorTxt, { color: colors.red }]}>⚠️ {validationError}</Text>
+        </View>
+      )}
+      <TouchableOpacity style={[s.saveBtn, { backgroundColor: colors.accent }, saved && s.saveDone]} activeOpacity={0.8} onPress={save} accessibilityLabel="Sauvegarder les réglages" accessibilityRole="button">
+        <Text style={s.saveTxt}>{saved ? '✓  Sauvegardé' : 'Sauvegarder'}</Text>
+      </TouchableOpacity>
+
+      <GuideSection colors={colors} />
+
       <Section label="Apparence" colors={colors}>
         <View style={s.notifRow}>
           <View style={s.notifLeft}>
@@ -202,12 +255,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         </View>
       </Section>
 
-      <TouchableOpacity style={[s.saveBtn, { backgroundColor: colors.accent }, saved && s.saveDone]} activeOpacity={0.8} onPress={save}>
-        <Text style={s.saveTxt}>{saved ? '✓  Sauvegardé' : 'Sauvegarder'}</Text>
-      </TouchableOpacity>
-
-      <GuideSection colors={colors} />
-
       <View style={{ height: 100 }} />
     </ScrollView>
   );
@@ -217,11 +264,11 @@ function GuideSection({ colors }: { colors: any }) {
   const [open, setOpen] = useState(false);
 
   const scoreRows = [
-    { range: '8.5 – 10', label: 'Parfait', emoji: '🔥', color: '#00D4AA' },
-    { range: '7.0 – 8.4', label: 'On fonce', emoji: '🤙', color: '#00D4AA' },
-    { range: '5.5 – 6.9', label: 'Correct', emoji: '👍', color: '#FF8A50' },
-    { range: '4.0 – 5.4', label: 'Moyen', emoji: '😐', color: '#FF8A50' },
-    { range: '2.0 – 3.9', label: 'Mauvais', emoji: '👎', color: '#FF5A5A' },
+    { range: '8.0 – 10', label: 'Parfait (rare)', emoji: '🔥', color: '#00D4AA' },
+    { range: '6.5 – 7.9', label: 'On fonce', emoji: '🤙', color: '#00D4AA' },
+    { range: '5.0 – 6.4', label: 'Correct', emoji: '👍', color: '#FF8A50' },
+    { range: '3.5 – 4.9', label: 'Moyen', emoji: '😐', color: '#FF8A50' },
+    { range: '2.0 – 3.4', label: 'Mauvais', emoji: '👎', color: '#FF5A5A' },
     { range: '0 – 1.9', label: 'Flat / nul', emoji: '🚫', color: '#FF5A5A' },
   ];
 
@@ -234,13 +281,14 @@ function GuideSection({ colors }: { colors: any }) {
   ];
 
   const factors = [
-    { icon: '🌊', title: 'Hauteur de houle', desc: 'Comparée à la plage optimale du spot et à ta préférence de hauteur définie dans ton profil.' },
-    { icon: '⏱', title: 'Période', desc: 'Plus la période est longue (> 10s), plus les vagues sont puissantes et bien formées.' },
-    { icon: '🧭', title: 'Direction de houle', desc: 'Chaque spot a une orientation idéale. Plus la houle arrive dans le bon angle, meilleur le score.' },
-    { icon: '💨', title: 'Vent', desc: 'Offshore = bonus. Onshore = malus. Les rafales > 25 km/h pénalisent fortement.' },
-    { icon: '🌊', title: 'Marée', desc: 'Marée montante souvent favorable. Marée basse peut casser les vagues trop tôt.' },
-    { icon: '🎯', title: 'Ton niveau', desc: 'Ton niveau (Débutant / Intermédiaire / Expert) défini dans les réglages ci-dessus influence le score : les spots trop engagés pour toi sont pénalisés, les spots adaptés sont boostés.' },
-    { icon: '⏰', title: 'Tes créneaux', desc: 'Les recommandations ne proposent que des heures dans ta plage horaire disponible, et la durée de session est utilisée pour calculer le créneau optimal.' },
+    { icon: '🌊', title: 'Houle (hauteur, direction, peak period)', desc: 'Le facteur principal. Hauteur comparée à l\'idéal du spot et ta préférence. Direction dans la fenêtre optimale. On utilise le peak period (pic d\'énergie dominant) pour évaluer la qualité : > 12s = ground swell puissant, < 8s = vagues désorganisées.' },
+    { icon: '💨', title: 'Vent (vitesse, direction, rafales)', desc: 'Deuxième facteur clé. Houle × Vent = la base du score. Si l\'un est mauvais, tout baisse. Offshore = top, onshore = grosse pénalité. Rafales > 25 km/h plafonnent le score. Le ratio rafales/vent moyen aggrave aussi.' },
+    { icon: '🔄', title: 'Propreté du swell', desc: 'Analyse le ratio wind swell / ground swell. Si le wind swell domine (> 70%), pénalité sévère (-40%). Période courte + wind swell = vagues "messy". On regarde aussi la période de la wind wave pour détecter le clapot local.' },
+    { icon: '🌊', title: 'Marée (niveau réel + tendance)', desc: 'La vraie hauteur de la mer est analysée heure par heure. Marée montante = bonus (+8%), descendante = malus. Chaque spot a une marée optimale. Beach breaks : pénalisés à marée très haute (shore break) et très basse (closeouts). Reef breaks : dangereux à marée très basse.' },
+    { icon: '🌧️', title: 'Météo', desc: 'Pluie forte et orages réduisent le score (jusqu\'à -30%). Bruine et pluie légère ont un impact modéré. Le confort et la visibilité comptent.' },
+    { icon: '📐', title: 'Stabilité de la houle', desc: 'On analyse si la direction de houle est stable sur les 3 dernières heures. Direction constante = bonus (+5%). Direction chaotique (> 45° de variation) = malus (-15%). Une houle stable produit des vagues plus régulières.' },
+    { icon: '🎯', title: 'Ton niveau', desc: 'Débutant / Intermédiaire / Expert influence le score : spots trop engagés = pénalisés, spots adaptés = boostés.' },
+    { icon: '📏', title: 'Tes préférences', desc: 'Hauteur préférée : +10% si la houle correspond. Seules les heures dans ta plage dispo sont recommandées.' },
   ];
 
   return (
@@ -259,7 +307,13 @@ function GuideSection({ colors }: { colors: any }) {
         <View style={[g.body, { backgroundColor: colors.card }]}>
           <Text style={[g.sectionTitle, { color: colors.accent }]}>Calcul du score</Text>
           <Text style={[g.desc, { color: colors.white70 }]}>
-            Chaque heure reçoit un score de 0 à 10 basé sur 7 facteurs combinés. Tes réglages (niveau, hauteur préférée, heures dispo, durée de session) personnalisent les recommandations :
+            Chaque heure reçoit un score de 0 à 10, calculé de façon multiplicative. Les deux piliers sont la houle et le vent : ils sont multipliés ensemble pour donner la base. Si l'un est mauvais, tout le score descend.
+          </Text>
+          <Text style={[g.desc, { color: colors.white70 }]}>
+            Ensuite, 6 ajustements modifient cette base : marée (niveau réel + montante/descendante), propreté du swell (ratio wind swell vs ground swell), météo (pluie/orage), stabilité de direction, ton niveau, et tes préférences de hauteur.
+          </Text>
+          <Text style={[g.desc, { color: colors.white70 }]}>
+            Les scores au-dessus de 7 sont compressés pour que le 8-10 reste réservé aux journées vraiment exceptionnelles. Certains "deal-breakers" plafonnent le score automatiquement (voir ci-dessous).
           </Text>
 
           {factors.map((f, i) => (
@@ -271,6 +325,41 @@ function GuideSection({ colors }: { colors: any }) {
               </View>
             </View>
           ))}
+
+          <View style={[g.divider, { backgroundColor: colors.white15 }]} />
+
+          <Text style={[g.sectionTitle, { color: colors.accent }]}>Plafonds automatiques</Text>
+          <Text style={[g.desc, { color: colors.white70 }]}>
+            Certaines conditions plafonnent le score quoi qu'il arrive :
+          </Text>
+          <View style={[g.windRow, { backgroundColor: 'rgba(255,90,90,0.06)' }]}>
+            <Text style={g.windIcon}>🚫</Text>
+            <View style={g.windInfo}>
+              <Text style={[g.windTerm, { color: '#FF5A5A' }]}>Flat (houle {'<'} 0.3m)</Text>
+              <Text style={[g.windDesc, { color: colors.white40 }]}>Score plafonné à 1</Text>
+            </View>
+          </View>
+          <View style={[g.windRow, { backgroundColor: 'rgba(255,90,90,0.06)' }]}>
+            <Text style={g.windIcon}>💨</Text>
+            <View style={g.windInfo}>
+              <Text style={[g.windTerm, { color: '#FF5A5A' }]}>Vent onshore {'>'} 20 km/h</Text>
+              <Text style={[g.windDesc, { color: colors.white40 }]}>Score plafonné à 3.5</Text>
+            </View>
+          </View>
+          <View style={[g.windRow, { backgroundColor: 'rgba(255,90,90,0.06)' }]}>
+            <Text style={g.windIcon}>💥</Text>
+            <View style={g.windInfo}>
+              <Text style={[g.windTerm, { color: '#FF5A5A' }]}>Rafales {'>'} 35 km/h</Text>
+              <Text style={[g.windDesc, { color: colors.white40 }]}>Score plafonné à 4</Text>
+            </View>
+          </View>
+          <View style={[g.windRow, { backgroundColor: 'rgba(255,90,90,0.06)' }]}>
+            <Text style={g.windIcon}>⏱</Text>
+            <View style={g.windInfo}>
+              <Text style={[g.windTerm, { color: '#FF5A5A' }]}>Période {'<'} 6s</Text>
+              <Text style={[g.windDesc, { color: colors.white40 }]}>Score plafonné à 3</Text>
+            </View>
+          </View>
 
           <View style={[g.divider, { backgroundColor: colors.white15 }]} />
 
@@ -370,12 +459,8 @@ function Section({ label, children, colors }: { label: string; children: React.R
 }
 
 const s = StyleSheet.create({
-  header: { paddingTop: 52, paddingHorizontal: 16, paddingBottom: 8 },
-  headerRow: { flexDirection: 'row', alignItems: 'center' },
-  backBtn: { width: 38, height: 38, borderRadius: 19, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  backTxt: { fontSize: 24, fontWeight: '300', marginTop: -2 },
-  headerText: { flex: 1 },
-  title: { fontSize: 24, fontWeight: '900' },
+  header: { paddingTop: 12, paddingHorizontal: 20, paddingBottom: 8 },
+  title: { fontSize: 28, fontWeight: '900' },
   sub: { fontSize: 13, marginTop: 2 },
 
   section: { marginTop: 20, paddingHorizontal: 16 },
@@ -399,7 +484,9 @@ const s = StyleSheet.create({
   notifTitle: { fontSize: 15, fontWeight: '700' },
   notifSub: { fontSize: 11, marginTop: 2, lineHeight: 16, maxWidth: 220 },
 
-  saveBtn: { marginHorizontal: 16, marginTop: 28, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  errorBox: { marginHorizontal: 16, marginTop: 16, borderRadius: 10, padding: 12, alignItems: 'center' },
+  errorTxt: { fontSize: 13, fontWeight: '600' },
+  saveBtn: { marginHorizontal: 16, marginTop: 16, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   saveDone: { backgroundColor: '#2E7D32' },
   saveTxt: { color: '#000', fontSize: 16, fontWeight: '800' },
 });

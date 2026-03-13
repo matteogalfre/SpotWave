@@ -27,6 +27,7 @@ export interface SpotConfig {
   bottomType: BreakType;
   recommendedLevel: SurferLevel;
   region: string;
+  country: string;
   description: string;
   dangers: string[];
   webcamUrl?: string;
@@ -47,6 +48,7 @@ export interface MarineData {
   sea_surface_temperature: (number | null)[];
   ocean_current_velocity: (number | null)[];
   ocean_current_direction: (number | null)[];
+  sea_level_height_msl: (number | null)[];
 }
 
 export interface WeatherData {
@@ -71,6 +73,8 @@ export interface HourlyCondition {
   temperature: number;
   seaTemp: number;
   tideHeight: number;
+  seaLevel: number;
+  weatherCode: number;
 }
 
 export interface SpotForecast {
@@ -83,10 +87,10 @@ export interface SpotForecast {
 
 export const DEFAULT_PROFILE: SurferProfile = {
   level: 'intermediate',
-  preferredHeight: ['1-2'],
+  preferredHeight: ['0.5-1', '1-2'],
   breakType: ['beach'],
   windPref: 'offshore',
   sessionDuration: 2,
-  availableFrom: 7,
-  availableTo: 20,
+  availableFrom: 8,
+  availableTo: 19,
 };

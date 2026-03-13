@@ -8,17 +8,20 @@ interface ProfileContextType {
   profile: SurferProfile;
   updateProfile: (p: SurferProfile) => Promise<void>;
   isLoading: boolean;
+  version: number;
 }
 
 const ProfileContext = createContext<ProfileContextType>({
   profile: DEFAULT_PROFILE,
   updateProfile: async () => {},
   isLoading: true,
+  version: 0,
 });
 
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<SurferProfile>(DEFAULT_PROFILE);
   const [isLoading, setIsLoading] = useState(true);
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
@@ -40,11 +43,12 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile = useCallback(async (p: SurferProfile) => {
     setProfile(p);
+    setVersion(v => v + 1);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(p));
   }, []);
 
   return (
-    <ProfileContext.Provider value={{ profile, updateProfile, isLoading }}>
+    <ProfileContext.Provider value={{ profile, updateProfile, isLoading, version }}>
       {children}
     </ProfileContext.Provider>
   );

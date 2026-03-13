@@ -2,6 +2,7 @@
   "expo": {
     "name": "SpotWave",
     "slug": "SpotWave",
+    "scheme": "spotwave",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,7 +13,11 @@
       "backgroundColor": "#0B0F1A"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.matteogalfre.SpotWave",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "SpotWave utilise votre position pour afficher les spots de surf les plus proches."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,11 +25,20 @@
         "backgroundColor": "#0B0F1A"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.matteogalfre.SpotWave"
+      "package": "com.matteogalfre.SpotWave",
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "SpotWave utilise votre position pour afficher les spots de surf les plus proches."
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "6502e0d2-178b-42ce-835e-fb60f71ef237"
