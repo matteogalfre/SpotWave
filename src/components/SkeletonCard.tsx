@@ -2,10 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
-function Shimmer({ w, h, r = 8 }: { w: number | string; h: number; r?: number }) {
-  const { colors } = useTheme();
+const useSharedShimmer = () => {
   const anim = useRef(new Animated.Value(0.3)).current;
-
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -16,11 +14,15 @@ function Shimmer({ w, h, r = 8 }: { w: number | string; h: number; r?: number })
     loop.start();
     return () => loop.stop();
   }, [anim]);
+  return anim;
+};
 
+function Shimmer({ w, h, r = 8, anim }: { w: number | `${number}%`; h: number; r?: number; anim: Animated.Value }) {
+  const { colors } = useTheme();
   return (
     <Animated.View
       style={{
-        width: w as any,
+        width: w,
         height: h,
         borderRadius: r,
         backgroundColor: colors.cardLight,
@@ -32,21 +34,22 @@ function Shimmer({ w, h, r = 8 }: { w: number | string; h: number; r?: number })
 
 export default function SkeletonCard() {
   const { colors } = useTheme();
+  const anim = useSharedShimmer();
   return (
     <View style={[st.card, { backgroundColor: colors.card }]}>
       <View style={st.head}>
-        <Shimmer w={60} h={60} r={30} />
+        <Shimmer w={60} h={60} r={30} anim={anim} />
         <View style={st.info}>
-          <Shimmer w={140} h={16} />
-          <Shimmer w={100} h={12} />
+          <Shimmer w={140} h={16} anim={anim} />
+          <Shimmer w={100} h={12} anim={anim} />
         </View>
       </View>
       <View style={st.bar}>
-        <Shimmer w={70} h={12} />
-        <Shimmer w={50} h={12} />
-        <Shimmer w={80} h={12} />
+        <Shimmer w={70} h={12} anim={anim} />
+        <Shimmer w={50} h={12} anim={anim} />
+        <Shimmer w={80} h={12} anim={anim} />
       </View>
-      <Shimmer w="100%" h={30} r={10} />
+      <Shimmer w="100%" h={30} r={10} anim={anim} />
     </View>
   );
 }

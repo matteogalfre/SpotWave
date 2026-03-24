@@ -264,6 +264,11 @@ function profileMatch(
   return 0.90;
 }
 
+function breakTypeMatch(spot: SpotConfig, profile: SurferProfile): number {
+  if (!profile.breakType || profile.breakType.length === 0) return 1.0;
+  return profile.breakType.includes(spot.bottomType) ? 1.05 : 0.95;
+}
+
 // ── CLEAN FACTOR ────────────────────────────────────────────────────────
 // Penalizes disorganized / messy swell using wind wave data + spectrum analysis.
 
@@ -451,7 +456,8 @@ export function computeHourlyScore(
   const weather_ = weatherPenalty(weatherCode);
   const consistency = consistencyFactor(index, marine);
 
-  const adjusted = base * tide * level * pMatch * clean * weather_ * consistency;
+  const breakPref = breakTypeMatch(spot, profile);
+  const adjusted = base * tide * level * pMatch * clean * weather_ * consistency * breakPref;
   const rawScore = adjusted * 10;
 
   const capped = applyDealBreakers(
@@ -482,23 +488,26 @@ export function computeHourlyScore(
 
 // ── BEST TIME LABEL ─────────────────────────────────────────────────────
 
-function formatBestTimeLabel(bestTime: string, now: Date): string {
+function formatBestTimeLabel(bestTime: string, now: Date, locale: string = 'fr'): string {
   const best = new Date(bestTime);
   const diffMs = best.getTime() - now.getTime();
   const diffHours = Math.round(diffMs / (1000 * 60 * 60));
   const hour = best.getHours().toString().padStart(2, '0');
+  const isFr = locale === 'fr';
 
-  if (diffHours <= 0) return 'Maintenant !';
-  if (diffHours <= 6) return `Dans ${diffHours}h`;
+  if (diffHours <= 0) return isFr ? 'Maintenant !' : 'Now!';
+  if (diffHours <= 6) return isFr ? `Dans ${diffHours}h` : `In ${diffHours}h`;
 
   const isToday = best.getDate() === now.getDate();
-  if (isToday) return `Aujourd'hui ${hour}h`;
+  if (isToday) return isFr ? `Aujourd'hui ${hour}h` : `Today ${hour}h`;
 
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  if (best.getDate() === tomorrow.getDate()) return `Demain ${hour}h`;
+  if (best.getDate() === tomorrow.getDate()) return isFr ? `Demain ${hour}h` : `Tomorrow ${hour}h`;
 
-  const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+  const dayNames = isFr
+    ? ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   return `${dayNames[best.getDay()]} ${hour}h`;
 }
 
@@ -509,6 +518,7 @@ export function computeSpotForecast(
   marine: MarineData,
   weather: WeatherData,
   profile: SurferProfile,
+  locale: string = 'fr',
 ): SpotForecast {
   const len = Math.min(marine.time.length, weather.time.length);
   const hourlyConditions: HourlyCondition[] = [];
@@ -546,7 +556,7 @@ export function computeSpotForecast(
   }
 
   const bestCondition = hourlyConditions[bestIdx];
-  const bestTimeLabel = bestCondition ? formatBestTimeLabel(bestCondition.time, now) : '';
+  const bestTimeLabel = bestCondition ? formatBestTimeLabel(bestCondition.time, now, locale) : '';
 
   return {
     spot,

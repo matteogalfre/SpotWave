@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ProfileProvider } from './src/context/ProfileContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { LocationProvider } from './src/context/LocationContext';
+import { I18nProvider } from './src/i18n';
 import { ToastProvider } from './src/components/Toast';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import OfflineBanner from './src/components/OfflineBanner';
@@ -24,15 +25,17 @@ export default function App() {
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
-        <ThemeProvider>
-          <ProfileProvider>
-            <LocationProvider>
-              <ToastProvider>
-                <AppContent />
-              </ToastProvider>
-            </LocationProvider>
-          </ProfileProvider>
-        </ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider>
+            <ProfileProvider>
+              <LocationProvider>
+                <ToastProvider>
+                  <AppContent />
+                </ToastProvider>
+              </LocationProvider>
+            </ProfileProvider>
+          </ThemeProvider>
+        </I18nProvider>
       </SafeAreaProvider>
     </ErrorBoundary>
   );

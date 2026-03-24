@@ -1,10 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer, DefaultTheme, LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { useI18n } from '../i18n';
 import { RootStackParamList, MainTabParamList } from './types';
 
 import SpotsScreen from '../screens/SpotsScreen';
@@ -12,6 +14,11 @@ import MapScreen from '../screens/MapScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SpotDetailScreen from '../screens/SpotDetailScreen';
+import AboutScreen from '../screens/AboutScreen';
+import GuideScreen from '../screens/GuideScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
+
+const ONBOARDING_KEY = '@spotwave_onboarded';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -28,13 +35,14 @@ const linking: LinkingOptions<RootStackParamList> = {
           ProfileTab: 'profile',
         },
       },
-      SpotDetail: 'spot/:spotId',
+      About: 'about',
     },
   },
 };
 
 function MainTabs() {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
+  const { t } = useI18n();
 
   return (
     <Tab.Navigator
@@ -57,7 +65,7 @@ function MainTabs() {
         name="SpotsTab"
         component={SpotsScreen}
         options={{
-          tabBarLabel: 'Spots',
+          tabBarLabel: t.tabSpots,
           tabBarIcon: ({ color, size }) => <Ionicons name="water-outline" size={size} color={color} />,
         }}
       />
@@ -65,7 +73,7 @@ function MainTabs() {
         name="MapTab"
         component={MapScreen}
         options={{
-          tabBarLabel: 'Carte',
+          tabBarLabel: t.tabMap,
           tabBarIcon: ({ color, size }) => <Ionicons name="earth-outline" size={size} color={color} />,
         }}
       />
@@ -73,7 +81,7 @@ function MainTabs() {
         name="FavoritesTab"
         component={FavoritesScreen}
         options={{
-          tabBarLabel: 'Favoris',
+          tabBarLabel: t.tabFavorites,
           tabBarIcon: ({ color, size }) => <Ionicons name="star-outline" size={size} color={color} />,
         }}
       />
@@ -81,7 +89,7 @@ function MainTabs() {
         name="ProfileTab"
         component={ProfileScreen}
         options={{
-          tabBarLabel: 'Profil',
+          tabBarLabel: t.tabProfile,
           tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
         }}
       />
@@ -91,6 +99,18 @@ function MainTabs() {
 
 export default function AppNavigator() {
   const { colors, isDark } = useTheme();
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(ONBOARDING_KEY)
+      .then(val => setShowOnboarding(val !== 'true'))
+      .catch(() => setShowOnboarding(true));
+  }, []);
+
+  const handleOnboardingComplete = () => {
+    AsyncStorage.setItem(ONBOARDING_KEY, 'true').catch(() => {});
+    setShowOnboarding(false);
+  };
 
   const navTheme = useMemo(() => ({
     ...DefaultTheme,
@@ -106,6 +126,12 @@ export default function AppNavigator() {
     },
   }), [colors, isDark]);
 
+  if (showOnboarding === null) return null;
+
+  if (showOnboarding) {
+    return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+  }
+
   return (
     <NavigationContainer theme={navTheme} linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -115,6 +141,8 @@ export default function AppNavigator() {
           component={SpotDetailScreen}
           options={{ animation: 'fade_from_bottom', animationDuration: 250 }}
         />
+        <Stack.Screen name="About" component={AboutScreen} options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="Guide" component={GuideScreen} options={{ animation: 'slide_from_right' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

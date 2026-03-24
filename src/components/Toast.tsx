@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback, useState, createContext, useContext } from 'react';
-import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ToastItem {
@@ -22,10 +22,20 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const insets = useSafeAreaInsets();
 
+  const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+
+  useEffect(() => {
+    return () => { timersRef.current.forEach(clearTimeout); };
+  }, []);
+
   const show = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = ++toastId;
     setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 2500);
+    const timer = setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+      timersRef.current.delete(timer);
+    }, 2500);
+    timersRef.current.add(timer);
   }, []);
 
   return (

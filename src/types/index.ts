@@ -11,6 +11,7 @@ export interface SurferProfile {
   sessionDuration: number;
   availableFrom: number;
   availableTo: number;
+  preferredZone?: string;
 }
 
 export interface SpotConfig {
@@ -93,4 +94,5 @@ export const DEFAULT_PROFILE: SurferProfile = {
   sessionDuration: 2,
   availableFrom: 8,
   availableTo: 19,
+  preferredZone: undefined,
 };

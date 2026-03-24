@@ -2,14 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useI18n } from '../i18n';
 
 export default function OfflineBanner() {
+  const { t } = useI18n();
   const [offline, setOffline] = useState(false);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const unsub = NetInfo.addEventListener(state => {
-      setOffline(!(state.isConnected ?? true));
+      setOffline(state.isInternetReachable === false || state.isConnected === false);
     });
     return unsub;
   }, []);
@@ -18,7 +20,7 @@ export default function OfflineBanner() {
 
   return (
     <View style={[s.root, { top: insets.top }]} accessibilityRole="alert" accessibilityLiveRegion="assertive">
-      <Text style={s.txt}>📡  Pas de connexion internet</Text>
+      <Text style={s.txt}>{t.offlineMsg}</Text>
     </View>
   );
 }

@@ -5,7 +5,7 @@ import { SpotForecast } from '../types';
 
 export type MainTabParamList = {
   SpotsTab: undefined;
-  MapTab: { focusCountry?: string } | undefined;
+  MapTab: { focusCountry?: string; focusSpotId?: string } | undefined;
   FavoritesTab: undefined;
   ProfileTab: undefined;
 };
@@ -13,6 +13,8 @@ export type MainTabParamList = {
 export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList>;
   SpotDetail: { forecast: SpotForecast; spotIndex?: number };
+  About: undefined;
+  Guide: undefined;
 };
 
 export type SpotsScreenProps = CompositeScreenProps<
@@ -36,3 +38,5 @@ export type ProfileScreenProps = CompositeScreenProps<
 >;
 
 export type SpotDetailScreenProps = NativeStackScreenProps<RootStackParamList, 'SpotDetail'>;
+export type AboutScreenProps = NativeStackScreenProps<RootStackParamList, 'About'>;
+export type GuideScreenProps = NativeStackScreenProps<RootStackParamList, 'Guide'>;

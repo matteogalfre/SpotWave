@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme, ThemePalette } from '../context/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 import { useProfile } from '../context/ProfileContext';
 import { useLocation } from '../context/LocationContext';
 import { getFavorites, toggleFavorite } from '../services/favorites';
@@ -14,12 +14,15 @@ import EmptyState from '../components/EmptyState';
 import ScoreBadge from '../components/ScoreBadge';
 import SPOTS from '../data/spots';
 import { SpotConfig, SpotForecast } from '../types';
+import { FavoritesScreenProps } from '../navigation/types';
 import { Ionicons } from '@expo/vector-icons';
 import { scoreColor, scoreBg, scoreLabel, scoreEmoji, scoreShort, windLabel, weatherIcon } from '../theme';
 import { LEVEL_BADGE } from '../utils/constants';
 import * as Haptics from 'expo-haptics';
+import { useI18n } from '../i18n';
 
-export default function FavoritesScreen({ navigation }: any) {
+export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
+  const { t, locale } = useI18n();
   const { colors } = useTheme();
   const { profile } = useProfile();
   const { location } = useLocation();
@@ -30,6 +33,8 @@ export default function FavoritesScreen({ navigation }: any) {
   const [forecasts, setForecasts] = useState<SpotForecast[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  type SortFav = 'score' | 'distance' | 'name';
+  const [sortBy, setSortBy] = useState<SortFav>('score');
 
   const distanceMap = useMemo(() => {
     if (!location) return new Map<string, number>();
@@ -66,18 +71,23 @@ export default function FavoritesScreen({ navigation }: any) {
         const settled = await Promise.allSettled(
           batch.map(async (spot) => {
             const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude);
-            return computeSpotForecast(spot, marine, weather, profile);
+            return computeSpotForecast(spot, marine, weather, profile, locale);
           })
         );
+        let failCount = 0;
         for (const res of settled) {
           if (res.status === 'fulfilled') results.push(res.value);
+          else failCount++;
+        }
+        if (failCount > 0) {
+          showToast(t.favLoadFail(failCount), 'error');
         }
       }
     }
 
     setForecasts(results.sort((a, b) => b.currentScore - a.currentScore));
     setLoading(false);
-  }, [profile]);
+  }, [profile, showToast, t]);
 
   useEffect(() => { loadFavorites(); }, [loadFavorites]);
 
@@ -87,19 +97,32 @@ export default function FavoritesScreen({ navigation }: any) {
     setRefreshing(false);
   }, [loadFavorites]);
 
+  const sortedForecasts = useMemo(() => {
+    const list = [...forecasts];
+    if (sortBy === 'score') return list.sort((a, b) => b.currentScore - a.currentScore);
+    if (sortBy === 'distance') {
+      return list.sort((a, b) => {
+        const da = distanceMap.get(a.spot.id) ?? Infinity;
+        const db = distanceMap.get(b.spot.id) ?? Infinity;
+        return da - db;
+      });
+    }
+    return list.sort((a, b) => a.spot.name.localeCompare(b.spot.name));
+  }, [forecasts, sortBy, distanceMap]);
+
   const handleRemoveFav = useCallback(async (spotId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     const next = await toggleFavorite(spotId);
     setFavIds(next);
     setForecasts(prev => prev.filter(f => f.spot.id !== spotId));
-    showToast('Retiré des favoris', 'info');
-  }, [showToast]);
+    showToast(t.favRemoved, 'info');
+  }, [showToast, t]);
 
   const navigateToSpot = useCallback((forecast: SpotForecast) => {
-    setStoredForecasts(forecasts);
-    const idx = forecasts.findIndex(f => f.spot.id === forecast.spot.id);
+    setStoredForecasts(sortedForecasts);
+    const idx = sortedForecasts.findIndex(f => f.spot.id === forecast.spot.id);
     navigation.navigate('SpotDetail', { forecast, spotIndex: idx >= 0 ? idx : 0 });
-  }, [navigation, forecasts]);
+  }, [navigation, sortedForecasts]);
 
   return (
     <ScrollView
@@ -108,8 +131,8 @@ export default function FavoritesScreen({ navigation }: any) {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
     >
       <View style={[s.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={[s.title, { color: colors.white }]}>Favoris</Text>
-        <Text style={[s.sub, { color: colors.white40 }]}>{favIds.length} spot{favIds.length !== 1 ? 's' : ''} sauvegardé{favIds.length !== 1 ? 's' : ''}</Text>
+        <Text style={[s.title, { color: colors.white }]}>{t.favTitle}</Text>
+        <Text style={[s.sub, { color: colors.white40 }]}>{t.favCount(favIds.length)}</Text>
       </View>
 
       {loading && (
@@ -121,12 +144,33 @@ export default function FavoritesScreen({ navigation }: any) {
       {!loading && favIds.length === 0 && (
         <EmptyState
           emoji="⭐"
-          title="Pas encore de favoris"
-          subtitle="Ajoute des spots en favoris depuis l'accueil pour les retrouver ici"
+          title={t.favEmpty}
+          subtitle={t.favEmptySub}
         />
       )}
 
-      {forecasts.map((f) => {
+      {!loading && favIds.length > 0 && (
+        <View style={[s.sortRow, { borderBottomColor: colors.white08 }]}>
+          <Text style={[s.sortLabel, { color: colors.white40 }]}>{t.favSortBy}</Text>
+          <View style={s.sortBtns}>
+            {(['score', 'distance', 'name'] as const).map((key) => (
+              <TouchableOpacity
+                key={key}
+                style={[s.sortBtn, { backgroundColor: sortBy === key ? colors.accentDim : 'transparent' }]}
+                onPress={() => setSortBy(key)}
+                accessibilityLabel={key === 'score' ? t.favSortScore : key === 'distance' ? t.favSortDistance : t.favSortName}
+                accessibilityRole="button"
+              >
+                <Text style={[s.sortBtnTxt, { color: sortBy === key ? colors.accent : colors.white40 }]}>
+                  {key === 'score' ? t.favSortScore : key === 'distance' ? t.favSortDistance : t.favSortName}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {sortedForecasts.map((f) => {
         const cc = f.currentCondition;
         const wl = cc ? windLabel(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : '';
         const badge = LEVEL_BADGE[f.spot.recommendedLevel];
@@ -190,6 +234,11 @@ const s = StyleSheet.create({
   header: { paddingHorizontal: 20, paddingBottom: 10 },
   title: { fontSize: 28, fontWeight: '900' },
   sub: { fontSize: 12, marginTop: 3 },
+  sortRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1 },
+  sortLabel: { fontSize: 12, fontWeight: '600', marginRight: 12 },
+  sortBtns: { flexDirection: 'row', gap: 8 },
+  sortBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  sortBtnTxt: { fontSize: 12, fontWeight: '700' },
   loadWrap: { paddingVertical: 60, alignItems: 'center' },
   card: { marginHorizontal: 16, marginBottom: 10, borderRadius: 16, padding: 16 },
   cardHead: { flexDirection: 'row', alignItems: 'center' },

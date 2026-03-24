@@ -1,5 +1,3 @@
-import { ThemePalette } from '../context/ThemeContext';
-
 export const LEVEL_BADGE: Record<string, { label: string; color: string; bg: string }> = {
   beginner: { label: 'Débutant', color: '#4A90FF', bg: 'rgba(74,144,255,0.15)' },
   intermediate: { label: 'Intermédiaire', color: '#FFB84D', bg: 'rgba(255,184,77,0.15)' },

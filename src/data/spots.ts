@@ -1,5 +1,10 @@
 import { SpotConfig } from '../types';
 
+/**
+ * Base de spots mondiale. L'app ne charge les prévisions API que pour les spots
+ * "actifs" (proches de l'utilisateur ou premiers N sans géoloc) + favoris.
+ * Ajouter des spots ici n'impacte pas la vitesse : 200–500 spots restent fluides.
+ */
 const SPOTS: SpotConfig[] = [
   // ══════════════════════════════════════════════════════════════════════════
   // PORTUGAL
@@ -141,6 +146,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Portugal',
     description: 'La meilleure droite du Portugal. Tube puissant sur récif. Réservé aux surfeurs expérimentés.',
     dangers: ['Récif tranchant', 'Courants violents', 'Localisme', 'Accès difficile'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Coxos/webcams/latest',
   },
   {
     id: 'foz-do-lizandro',
@@ -376,6 +382,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Beach break de qualité au nord de Biarritz. Plusieurs pics sur un long linéaire.',
     dangers: ['Courants de baïne', 'Rochers au sud'],
+    webcamUrl: 'https://gosurf.fr/webcam/fr/9/Anglet-Les-Cavaliers',
   },
   {
     id: 'biarritz-cote-basques',
@@ -394,6 +401,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Berceau du surf en France. Plage mythique protégée. Ne fonctionne qu\'à marée basse.',
     dangers: ['Accessible uniquement à marée basse', 'Rochers'],
+    webcamUrl: 'https://gosurf.fr/webcam/fr/7/Biarritz-La-Cote-des-Basques',
   },
   {
     id: 'biarritz-grande-plage',
@@ -412,6 +420,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Plage emblématique au cœur de Biarritz. Beach break accessible mais souvent bondé.',
     dangers: ['Foule', 'Rochers aux extrémités', 'Courants'],
+    webcamUrl: 'https://gosurf.fr/webcam/fr/8/Biarritz-Grande-Plage',
   },
   {
     id: 'guethary',
@@ -430,6 +439,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Big wave spot basque. Droite puissante sur récif qui peut dépasser les 5 mètres.',
     dangers: ['Récif', 'Courants violents', 'Grosses vagues', 'Localisme'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Guethary/webcams/latest',
   },
   {
     id: 'lafitenia',
@@ -466,6 +476,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Grande plage protégée à la frontière espagnole. Idéale pour débuter.',
     dangers: ['Courants modérés', 'Digue'],
+    webcamUrl: 'https://gosurf.fr/webcam/fr/12/Hendaye',
   },
 
   // --- Landes ---
@@ -486,6 +497,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Le meilleur beach break d\'Europe. Tubes puissants. Spot du Quiksilver Pro France.',
     dangers: ['Shore break violent', 'Courants de baïne', 'Foule'],
+    webcamUrl: 'https://www.quiksilver.com/surf/webcams/hossegor-la-graviere',
   },
   {
     id: 'hossegor-nord',
@@ -504,6 +516,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Le big wave beach break d\'Hossegor. Les fosses profondes génèrent des vagues massives.',
     dangers: ['Vagues puissantes', 'Courants extrêmes', 'Experts uniquement'],
+    webcamUrl: 'https://gosurf.fr/webcam/en/170/Hossegor-Plage-de-la-Nord',
   },
   {
     id: 'hossegor-centrale',
@@ -522,6 +535,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Beach break central d\'Hossegor, plus accessible que La Gravière.',
     dangers: ['Courants de baïne', 'Shore break'],
+    webcamUrl: 'https://gosurf.fr/webcam/fr/21/Hossegor-La-Centrale',
   },
   {
     id: 'capbreton-santosha',
@@ -540,6 +554,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Longue plage entre Hossegor et Capbreton. Nombreux pics le long de la dune.',
     dangers: ['Courants de baïne', 'Fond variable'],
+    webcamUrl: 'https://gosurf.fr/webcam/fr/22/Capbreton-La-Piste',
   },
   {
     id: 'seignosse-penon',
@@ -558,6 +573,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Beach break de qualité au nord d\'Hossegor. Bancs de sable changeants.',
     dangers: ['Courants de baïne', 'Shore break'],
+    webcamUrl: 'https://gosurf.fr/webcam/fr/20/Seignosse-Le-Penon',
   },
   {
     id: 'mimizan',
@@ -576,6 +592,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Beach break landais classique. Moins de monde qu\'à Hossegor.',
     dangers: ['Courants de baïne', 'Shore break'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Mimizan-Plage/webcams/latest',
   },
 
   // --- Gironde ---
@@ -596,6 +613,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Spot emblématique de Gironde. Accueille le Lacanau Pro chaque année.',
     dangers: ['Courants de baïne', 'Foule en été'],
+    webcamUrl: 'https://gosurf.fr/webcam/fr/29/Lacanau-Ocean',
   },
   {
     id: 'le-porge',
@@ -614,6 +632,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Plage sauvage au sud de Lacanau. Moins de monde, bancs de sable de qualité.',
     dangers: ['Courants de baïne', 'Isolement'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Le-Porge/webcams/latest',
   },
 
   // --- Bretagne ---
@@ -634,6 +653,7 @@ const SPOTS: SpotConfig[] = [
     country: 'France',
     description: 'Le spot le plus consistant de Bretagne. Beach break exposé face à l\'Atlantique.',
     dangers: ['Courants', 'Vent fréquent', 'Eau froide'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/La-Torche/webcams/latest',
   },
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -657,6 +677,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Espagne',
     description: 'La meilleure gauche d\'Europe. Tube parfait à l\'embouchure de la rivière.',
     dangers: ['Récif', 'Courants violents', 'Localisme intense'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Mundaka/webcams/latest',
   },
   {
     id: 'zarautz',
@@ -675,6 +696,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Espagne',
     description: 'La plus longue plage du Pays Basque espagnol. Nombreux pics accessibles.',
     dangers: ['Courants latéraux', 'Foule en été'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Zarautz/webcams/latest',
   },
   {
     id: 'sopela-la-salvaje',
@@ -693,6 +715,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Espagne',
     description: 'Beach break consistant près de Bilbao. Bon rapport qualité/accessibilité.',
     dangers: ['Courants', 'Fond rocheux par endroits'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Sopelana/webcams/latest',
   },
   {
     id: 'rodiles',
@@ -711,6 +734,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Espagne',
     description: 'Beach break de qualité à l\'embouchure d\'un estuaire. Droite et gauche.',
     dangers: ['Courants à l\'embouchure', 'Accès limité'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Rodiles/webcams/latest',
   },
   {
     id: 'pantin',
@@ -729,6 +753,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Espagne',
     description: 'Le meilleur spot de Galice. Accueille le Pantín Classic, compétition WSL QS.',
     dangers: ['Courants forts', 'Eau froide'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Pantin/webcams/latest',
   },
   {
     id: 'somo',
@@ -747,6 +772,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Espagne',
     description: 'Beach break accessible de Cantabrie. Nombreuses écoles de surf.',
     dangers: ['Courants modérés'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Somo/webcams/latest',
   },
 
   // --- Canaries ---
@@ -767,6 +793,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Espagne',
     description: 'Droite parfaite de Las Palmas. Récif volcanique, vagues puissantes et creuses.',
     dangers: ['Récif volcanique', 'Courants', 'Localisme'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/El-Confital/webcams/latest',
   },
   {
     id: 'famara',
@@ -785,6 +812,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Espagne',
     description: 'Grande plage sauvage au pied des falaises. Beach break consistant.',
     dangers: ['Courants', 'Vent fréquent'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Famara/webcams/latest',
   },
   {
     id: 'el-quemao',
@@ -803,6 +831,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Espagne',
     description: 'Gauche puissante sur récif volcanique. Le "Pipeline européen" des Canaries.',
     dangers: ['Récif tranchant', 'Courants violents', 'Localisme'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/El-Quemao/webcams/latest',
   },
   {
     id: 'tenerife-el-socorro',
@@ -844,6 +873,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Maroc',
     description: 'Droite longue et mécanique de Taghazout. Le spot le plus connu du Maroc.',
     dangers: ['Rochers', 'Oursins', 'Localisme'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Anchor-Point/webcams/latest',
   },
   {
     id: 'taghazout-killers',
@@ -862,6 +892,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Maroc',
     description: 'Big wave spot au nord de Taghazout. Droite puissante qui tient les grosses houles.',
     dangers: ['Oursins', 'Accès en escalade', 'Courants violents'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Killer-Point/webcams/latest',
   },
   {
     id: 'tamri',
@@ -880,6 +911,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Maroc',
     description: 'Beach break à l\'embouchure d\'une rivière. Fun et accessible.',
     dangers: ['Courants à l\'embouchure', 'Isolement'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Tamri/webcams/latest',
   },
   {
     id: 'imsouane',
@@ -898,6 +930,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Maroc',
     description: 'La plus longue vague d\'Afrique. Droite interminable dans une baie protégée.',
     dangers: ['Rochers dans la baie', 'Courants modérés'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Imsouane/webcams/latest',
   },
   {
     id: 'sidi-kaouki',
@@ -916,6 +949,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Maroc',
     description: 'Beach break venteux au sud d\'Essaouira. Spot populaire mais venteux l\'après-midi.',
     dangers: ['Vent fort', 'Courants'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Sidi-Kaouki/webcams/latest',
   },
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -939,6 +973,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Indonésie',
     description: 'Gauche mythique de Bali. Plusieurs sections du temple à l\'intérieur.',
     dangers: ['Récif corallien tranchant', 'Courants forts', 'Accès par grotte'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Uluwatu/webcams/latest',
   },
   {
     id: 'padang-padang',
@@ -957,6 +992,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Indonésie',
     description: 'Le "Pipeline de Bali". Barrel parfait sur récif peu profond.',
     dangers: ['Récif très peu profond', 'Courants', 'Foule'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Padang-Padang/webcams/latest',
   },
   {
     id: 'kuta-beach-bali',
@@ -975,6 +1011,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Indonésie',
     description: 'Beach break le plus populaire de Bali. Idéal pour les débutants.',
     dangers: ['Foule', 'Courants', 'Planches de débutants'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Kuta-Beach-Bali/webcams/latest',
   },
   {
     id: 'canggu',
@@ -993,6 +1030,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Indonésie',
     description: 'Beach break tendance de Bali. Plusieurs pics, ambiance décontractée.',
     dangers: ['Courants', 'Foule', 'Fond rocheux par endroits'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Canggu-Beach/webcams/latest',
   },
   {
     id: 'keramas',
@@ -1142,6 +1180,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Australie',
     description: 'Point break de renommée mondiale. Début du Superbank, droite parfaite.',
     dangers: ['Foule intense', 'Localisme', 'Courants'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Snapper-Rocks/webcams/latest',
   },
   {
     id: 'kirra',
@@ -1160,6 +1199,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Australie',
     description: 'Barrel parfait de la Gold Coast. Tube long et creux quand les bancs de sable sont bons.',
     dangers: ['Courants', 'Foule', 'Localisme'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Kirra/webcams/latest',
   },
   {
     id: 'burleigh-heads',
@@ -1178,6 +1218,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Australie',
     description: 'Point break sur fond de roche. Droite puissante avec un joli barrel en section.',
     dangers: ['Rochers', 'Courants', 'Localisme'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Burleigh-Heads/webcams/latest',
   },
   {
     id: 'noosa-heads',
@@ -1196,6 +1237,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Australie',
     description: 'Longboard paradise. Droites longues et douces le long du headland.',
     dangers: ['Rochers', 'Foule de longboardeurs'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Noosa-Heads/webcams/latest',
   },
   {
     id: 'bondi-beach',
@@ -1214,6 +1256,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Australie',
     description: 'La plage la plus iconique d\'Australie. Beach break accessible et consistant.',
     dangers: ['Foule', 'Courants de baïne', 'Requins (rare)'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Bondi-Beach/webcams/latest',
   },
   {
     id: 'manly-beach',
@@ -1232,6 +1275,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Australie',
     description: 'Beach break historique de Sydney. Fun et accessible en ferry.',
     dangers: ['Foule', 'Courants', 'Requins (rare)'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Manly-Beach/webcams/latest',
   },
   {
     id: 'bells-beach',
@@ -1250,6 +1294,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Australie',
     description: 'Spot légendaire de la Great Ocean Road. Accueille le Rip Curl Pro depuis 1961.',
     dangers: ['Eau froide', 'Courants', 'Requins'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Bells-Beach/webcams/latest',
   },
   {
     id: 'margaret-river',
@@ -1264,7 +1309,7 @@ const SPOTS: SpotConfig[] = [
     optimalTide: 'mid',
     bottomType: 'reef',
     recommendedLevel: 'expert',
-    region: 'Western Australia',
+    region: 'Australie Occidentale',
     country: 'Australie',
     description: 'Reef break puissant de la côte ouest. Accueille le CT WSL. Eaux à requins.',
     dangers: ['Requins (fréquent)', 'Récif', 'Courants violents', 'Isolement'],
@@ -1286,6 +1331,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Australie',
     description: 'Point break de qualité dans les Northern Beaches de Sydney.',
     dangers: ['Courants', 'Localisme', 'Rochers'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/North-Narrabeen/webcams/latest',
   },
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1309,6 +1355,7 @@ const SPOTS: SpotConfig[] = [
     country: 'USA - Hawaii',
     description: 'La vague la plus célèbre du monde. Tube parfait sur récif corallien peu profond.',
     dangers: ['Récif mortel', 'Courants extrêmes', 'Localisme intense', 'Foule'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Pipeline_1/webcams/latest',
   },
   {
     id: 'sunset-beach',
@@ -1327,6 +1374,7 @@ const SPOTS: SpotConfig[] = [
     country: 'USA - Hawaii',
     description: 'Big wave spot historique. Shifty et puissant, le test ultime du surfeur.',
     dangers: ['Vagues géantes', 'Courants extrêmes', 'Récif'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Sunset_1/webcams/latest',
   },
   {
     id: 'waimea-bay',
@@ -1345,6 +1393,7 @@ const SPOTS: SpotConfig[] = [
     country: 'USA - Hawaii',
     description: 'Temple du big wave riding. Ne casse que quand les vagues dépassent 5m.',
     dangers: ['Vagues géantes', 'Shore break mortel', 'Courants extrêmes'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Waimea-Bay/webcams/latest',
   },
   {
     id: 'haleiwa',
@@ -1363,6 +1412,7 @@ const SPOTS: SpotConfig[] = [
     country: 'USA - Hawaii',
     description: 'Reef break fun à l\'entrée du North Shore. Droite et gauche de qualité.',
     dangers: ['Récif', 'Courants', 'Requins'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Haleiwa-Beach-Park/webcams/latest',
   },
   {
     id: 'jaws-peahi',
@@ -1422,6 +1472,7 @@ const SPOTS: SpotConfig[] = [
     country: 'USA - Californie',
     description: 'La meilleure vague de Californie du Sud. Cobblestone point break haute performance.',
     dangers: ['Foule intense', 'Localisme', 'Marche d\'accès longue'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Trestles/webcams/latest',
   },
   {
     id: 'rincon',
@@ -1440,6 +1491,7 @@ const SPOTS: SpotConfig[] = [
     country: 'USA - Californie',
     description: 'La reine des droites californiennes. Point break long et mécanique.',
     dangers: ['Courants', 'Foule', 'Rochers'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Rincon/webcams/latest',
   },
   {
     id: 'mavericks',
@@ -1458,6 +1510,7 @@ const SPOTS: SpotConfig[] = [
     country: 'USA - Californie',
     description: 'Big wave spot légendaire de NorCal. Vagues massives, eau froide, requins blancs.',
     dangers: ['Vagues géantes', 'Requins blancs', 'Eau glaciale', 'Courants mortels'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Mavericks/webcams/latest',
   },
   {
     id: 'huntington-beach',
@@ -1476,6 +1529,7 @@ const SPOTS: SpotConfig[] = [
     country: 'USA - Californie',
     description: 'Surf City USA. Beach break iconique au pied du pier.',
     dangers: ['Foule', 'Pier pilings', 'Courants'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Huntington-Beach-Pier/webcams/latest',
   },
   {
     id: 'blacks-beach',
@@ -1494,6 +1548,7 @@ const SPOTS: SpotConfig[] = [
     country: 'USA - Californie',
     description: 'Le meilleur beach break de San Diego. Situé au pied de falaises impressionnantes.',
     dangers: ['Descente de falaise', 'Courants forts', 'Nudisme'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Blacks-Beach/webcams/latest',
   },
   {
     id: 'steamer-lane',
@@ -1512,6 +1567,7 @@ const SPOTS: SpotConfig[] = [
     country: 'USA - Californie',
     description: 'Point break emblématique de Santa Cruz. Gauche de qualité devant le musée du surf.',
     dangers: ['Rochers', 'Courants', 'Localisme', 'Requins'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Steamer-Lane-Middle-Peak/webcams/latest',
   },
   {
     id: 'malibu-surfrider',
@@ -1530,6 +1586,7 @@ const SPOTS: SpotConfig[] = [
     country: 'USA - Californie',
     description: 'Le berceau du surf californien. Droite longue et facile, paradis du longboard.',
     dangers: ['Foule extrême', 'Rochers'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Malibu-Surfrider-Beach/webcams/latest',
   },
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1630,6 +1687,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Afrique du Sud',
     description: 'La meilleure droite du monde. Point break légendaire de 500m+ avec des sections parfaites.',
     dangers: ['Requins (fréquent)', 'Courants', 'Eau froide'],
+    webcamUrl: 'https://www.surfline.com/surf-report/jeffreys-bay-j-bay-/5842041f4e65fad6a7708d0f',
   },
   {
     id: 'muizenberg',
@@ -1648,6 +1706,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Afrique du Sud',
     description: 'Berceau du surf sud-africain. Beach break doux, reconnaissable à ses cabanes colorées.',
     dangers: ['Requins', 'Eau froide'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Muizenberg/webcams/latest',
   },
   {
     id: 'dungeons',
@@ -1666,6 +1725,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Afrique du Sud',
     description: 'Big wave spot au pied du Sentinel. L\'un des spots les plus effrayants du monde.',
     dangers: ['Vagues géantes', 'Requins blancs', 'Eau glaciale', 'Courants'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Dungeons/webcams/latest',
   },
   {
     id: 'durban-north-beach',
@@ -1684,6 +1744,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Afrique du Sud',
     description: 'Beach break chaud de Durban. Filets anti-requins. Eau chaude toute l\'année.',
     dangers: ['Courants', 'Requins (filets)'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Durban-North-Beach/webcams/latest',
   },
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1707,6 +1768,7 @@ const SPOTS: SpotConfig[] = [
     country: 'Mexique',
     description: 'Le "Pipeline mexicain". Beach break géant, le plus puissant du monde.',
     dangers: ['Shore break mortel', 'Courants extrêmes', 'Vagues géantes'],
+    webcamUrl: 'https://www.surf-forecast.com/breaks/Puerto-Escondido/webcams/latest',
   },
   {
     id: 'sayulita',
@@ -1949,7 +2011,7 @@ const SPOTS: SpotConfig[] = [
     optimalTide: 'all',
     bottomType: 'reef',
     recommendedLevel: 'intermediate',
-    region: 'North Malé Atoll',
+    region: 'Atoll de Malé Nord',
     country: 'Maldives',
     description: 'Droite mécanique sur récif corallien. Le spot le plus célèbre des Maldives.',
     dangers: ['Récif corallien', 'Accès en bateau'],
@@ -1967,7 +2029,7 @@ const SPOTS: SpotConfig[] = [
     optimalTide: 'mid',
     bottomType: 'reef',
     recommendedLevel: 'intermediate',
-    region: 'North Malé Atoll',
+    region: 'Atoll de Malé Nord',
     country: 'Maldives',
     description: 'Gauche parfaite avec accès exclusif. Le barrel le plus consistant des Maldives.',
     dangers: ['Récif', 'Accès réservé resort'],
@@ -2376,6 +2438,906 @@ const SPOTS: SpotConfig[] = [
     description: 'Spot CT WSL de Taïwan. Point break de qualité sur la côte est.',
     dangers: ['Récif', 'Typhons en saison'],
   },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PORTUGAL (suite) — Nazaré, Algarve, plus Ericeira
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'nazare-norte',
+    name: 'Nazaré (Praia do Norte)',
+    latitude: 39.6050,
+    longitude: -9.0780,
+    beachOrientation: 310,
+    optimalSwellDirMin: 280,
+    optimalSwellDirMax: 330,
+    optimalSwellHeightMin: 3.0,
+    optimalSwellHeightMax: 25.0,
+    optimalTide: 'mid',
+    bottomType: 'reef',
+    recommendedLevel: 'expert',
+    region: 'Nazaré',
+    country: 'Portugal',
+    description: 'Big wave légendaire. Canyon sous-marin amplifie la houle. Réservé aux pros et tow-in.',
+    dangers: ['Vagues géantes', 'Récif', 'Courants extrêmes', 'Tow-in uniquement au-delà de 6m'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // FRANCE (suite) — Landes, Médoc, Bretagne
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'lacanau-ocean',
+    name: 'Lacanau Océan',
+    latitude: 44.8480,
+    longitude: -1.2080,
+    beachOrientation: 280,
+    optimalSwellDirMin: 260,
+    optimalSwellDirMax: 320,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'mid',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Gironde',
+    country: 'France',
+    description: 'Spot historique des Landes. Longue plage avec de nombreux pics, très fréquenté.',
+    dangers: ['Courants de baïne', 'Foule en été'],
+  },
+  {
+    id: 'moliets',
+    name: 'Moliets',
+    latitude: 43.8480,
+    longitude: -1.3580,
+    beachOrientation: 280,
+    optimalSwellDirMin: 260,
+    optimalSwellDirMax: 310,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'all',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Landes',
+    country: 'France',
+    description: 'Grande plage familiale. Beach break doux, idéal pour apprendre.',
+    dangers: ['Courants de baïne', 'Foule en été'],
+  },
+  {
+    id: 'contis',
+    name: 'Contis',
+    latitude: 44.0830,
+    longitude: -1.3180,
+    beachOrientation: 290,
+    optimalSwellDirMin: 270,
+    optimalSwellDirMax: 320,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'mid',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Landes',
+    country: 'France',
+    description: 'Spot tranquille avec phare. Moins bondé que Lacanau, bon pour débuter.',
+    dangers: ['Courants', 'Baïnes'],
+  },
+  // ══════════════════════════════════════════════════════════════════════════
+  // ESPAGNE (suite) — Cantabrique, Galice
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'bakio',
+    name: 'Bakio',
+    latitude: 43.4280,
+    longitude: -2.8120,
+    beachOrientation: 340,
+    optimalSwellDirMin: 300,
+    optimalSwellDirMax: 360,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'all',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Pays Basque Espagnol',
+    country: 'Espagne',
+    description: 'Longue plage de sable. Nombreux pics, moins de monde qu\'à Zarautz.',
+    dangers: ['Courants', 'Rochers au nord'],
+  },
+  {
+    id: 'razo',
+    name: 'Razo',
+    latitude: 43.2980,
+    longitude: -8.6280,
+    beachOrientation: 340,
+    optimalSwellDirMin: 300,
+    optimalSwellDirMax: 30,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'mid',
+    bottomType: 'beach',
+    recommendedLevel: 'intermediate',
+    region: 'Galice',
+    country: 'Espagne',
+    description: 'Beach break de qualité en Galice. Exposé NW, bon avec les dépressions.',
+    dangers: ['Courants', 'Eau froide'],
+  },
+  {
+    id: 'doniños',
+    name: 'Doniños',
+    latitude: 43.4980,
+    longitude: -8.3380,
+    beachOrientation: 350,
+    optimalSwellDirMin: 310,
+    optimalSwellDirMax: 30,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'all',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Galice',
+    country: 'Espagne',
+    description: 'Grande plage près de Ferrol. Lagon d\'eau douce derrière, cadre agréable.',
+    dangers: ['Courants', 'Eau froide'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MAROC (suite) — Taghazout, Imsouane
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'tamraght-banana',
+    name: 'Banana Beach (Tamraght)',
+    latitude: 30.4980,
+    longitude: -9.6680,
+    beachOrientation: 270,
+    optimalSwellDirMin: 250,
+    optimalSwellDirMax: 310,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'mid',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Taghazout',
+    country: 'Maroc',
+    description: 'Beach break devant les camps de surf. Idéal pour les cours et la progression.',
+    dangers: ['Rochers par endroits', 'Foule'],
+  },
+  {
+    id: 'taghazout-panoramas',
+    name: 'Panoramas',
+    latitude: 30.5280,
+    longitude: -9.7080,
+    beachOrientation: 280,
+    optimalSwellDirMin: 260,
+    optimalSwellDirMax: 310,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'mid',
+    bottomType: 'point',
+    recommendedLevel: 'intermediate',
+    region: 'Taghazout',
+    country: 'Maroc',
+    description: 'Point break entre Anchor et Taghazout village. Moins de monde, bonne droite.',
+    dangers: ['Rochers', 'Courants'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // INDONÉSIE (suite) — Bali, Java, Mentawai
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'bingin',
+    name: 'Bingin',
+    latitude: -8.8480,
+    longitude: 115.0680,
+    beachOrientation: 270,
+    optimalSwellDirMin: 250,
+    optimalSwellDirMax: 310,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'low',
+    bottomType: 'reef',
+    recommendedLevel: 'intermediate',
+    region: 'Bali',
+    country: 'Indonésie',
+    description: 'Reef break avec vue sur les falaises. Droite et gauche, ambiance décontractée.',
+    dangers: ['Récif', 'Escalier d\'accès', 'Marée'],
+  },
+  {
+    id: 'impossibles',
+    name: 'Impossibles',
+    latitude: -8.8420,
+    longitude: 115.0720,
+    beachOrientation: 270,
+    optimalSwellDirMin: 250,
+    optimalSwellDirMax: 310,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'mid',
+    bottomType: 'reef',
+    recommendedLevel: 'intermediate',
+    region: 'Bali',
+    country: 'Indonésie',
+    description: 'Plusieurs pics sur le même récif. Bon compromis puissance/accessibilité.',
+    dangers: ['Récif', 'Courants'],
+  },
+  {
+    id: 'lances-right',
+    name: "Lance's Right (Mentawai)",
+    latitude: -2.9480,
+    longitude: 100.0580,
+    beachOrientation: 260,
+    optimalSwellDirMin: 220,
+    optimalSwellDirMax: 280,
+    optimalSwellHeightMin: 1.0,
+    optimalSwellHeightMax: 3.5,
+    optimalTide: 'mid',
+    bottomType: 'reef',
+    recommendedLevel: 'expert',
+    region: 'Mentawai',
+    country: 'Indonésie',
+    description: 'Droite parfaite des Mentawai. Long wall et tube en section.',
+    dangers: ['Récif', 'Courants', 'Accès bateau'],
+  },
+  {
+    id: 'macaronis',
+    name: 'Macaronis (Mentawai)',
+    latitude: -2.8780,
+    longitude: 99.9580,
+    beachOrientation: 250,
+    optimalSwellDirMin: 220,
+    optimalSwellDirMax: 270,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 3.0,
+    optimalTide: 'mid',
+    bottomType: 'reef',
+    recommendedLevel: 'intermediate',
+    region: 'Mentawai',
+    country: 'Indonésie',
+    description: 'Droite fun et maniable. Un des spots les plus "surfables" des Mentawai.',
+    dangers: ['Récif', 'Accès bateau'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // AUSTRALIE (suite) — Victoria, NSW, WA
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'byron-bay-pass',
+    name: 'Byron Bay (The Pass)',
+    latitude: -28.6380,
+    longitude: 153.6380,
+    beachOrientation: 80,
+    optimalSwellDirMin: 50,
+    optimalSwellDirMax: 120,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'all',
+    bottomType: 'point',
+    recommendedLevel: 'beginner',
+    region: 'Northern NSW',
+    country: 'Australie',
+    description: 'Longue droite douce autour du cap. Longboard et débutants, ambiance chill.',
+    dangers: ['Foule', 'Rochers'],
+  },
+  {
+    id: 'crescent-head',
+    name: 'Crescent Head',
+    latitude: -31.1980,
+    longitude: 152.9780,
+    beachOrientation: 70,
+    optimalSwellDirMin: 40,
+    optimalSwellDirMax: 110,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'all',
+    bottomType: 'point',
+    recommendedLevel: 'beginner',
+    region: 'Northern NSW',
+    country: 'Australie',
+    description: 'Paradis du longboard. Droite longue et régulière, peu de monde.',
+    dangers: ['Rochers', 'Courants légers'],
+  },
+  {
+    id: 'yallingup',
+    name: 'Yallingup',
+    latitude: -33.6980,
+    longitude: 115.0380,
+    beachOrientation: 280,
+    optimalSwellDirMin: 250,
+    optimalSwellDirMax: 310,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'mid',
+    bottomType: 'reef',
+    recommendedLevel: 'intermediate',
+    region: 'Australie Occidentale',
+    country: 'Australie',
+    description: 'Reef break accessible au sud de Margaret River. Plusieurs pics.',
+    dangers: ['Récif', 'Requins', 'Courants'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // USA HAWAII (suite) — North Shore, Oahu
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // USA CALIFORNIE (suite) — SoCal
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'trestles-lowers',
+    name: 'Lower Trestles',
+    latitude: 33.3830,
+    longitude: -117.5980,
+    beachOrientation: 230,
+    optimalSwellDirMin: 200,
+    optimalSwellDirMax: 270,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'low',
+    bottomType: 'reef',
+    recommendedLevel: 'intermediate',
+    region: 'San Clemente',
+    country: 'USA - Californie',
+    description: 'Spot CT WSL. Reef break parfait, droite et gauche de qualité mondiale.',
+    dangers: ['Foule intense', 'Localisme', 'Accès à pied'],
+  },
+  {
+    id: 'malibu-first-point',
+    name: 'Malibu (First Point)',
+    latitude: 34.0330,
+    longitude: -118.6780,
+    beachOrientation: 270,
+    optimalSwellDirMin: 250,
+    optimalSwellDirMax: 310,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'low',
+    bottomType: 'point',
+    recommendedLevel: 'beginner',
+    region: 'Los Angeles',
+    country: 'USA - Californie',
+    description: 'Spot mythique du surf. Longue droite douce, paradis du longboard.',
+    dangers: ['Foule extrême', 'Localisme', 'Parking'],
+  },
+  {
+    id: 'huntington-pier',
+    name: 'Huntington Beach Pier',
+    latitude: 33.6550,
+    longitude: -118.0030,
+    beachOrientation: 270,
+    optimalSwellDirMin: 250,
+    optimalSwellDirMax: 310,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'all',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Orange County',
+    country: 'USA - Californie',
+    description: "US Open of Surfing. Beach break devant la jetée, très fréquenté.",
+    dangers: ['Foule', 'Pilier de la jetée', 'Courants'],
+  },
+  {
+    id: 'swamis',
+    name: "Swami's",
+    latitude: 33.0480,
+    longitude: -117.2980,
+    beachOrientation: 250,
+    optimalSwellDirMin: 220,
+    optimalSwellDirMax: 280,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'low',
+    bottomType: 'reef',
+    recommendedLevel: 'intermediate',
+    region: 'San Diego',
+    country: 'USA - Californie',
+    description: 'Point break devant le temple. Longue droite de qualité, ambiance calme.',
+    dangers: ['Récif', 'Foule', 'Parking limité'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // AFRIQUE DU SUD (suite)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'long-beach-kommetjie',
+    name: 'Long Beach (Kommetjie)',
+    latitude: -34.1380,
+    longitude: 18.3280,
+    beachOrientation: 270,
+    optimalSwellDirMin: 250,
+    optimalSwellDirMax: 310,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'mid',
+    bottomType: 'beach',
+    recommendedLevel: 'intermediate',
+    region: 'Cape Peninsula',
+    country: 'Afrique du Sud',
+    description: 'Beach break exposé au sud du Cap. Bon avec la houle S-SW.',
+    dangers: ['Requins', 'Eau froide', 'Courants'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ROYAUME-UNI — Cornouailles, Devon
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'croyde',
+    name: 'Croyde Bay',
+    latitude: 51.1280,
+    longitude: -4.2280,
+    beachOrientation: 310,
+    optimalSwellDirMin: 270,
+    optimalSwellDirMax: 340,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'mid',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Devon',
+    country: 'Royaume-Uni',
+    description: 'Baie protégée, bonne pour apprendre. Plusieurs pics selon les bancs.',
+    dangers: ['Courants', 'Eau froide'],
+  },
+  {
+    id: 'woolacombe',
+    name: 'Woolacombe',
+    latitude: 51.1680,
+    longitude: -4.2080,
+    beachOrientation: 300,
+    optimalSwellDirMin: 270,
+    optimalSwellDirMax: 330,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'all',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Devon',
+    country: 'Royaume-Uni',
+    description: 'Longue plage de sable. Idéale débutants et familles.',
+    dangers: ['Courants', 'Eau froide'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // IRLANDE
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'lahinch',
+    name: 'Lahinch',
+    latitude: 52.9380,
+    longitude: -9.3480,
+    beachOrientation: 310,
+    optimalSwellDirMin: 270,
+    optimalSwellDirMax: 330,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'all',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Clare',
+    country: 'Irlande',
+    description: 'Beach break dans une baie. Écoles de surf, bon pour débuter.',
+    dangers: ['Eau froide', 'Courants'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // TAHITI / POLYNÉSIE
+  // ══════════════════════════════════════════════════════════════════════════
+
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PHILIPPINES
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'cloud-nine',
+    name: 'Cloud 9 (Siargao)',
+    latitude: 9.8480,
+    longitude: 126.0580,
+    beachOrientation: 80,
+    optimalSwellDirMin: 50,
+    optimalSwellDirMax: 120,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 3.0,
+    optimalTide: 'mid',
+    bottomType: 'reef',
+    recommendedLevel: 'intermediate',
+    region: 'Siargao',
+    country: 'Philippines',
+    description: 'Reef break en forme de tube. Spot phare des Philippines, WSL QS.',
+    dangers: ['Récif', 'Courants', 'Marée'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // JAPON
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'ichinomiya',
+    name: 'Ichinomiya (Chiba)',
+    latitude: 35.7280,
+    longitude: 140.0680,
+    beachOrientation: 90,
+    optimalSwellDirMin: 60,
+    optimalSwellDirMax: 140,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'all',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Chiba',
+    country: 'Japon',
+    description: 'Plage de Tokyo. Beach break accessible, spot des JO 2020.',
+    dangers: ['Foule', 'Courants'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SRI LANKA
+  // ══════════════════════════════════════════════════════════════════════════
+
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MALDIVES
+  // ══════════════════════════════════════════════════════════════════════════
+
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // NOUVELLE-ZÉLANDE
+  // ══════════════════════════════════════════════════════════════════════════
+
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ÉQUATEUR
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'montanita',
+    name: 'Montañita',
+    latitude: -1.8180,
+    longitude: -80.7580,
+    beachOrientation: 260,
+    optimalSwellDirMin: 220,
+    optimalSwellDirMax: 280,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'mid',
+    bottomType: 'point',
+    recommendedLevel: 'intermediate',
+    region: 'Santa Elena',
+    country: 'Équateur',
+    description: 'Point break et ambiance surf town. Bonne droite, vie nocturne animée.',
+    dangers: ['Courants', 'Rochers', 'Sécurité la nuit'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // COSTA RICA (suite)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'nosara-guinones',
+    name: 'Guiones (Nosara)',
+    latitude: 9.9680,
+    longitude: -85.6680,
+    beachOrientation: 270,
+    optimalSwellDirMin: 240,
+    optimalSwellDirMax: 300,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'mid',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Guanacaste',
+    country: 'Costa Rica',
+    description: 'Beach break parfait pour apprendre. Longue plage, écoles de surf.',
+    dangers: ['Courants', 'Rip currents'],
+  },
+  {
+    id: 'playa-negra',
+    name: 'Playa Negra',
+    latitude: 10.1780,
+    longitude: -85.7980,
+    beachOrientation: 260,
+    optimalSwellDirMin: 240,
+    optimalSwellDirMax: 300,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'low',
+    bottomType: 'reef',
+    recommendedLevel: 'intermediate',
+    region: 'Guanacaste',
+    country: 'Costa Rica',
+    description: 'Reef break rapide et creux. Bon pour surfeurs intermédiaires.',
+    dangers: ['Récif', 'Courants'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MEXIQUE (suite)
+  // ══════════════════════════════════════════════════════════════════════════
+
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PÉROU (suite)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'lobitos',
+    name: 'Lobitos',
+    latitude: -4.4580,
+    longitude: -81.2780,
+    beachOrientation: 270,
+    optimalSwellDirMin: 250,
+    optimalSwellDirMax: 310,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'low',
+    bottomType: 'point',
+    recommendedLevel: 'intermediate',
+    region: 'Piura',
+    country: 'Pérou',
+    description: 'Point break désertique. Longues gauches, peu de monde.',
+    dangers: ['Courants', 'Isolation'],
+  },
+  {
+    id: 'punta-rocas',
+    name: 'Punta Rocas',
+    latitude: -12.3580,
+    longitude: -76.7980,
+    beachOrientation: 240,
+    optimalSwellDirMin: 200,
+    optimalSwellDirMax: 270,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'mid',
+    bottomType: 'reef',
+    recommendedLevel: 'intermediate',
+    region: 'Lima',
+    country: 'Pérou',
+    description: 'Reef break près de Lima. Spot de compétition, bonne gauche.',
+    dangers: ['Récif', 'Courants'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // BRÉSIL (suite)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'guarda-do-embau',
+    name: 'Guarda do Embaú',
+    latitude: -27.9980,
+    longitude: -48.6380,
+    beachOrientation: 90,
+    optimalSwellDirMin: 100,
+    optimalSwellDirMax: 160,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'mid',
+    bottomType: 'beach',
+    recommendedLevel: 'intermediate',
+    region: 'Santa Catarina',
+    country: 'Brésil',
+    description: 'Beach break au bord d\'une rivière. Bonne vague, cadre préservé.',
+    dangers: ['Traversée de rivière', 'Courants'],
+  },
+  {
+    id: 'praia-do-rosa',
+    name: 'Praia do Rosa',
+    latitude: -28.1380,
+    longitude: -48.6180,
+    beachOrientation: 100,
+    optimalSwellDirMin: 110,
+    optimalSwellDirMax: 170,
+    optimalSwellHeightMin: 0.8,
+    optimalSwellHeightMax: 2.5,
+    optimalTide: 'mid',
+    bottomType: 'beach',
+    recommendedLevel: 'intermediate',
+    region: 'Santa Catarina',
+    country: 'Brésil',
+    description: 'Spot de baleines et de surf. Beach break de qualité, baleines en hiver.',
+    dangers: ['Courants', 'Baleines (respecter la distance)'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ITALIE
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'porto-pollo',
+    name: 'Porto Pollo',
+    latitude: 41.0480,
+    longitude: 9.3980,
+    beachOrientation: 280,
+    optimalSwellDirMin: 260,
+    optimalSwellDirMax: 320,
+    optimalSwellHeightMin: 0.5,
+    optimalSwellHeightMax: 2.0,
+    optimalTide: 'all',
+    bottomType: 'beach',
+    recommendedLevel: 'beginner',
+    region: 'Sardaigne',
+    country: 'Italie',
+    description: 'Baie protégée en Sardaigne. Vent thermique offshore l\'après-midi, idéal débutant.',
+    dangers: ['Foule en été', 'Courants légers'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SUITE — Plus de spots mondiaux pour atteindre ~250
+  // ══════════════════════════════════════════════════════════════════════════
+
+  { id: 'ericeira-pedra-branca', name: 'Pedra Branca', latitude: 39.0180, longitude: -9.4380, beachOrientation: 290, optimalSwellDirMin: 280, optimalSwellDirMax: 330, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'low', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Ericeira', country: 'Portugal', description: 'Reef break rapide au nord d\'Ericeira. Bonne droite technique.', dangers: ['Récif', 'Courants'] },
+  { id: 'lisboa-estoril', name: 'Estoril', latitude: 38.7080, longitude: -9.3980, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.8, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Lisbonne', country: 'Portugal', description: 'Plage de la Riviera portugaise. Beach break calme, idéal débutant.', dangers: ['Foule', 'Rochers'] },
+  { id: 'sines-vale-figueria', name: 'Vale Figueira', latitude: 37.9580, longitude: -8.8780, beachOrientation: 260, optimalSwellDirMin: 240, optimalSwellDirMax: 300, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Alentejo', country: 'Portugal', description: 'Beach break sauvage au sud du Portugal. Moins de monde.', dangers: ['Courants', 'Accès'] },
+  { id: 'bidart-centre', name: 'Bidart Centre', latitude: 43.4380, longitude: -1.5980, beachOrientation: 300, optimalSwellDirMin: 280, optimalSwellDirMax: 330, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Pays Basque', country: 'France', description: 'Plage familiale entre Biarritz et Guéthary. Plusieurs pics.', dangers: ['Courants', 'Rochers'] },
+  { id: 'capbreton-hossegor', name: 'Capbreton (La Piste)', latitude: 43.6480, longitude: -1.4280, beachOrientation: 290, optimalSwellDirMin: 270, optimalSwellDirMax: 320, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Landes', country: 'France', description: 'Beach break au sud du lac. Bon compromis puissance/accessibilité.', dangers: ['Baïnes', 'Courants'] },
+  { id: 'vieux-boucau', name: 'Vieux-Boucau', latitude: 43.7880, longitude: -1.3980, beachOrientation: 290, optimalSwellDirMin: 270, optimalSwellDirMax: 320, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Landes', country: 'France', description: 'Spot tranquille au nord des Landes. Bon pour progresser.', dangers: ['Courants', 'Baïnes'] },
+  { id: 'getxo-arbolatza', name: 'Arbolatza (Getxo)', latitude: 43.3680, longitude: -3.0180, beachOrientation: 350, optimalSwellDirMin: 310, optimalSwellDirMax: 30, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Pays Basque Espagnol', country: 'Espagne', description: 'Plage urbaine de Bilbao. Beach break accessible.', dangers: ['Foule', 'Rochers'] },
+  { id: 'mexico-puerto-escondido', name: 'Puerto Escondido (Zicatela)', latitude: 15.8680, longitude: -97.0780, beachOrientation: 260, optimalSwellDirMin: 220, optimalSwellDirMax: 290, optimalSwellHeightMin: 1.0, optimalSwellHeightMax: 4.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'expert', region: 'Oaxaca', country: 'Mexique', description: 'Le "Mexican Pipeline". Beach break puissant, shore break dangereux.', dangers: ['Shore break violent', 'Courants', 'Foule'] },
+  { id: 'nicaragua-colorados', name: 'Colorados', latitude: 11.4980, longitude: -86.5980, beachOrientation: 250, optimalSwellDirMin: 220, optimalSwellDirMax: 280, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Rivas', country: 'Nicaragua', description: 'Beach break puissant au bord du lac. Bonne vague.', dangers: ['Courants', 'Vent'] },
+  { id: 'panama-bocas', name: 'Bocas del Toro (Carenero)', latitude: 9.3480, longitude: -82.2580, beachOrientation: 350, optimalSwellDirMin: 0, optimalSwellDirMax: 40, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'beginner', region: 'Bocas', country: 'Panama', description: 'Reef break accessible sur l\'île. Ambiance Caraïbes.', dangers: ['Récif', 'Oursins'] },
+  { id: 'brazil-santos', name: 'Santos (Guarujá)', latitude: -23.9980, longitude: -46.2680, beachOrientation: 100, optimalSwellDirMin: 90, optimalSwellDirMax: 160, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'São Paulo', country: 'Brésil', description: 'Plages près de São Paulo. Beach break, bon pour sorties du dimanche.', dangers: ['Foule', 'Pollution possible'] },
+  { id: 'fiji-restaurants', name: 'Restaurants (Fiji)', latitude: -17.9680, longitude: 177.1680, beachOrientation: 280, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 1.0, optimalSwellHeightMax: 3.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'expert', region: 'Tavarua', country: 'Fidji', description: 'Reef break légendaire. Tube parfait, accès resort.', dangers: ['Récif', 'Accès payant'] },
+  { id: 'usa-california-pacific-beach', name: 'Pacific Beach', latitude: 32.7980, longitude: -117.2580, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'San Diego', country: 'USA - Californie', description: 'Beach break urbain de San Diego. Ambiance jeune.', dangers: ['Foule', 'Courants'] },
+  { id: 'usa-california-oceanside', name: 'Oceanside Harbor', latitude: 33.1980, longitude: -117.3980, beachOrientation: 260, optimalSwellDirMin: 240, optimalSwellDirMax: 300, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'San Diego', country: 'USA - Californie', description: 'Beach break au nord de San Diego. Moins de monde.', dangers: ['Courants'] },
+  { id: 'hawaii-waikiki', name: 'Waikiki', latitude: 21.2780, longitude: -157.8280, beachOrientation: 230, optimalSwellDirMin: 200, optimalSwellDirMax: 270, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'reef', recommendedLevel: 'beginner', region: 'Oahu', country: 'USA - Hawaii', description: 'Berceau du surf. Longues vagues douces, idéal longboard et débutant.', dangers: ['Foule extrême', 'Récif'], webcamUrl: 'https://www.surf-forecast.com/breaks/Waikiki-Beach/webcams/latest' },
+  { id: 'indonesia-medewi', name: 'Medewi', latitude: -8.3980, longitude: 114.8280, beachOrientation: 290, optimalSwellDirMin: 270, optimalSwellDirMax: 330, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'point', recommendedLevel: 'intermediate', region: 'Bali', country: 'Indonésie', description: 'Longue gauche sur point break. Moins de monde qu\'à Bali sud.', dangers: ['Rochers', 'Courants'] },
+  { id: 'uk-sennen', name: 'Sennen Cove', latitude: 50.0780, longitude: -5.6980, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Cornouailles', country: 'Royaume-Uni', description: 'Belle baie à la pointe des Cornouailles. Beach break familial.', dangers: ['Eau froide', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Sennen-Cove/webcams/latest' },
+  { id: 'ireland-easkey', name: 'Easkey', latitude: 54.2880, longitude: -8.9580, beachOrientation: 300, optimalSwellDirMin: 270, optimalSwellDirMax: 330, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Sligo', country: 'Irlande', description: 'Reef break de la côte ouest. Bonne droite, peu de monde.', dangers: ['Récif', 'Eau froide'], webcamUrl: 'https://www.surf-forecast.com/breaks/Easkey-Ireland/webcams/latest' },
+  { id: 'canary-lanzarote-famara', name: 'Famara (Lanzarote)', latitude: 29.1280, longitude: -13.5680, beachOrientation: 330, optimalSwellDirMin: 290, optimalSwellDirMax: 360, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Canaries', country: 'Espagne', description: 'Longue plage sous les falaises. Beach break, vent souvent fort.', dangers: ['Vent', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Famara-Lanzarote/webcams/latest' },
+  { id: 'canary-fuerteventura-corralejo', name: 'Corralejo', latitude: 28.7280, longitude: -13.8680, beachOrientation: 340, optimalSwellDirMin: 300, optimalSwellDirMax: 30, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Canaries', country: 'Espagne', description: 'Plage au nord de Fuerteventura. Bon pour débuter au soleil.', dangers: ['Vent', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Corralejo-Fuerteventura/webcams/latest' },
+  { id: 'italie-toscane-marina-di-pisa', name: 'Marina di Pisa', latitude: 43.6780, longitude: 10.2780, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Toscane', country: 'Italie', description: 'Beach break près de Pise. Petit spot méditerranéen.', dangers: ['Petite houle', 'Foule en été'] },
+
+  { id: 'portugal-guincho', name: 'Guincho', latitude: 38.7280, longitude: -9.4780, beachOrientation: 310, optimalSwellDirMin: 280, optimalSwellDirMax: 340, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'low', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Lisbonne', country: 'Portugal', description: 'Spot exposé au vent. Beach break puissant quand houle W-NW.', dangers: ['Vent fort', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Guincho/webcams/latest' },
+  { id: 'france-cap-ferret', name: 'Cap Ferret', latitude: 44.6480, longitude: -1.2480, beachOrientation: 280, optimalSwellDirMin: 260, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Gironde', country: 'France', description: 'Océan côté bassin. Beach break, moins de houle qu\'à Lacanau.', dangers: ['Baïnes', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Cap-Ferret/webcams/latest' },
+  { id: 'espagne-playa-de-las-americas', name: 'Playa de las Américas', latitude: 28.0680, longitude: -16.7280, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Tenerife', country: 'Espagne', description: 'Spot touristique des Canaries. Beach break, vent souvent offshore.', dangers: ['Foule', 'Rochers'] },
+  { id: 'australie-byron-tallow', name: 'Tallow Beach (Byron)', latitude: -28.6380, longitude: 153.6280, beachOrientation: 90, optimalSwellDirMin: 60, optimalSwellDirMax: 130, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Northern NSW', country: 'Australie', description: 'Beach break à Byron. Moins de monde que The Pass.', dangers: ['Courants', 'Rip'], webcamUrl: 'https://www.surf-forecast.com/breaks/Tallow-Beach-Byron-Bay/webcams/latest' },
+  { id: 'usa-florida-cocoa-beach', name: 'Cocoa Beach', latitude: 28.3680, longitude: -80.6080, beachOrientation: 90, optimalSwellDirMin: 50, optimalSwellDirMax: 130, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Floride', country: 'USA - Floride', description: 'Spot de Kelly Slater. Beach break, petites vagues consistantes.', dangers: ['Foule', 'Ouragan en saison'], webcamUrl: 'https://www.surf-forecast.com/breaks/Cocoa-Beach-Florida/webcams/latest' },
+  { id: 'usa-nc-wrightsville', name: 'Wrightsville Beach', latitude: 34.2080, longitude: -77.7980, beachOrientation: 100, optimalSwellDirMin: 80, optimalSwellDirMax: 160, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Caroline du Nord', country: 'USA - Est', description: 'Beach break de la côte est. Bon avec houle NE.', dangers: ['Petite houle', 'Foule en été'] },
+  { id: 'japon-shonan', name: 'Shonan (Enoshima)', latitude: 35.2980, longitude: 139.4780, beachOrientation: 180, optimalSwellDirMin: 120, optimalSwellDirMax: 200, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Kanagawa', country: 'Japon', description: 'Plage près de Tokyo. Beach break, typhons en été.', dangers: ['Foule', 'Typhons'] },
+  { id: 'philippines-boracay', name: 'Bulabog (Boracay)', latitude: 11.9680, longitude: 121.9280, beachOrientation: 80, optimalSwellDirMin: 50, optimalSwellDirMax: 110, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Boracay', country: 'Philippines', description: 'Spot kitesurf et surf. Vent side-shore, petite houle.', dangers: ['Foule', 'Rochers'] },
+  { id: 'sri-lanka-midigama', name: 'Midigama', latitude: 5.9680, longitude: 80.4480, beachOrientation: 200, optimalSwellDirMin: 150, optimalSwellDirMax: 220, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Southern Province', country: 'Sri Lanka', description: 'Reef break près d\'Arugam. Plusieurs pics (Ram\'s Right, etc.).', dangers: ['Récif', 'Courants'] },
+  { id: 'maldives-cokes', name: 'Cokes', latitude: 4.2980, longitude: 73.4980, beachOrientation: 270, optimalSwellDirMin: 240, optimalSwellDirMax: 300, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Atoll de Malé Nord', country: 'Maldives', description: 'Droite courte et fun. Accès en bateau depuis Malé.', dangers: ['Récif', 'Boat only'] },
+  { id: 'reunion-etang-sale', name: 'Étang-Salé', latitude: -21.2780, longitude: 55.3380, beachOrientation: 220, optimalSwellDirMin: 180, optimalSwellDirMax: 250, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'La Réunion', country: 'La Réunion', description: 'Beach break de l\'île. Attention requins (interdictions).', dangers: ['Requins', 'Courants'] },
+  { id: 'martinique-anse-bonnie', name: 'Anse Bonneville', latitude: 14.7980, longitude: -60.9680, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Martinique', country: 'Martinique', description: 'Beach break caraïbe. Petite houle, bon pour débuter.', dangers: ['Petite houle', 'Rochers'] },
+  { id: 'guadeloupe-port-louis', name: 'Port-Louis', latitude: 16.4180, longitude: -61.5380, beachOrientation: 350, optimalSwellDirMin: 310, optimalSwellDirMax: 40, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Guadeloupe', country: 'Guadeloupe', description: 'Spot au nord de la Guadeloupe. Beach break exposé N.', dangers: ['Courants', 'Vent'] },
+  { id: 'canada-tofino-long-beach', name: 'Long Beach (Tofino)', latitude: 49.0780, longitude: -125.7780, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Vancouver Island', country: 'Canada', description: 'Spot principal de Tofino. Beach break sauvage, eau froide.', dangers: ['Eau froide', 'Courants', 'Bateaux'], webcamUrl: 'https://www.surf-forecast.com/breaks/Long-Beach-Tofino/webcams/latest' },
+  { id: 'israel-tel-aviv', name: 'Tel Aviv (Hilton Beach)', latitude: 32.0880, longitude: 34.7680, beachOrientation: 290, optimalSwellDirMin: 270, optimalSwellDirMax: 330, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Tel Aviv', country: 'Israël', description: 'Beach break méditerranéen. Petite houle, bon pour débuter.', dangers: ['Petite houle', 'Foule'] },
+  { id: 'egypte-el-gouna', name: 'El Gouna', latitude: 27.3980, longitude: 33.6780, beachOrientation: 350, optimalSwellDirMin: 310, optimalSwellDirMax: 40, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Mer Rouge', country: 'Égypte', description: 'Spot kitesurf et surf. Vent régulier, petite houle.', dangers: ['Petite houle', 'Récifs'] },
+  { id: 'senegal-ngor', name: 'Ngor Island', latitude: 14.7580, longitude: -17.5080, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Dakar', country: 'Sénégal', description: 'Spot historique de Dakar. Beach break, pirogue pour y aller.', dangers: ['Courants', 'Accès pirogue'] },
+  { id: 'ghana-busua', name: 'Busua', latitude: 4.7980, longitude: -2.1180, beachOrientation: 240, optimalSwellDirMin: 220, optimalSwellDirMax: 280, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Western Region', country: 'Ghana', description: 'Beach break du Ghana. Peu de monde, houle atlantique.', dangers: ['Courants', 'Isolation'] },
+  { id: 'portugal-praia-da-rocha', name: 'Praia da Rocha', latitude: 37.1180, longitude: -8.5380, beachOrientation: 220, optimalSwellDirMin: 200, optimalSwellDirMax: 260, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Algarve', country: 'Portugal', description: 'Plage de Portimão. Beach break, très touristique.', dangers: ['Foule', 'Rochers'] },
+  { id: 'france-ile-doleron', name: 'Île d\'Oléron (Vert-Bois)', latitude: 45.9680, longitude: -1.3480, beachOrientation: 290, optimalSwellDirMin: 270, optimalSwellDirMax: 320, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Charente-Maritime', country: 'France', description: 'Grande plage de l\'île. Beach break, moins de houle qu\'à Lacanau.', dangers: ['Baïnes', 'Courants'] },
+  { id: 'espagne-tarifa', name: 'Tarifa (Valdevaqueros)', latitude: 36.0680, longitude: -5.6680, beachOrientation: 200, optimalSwellDirMin: 180, optimalSwellDirMax: 250, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Andalousie', country: 'Espagne', description: 'Spot kitesurf et surf. Vent de levante fort, petite houle.', dangers: ['Vent très fort', 'Courants'] },
+  { id: 'nicaragua-santana', name: 'Santana', latitude: 11.4680, longitude: -86.5480, beachOrientation: 250, optimalSwellDirMin: 220, optimalSwellDirMax: 280, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Rivas', country: 'Nicaragua', description: 'Beach break puissant. Moins de monde qu\'à Popoyo.', dangers: ['Courants', 'Vent'] },
+  { id: 'panama-playa-venao', name: 'Playa Venao', latitude: 7.4280, longitude: -80.1680, beachOrientation: 220, optimalSwellDirMin: 200, optimalSwellDirMax: 260, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Los Santos', country: 'Panama', description: 'Beach break de la côte Pacifique. Bon pour progresser.', dangers: ['Courants', 'Soleil'] },
+  { id: 'colombia-punta-madrid', name: 'Punta Madrid', latitude: 11.2280, longitude: -74.2280, beachOrientation: 310, optimalSwellDirMin: 280, optimalSwellDirMax: 340, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Santa Marta', country: 'Colombie', description: 'Beach break près de Santa Marta. Bonne ambiance.', dangers: ['Courants', 'Foule en haute saison'] },
+  { id: 'venezuela-playa-moa', name: 'Playa Moa', latitude: 10.6480, longitude: -63.1980, beachOrientation: 350, optimalSwellDirMin: 310, optimalSwellDirMax: 40, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Sucre', country: 'Venezuela', description: 'Beach break caraïbe. Petite houle, situation politique à surveiller.', dangers: ['Sécurité', 'Petite houle'] },
+  { id: 'uruguay-punta-del-este', name: 'Punta del Este (La Barra)', latitude: -34.8980, longitude: -54.9480, beachOrientation: 130, optimalSwellDirMin: 90, optimalSwellDirMax: 160, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Maldonado', country: 'Uruguay', description: 'Spot branché d\'Amérique du Sud. Beach break, bonne gauche.', dangers: ['Foule', 'Courants'] },
+  { id: 'argentina-mar-del-plata', name: 'Mar del Plata', latitude: -38.0080, longitude: -57.5480, beachOrientation: 140, optimalSwellDirMin: 100, optimalSwellDirMax: 170, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Buenos Aires', country: 'Argentine', description: 'Plage de la ville. Beach break, petite houle atlantique.', dangers: ['Foule', 'Eau froide'] },
+  { id: 'indonesia-lombok-despot', name: 'Despot (Lombok)', latitude: -8.7680, longitude: 116.0480, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'low', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Lombok', country: 'Indonésie', description: 'Reef break au sud de Lombok. Moins de monde qu\'à Bali.', dangers: ['Récif', 'Courants'] },
+  { id: 'new-zealand-gisborne', name: 'Gisborne (Waikanae)', latitude: -38.6680, longitude: 178.0280, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 140, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Côte Est', country: 'Nouvelle-Zélande', description: 'Première ville au monde à voir le soleil. Beach break.', dangers: ['Courants', 'Eau froide'] },
+  { id: 'fiji-wilkes-pass', name: 'Wilkes Pass', latitude: -18.0980, longitude: 177.2980, beachOrientation: 280, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Mamanuca', country: 'Fidji', description: 'Reef break accessible. Moins exigeant que Cloudbreak.', dangers: ['Récif', 'Accès bateau'] },
+  { id: 'samoa-salani', name: 'Salani', latitude: -14.0280, longitude: -171.3980, beachOrientation: 200, optimalSwellDirMin: 180, optimalSwellDirMax: 250, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Upolu', country: 'Samoa', description: 'Reef break des Samoa. Droite de qualité, peu de monde.', dangers: ['Récif', 'Courants'] },
+  { id: 'tahiti-papenoo', name: 'Papenoo', latitude: -17.5480, longitude: -149.4180, beachOrientation: 350, optimalSwellDirMin: 310, optimalSwellDirMax: 40, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Tahiti', country: 'Polynésie française', description: 'Beach break au nord de Tahiti. Moins connu que Teahupo\'o.', dangers: ['Courants', 'Rochers'] },
+  { id: 'france-saint-jean-de-luz', name: 'Saint-Jean-de-Luz', latitude: 43.3980, longitude: -1.6680, beachOrientation: 300, optimalSwellDirMin: 280, optimalSwellDirMax: 330, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.8, optimalTide: 'low', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Pays Basque', country: 'France', description: 'Baie protégée. Beach break familial, moins puissant que Hossegor.', dangers: ['Foule', 'Rochers'], webcamUrl: 'https://www.surf-forecast.com/breaks/Saint-Jean-de-Luz/webcams/latest' },
+  { id: 'espagne-ribadesella', name: 'Ribadesella', latitude: 43.4680, longitude: -5.0580, beachOrientation: 10, optimalSwellDirMin: 320, optimalSwellDirMax: 40, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Asturies', country: 'Espagne', description: 'Beach break des Asturies. Bon avec houle N-NW.', dangers: ['Courants', 'Eau froide'] },
+  { id: 'maroc-mirleft', name: 'Mirleft', latitude: 29.5780, longitude: -10.0380, beachOrientation: 280, optimalSwellDirMin: 260, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Souss-Massa', country: 'Maroc', description: 'Village au sud d\'Agadir. Plusieurs plages, moins de monde.', dangers: ['Vent', 'Courants'] },
+  { id: 'usa-california-santa-cruz', name: 'Steamer Lane (Santa Cruz)', latitude: 36.9480, longitude: -122.0280, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'point', recommendedLevel: 'intermediate', region: 'Santa Cruz', country: 'USA - Californie', description: 'Point break mythique de Santa Cruz. Droite et gauche.', dangers: ['Foule', 'Rochers', 'Eau froide'], webcamUrl: 'https://www.surf-forecast.com/breaks/Steamer-Lane/webcams/latest' },
+  { id: 'usa-california-morro-bay', name: 'Morro Bay', latitude: 35.3680, longitude: -120.8580, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'San Luis Obispo', country: 'USA - Californie', description: 'Beach break devant le Morro Rock. Bon pour débuter.', dangers: ['Vent', 'Courants'] },
+  { id: 'hawaii-lanikai', name: 'Lanikai (Oahu Est)', latitude: 21.3980, longitude: -157.7180, beachOrientation: 80, optimalSwellDirMin: 50, optimalSwellDirMax: 110, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.2, optimalTide: 'all', bottomType: 'reef', recommendedLevel: 'beginner', region: 'Oahu', country: 'USA - Hawaii', description: 'Spot calme côté windward. Petite houle, longboard.', dangers: ['Petite houle', 'Récif'] },
+  { id: 'afrique-sud-durban', name: 'Durban (North Beach)', latitude: -29.8580, longitude: 31.0380, beachOrientation: 120, optimalSwellDirMin: 90, optimalSwellDirMax: 160, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'KwaZulu-Natal', country: 'Afrique du Sud', description: 'Plage urbaine de Durban. Beach break, bon pour débuter.', dangers: ['Requins', 'Foule'], webcamUrl: 'https://www.surf-forecast.com/breaks/Durban-North-Beach/webcams/latest' },
+  { id: 'uk-bude', name: 'Bude', latitude: 50.8280, longitude: -4.5580, beachOrientation: 300, optimalSwellDirMin: 270, optimalSwellDirMax: 330, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Cornouailles', country: 'Royaume-Uni', description: 'Plage du nord des Cornouailles. Beach break, famille.', dangers: ['Eau froide', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Bude-Beach/webcams/latest' },
+  { id: 'ireland-mullaghmore', name: 'Mullaghmore', latitude: 54.4680, longitude: -8.4580, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 1.0, optimalSwellHeightMax: 4.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'expert', region: 'Sligo', country: 'Irlande', description: 'Big wave spot d\'Irlande. Reef break, tow-in au-dessus de 4m.', dangers: ['Récif', 'Grosses vagues', 'Eau froide'], webcamUrl: 'https://www.surf-forecast.com/breaks/Mullaghmore/webcams/latest' },
+  { id: 'italie-sardaigne-chia', name: 'Chia', latitude: 38.8980, longitude: 8.8980, beachOrientation: 240, optimalSwellDirMin: 220, optimalSwellDirMax: 280, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Sardaigne', country: 'Italie', description: 'Plages au sud de Cagliari. Beach break méditerranéen.', dangers: ['Petite houle', 'Vent'] },
+  { id: 'grece-methoni', name: 'Methoni', latitude: 36.8180, longitude: 21.7080, beachOrientation: 220, optimalSwellDirMin: 180, optimalSwellDirMax: 260, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Péloponnèse', country: 'Grèce', description: 'Spot du Péloponnèse. Beach break, peu de houle.', dangers: ['Petite houle', 'Vent meltemi'] },
+  { id: 'turquie-alaçati', name: 'Alaçatı', latitude: 38.2580, longitude: 26.3780, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Izmir', country: 'Turquie', description: 'Spot kitesurf et surf en Égée. Vent régulier.', dangers: ['Vent fort', 'Petite houle'] },
+  { id: 'thailande-phuket', name: 'Kata Beach (Phuket)', latitude: 7.8180, longitude: 98.2980, beachOrientation: 270, optimalSwellDirMin: 240, optimalSwellDirMax: 300, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Phuket', country: 'Thaïlande', description: 'Beach break touristique. Bon pour débuter en Asie.', dangers: ['Foule', 'Rochers'] },
+  { id: 'vietnam-mui-ne', name: 'Mui Ne', latitude: 10.9280, longitude: 108.2980, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 130, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Phan Thiết', country: 'Vietnam', description: 'Spot kitesurf et surf. Vent side-shore, petite houle.', dangers: ['Vent', 'Courants'] },
+  { id: 'chine-hainan', name: 'Riyue Bay (Hainan)', latitude: 18.5980, longitude: 110.1980, beachOrientation: 90, optimalSwellDirMin: 60, optimalSwellDirMax: 130, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Hainan', country: 'Chine', description: 'Spot de l\'île de Hainan. Beach break, développement récent.', dangers: ['Foule', 'Typhons'] },
+  { id: 'coree-sud-yangyang', name: 'Yangyang', latitude: 38.0780, longitude: 128.6180, beachOrientation: 80, optimalSwellDirMin: 50, optimalSwellDirMax: 120, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Gangwon', country: 'Corée du Sud', description: 'Spot de la côte est. Beach break, saison typhon.', dangers: ['Eau froide en hiver', 'Typhons'] },
+  { id: 'russie-kamchatka', name: 'Khalaktyrsky (Kamchatka)', latitude: 52.8780, longitude: 158.5480, beachOrientation: 180, optimalSwellDirMin: 140, optimalSwellDirMax: 220, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Kamchatka', country: 'Russie', description: 'Spot extrême du Pacifique russe. Volcans, ours, vagues.', dangers: ['Eau glaciale', 'Isolation', 'Ours'] },
+  { id: 'algerie-kouali', name: 'Kouali (Tipaza)', latitude: 36.5780, longitude: 2.4480, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Tipaza', country: 'Algérie', description: 'Beach break méditerranéen. Petite houle, communauté surf en développement.', dangers: ['Petite houle'] },
+  { id: 'tunisie-sousse', name: 'Sousse (Boujaffar)', latitude: 35.8280, longitude: 10.6280, beachOrientation: 50, optimalSwellDirMin: 320, optimalSwellDirMax: 60, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.2, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Sousse', country: 'Tunisie', description: 'Spot méditerranéen. Petite houle, bon pour débuter.', dangers: ['Petite houle'] },
+  { id: 'madagascar-tamatave', name: 'Tamatave (Mahambo)', latitude: -18.0980, longitude: 49.4680, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 140, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Côte Est', country: 'Madagascar', description: 'Beach break de la côte est. Houle indienne, peu de monde.', dangers: ['Courants', 'Requins'] },
+  { id: 'mozambique-tofo', name: 'Tofo', latitude: -23.8480, longitude: 35.5380, beachOrientation: 100, optimalSwellDirMin: 80, optimalSwellDirMax: 150, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Inhambane', country: 'Mozambique', description: 'Beach break de l\'océan Indien. Raies mantas, bonne ambiance.', dangers: ['Courants', 'Requins'] },
+  { id: 'kenya-nyali', name: 'Nyali (Mombasa)', latitude: -4.0580, longitude: 39.6980, beachOrientation: 100, optimalSwellDirMin: 80, optimalSwellDirMax: 140, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Mombasa', country: 'Kenya', description: 'Beach break près de Mombasa. Petite houle indienne.', dangers: ['Courants'] },
+  { id: 'tanzania-masimba', name: 'Masimba (Dar es Salaam)', latitude: -6.8280, longitude: 39.2980, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 130, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Dar es Salaam', country: 'Tanzanie', description: 'Spot naissant de Tanzanie. Beach break, saison des pluies.', dangers: ['Petite houle', 'Courants'] },
+  { id: 'maurice-tamarin', name: 'Tamarin', latitude: -20.3280, longitude: 57.3780, beachOrientation: 220, optimalSwellDirMin: 180, optimalSwellDirMax: 260, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Maurice', country: 'Maurice', description: 'Spot principal de l\'île. Beach break, bonne droite.', dangers: ['Courants', 'Requins'] },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 50 SPOTS MONDAUX ADDITIONNELS
+  // ══════════════════════════════════════════════════════════════════════════
+  { id: 'norvege-hoddevik', name: 'Hoddevik', latitude: 62.0780, longitude: 5.4180, beachOrientation: 290, optimalSwellDirMin: 260, optimalSwellDirMax: 330, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Stad', country: 'Norvège', description: 'Beach break de l\'Atlantique norvégien. Eau froide, paysages spectaculaires.', dangers: ['Eau glaciale', 'Courants', 'Isolation'], webcamUrl: 'https://www.surf-forecast.com/breaks/Hoddevik-Norway/webcams/latest' },
+  { id: 'danemark-cold-hawaii', name: 'Cold Hawaii (Klitmøller)', latitude: 57.0580, longitude: 8.9680, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Jutland', country: 'Danemark', description: 'Capital européenne du surf. Beach break, vent souvent fort.', dangers: ['Eau froide', 'Vent'], webcamUrl: 'https://www.surf-forecast.com/breaks/Klitmoeller-Denmark/webcams/latest' },
+  { id: 'allemagne-sylt', name: 'Sylt (Rantum)', latitude: 54.8580, longitude: 8.3080, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Schleswig-Holstein', country: 'Allemagne', description: 'Île de la mer du Nord. Beach break, communauté surf active.', dangers: ['Eau froide', 'Marée forte'], webcamUrl: 'https://www.surf-forecast.com/breaks/Sylt-Germany/webcams/latest' },
+  { id: 'pays-bas-scheveningen', name: 'Scheveningen', latitude: 52.1080, longitude: 4.2680, beachOrientation: 310, optimalSwellDirMin: 270, optimalSwellDirMax: 340, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'La Haye', country: 'Pays-Bas', description: 'Plage de La Haye. Beach break, bonne infrastructure.', dangers: ['Eau froide', 'Foule'], webcamUrl: 'https://www.surf-forecast.com/breaks/Scheveningen-Netherlands/webcams/latest' },
+  { id: 'galles-llanbedr', name: 'Llanbedr (Borthwen)', latitude: 52.8180, longitude: -4.0980, beachOrientation: 300, optimalSwellDirMin: 270, optimalSwellDirMax: 330, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Gwynedd', country: 'Royaume-Uni', description: 'Beach break du pays de Galles. Moins de monde qu\'en Cornouailles.', dangers: ['Eau froide', 'Courants'] },
+  { id: 'espagne-galice-pantin', name: 'Pantin (Galice)', latitude: 43.5980, longitude: -8.2180, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Galice', country: 'Espagne', description: 'Spot du nord-ouest espagnol. Étape du WSL, beach break.', dangers: ['Vent', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Pantin-Galicia/webcams/latest' },
+  { id: 'maroc-safi', name: 'Safi (Harbour Wall)', latitude: 32.2980, longitude: -9.2380, beachOrientation: 290, optimalSwellDirMin: 270, optimalSwellDirMax: 320, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'low', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Doukkala', country: 'Maroc', description: 'Reef break au port de Safi. Droite puissante, peu de monde.', dangers: ['Récif', 'Port'], webcamUrl: 'https://www.surf-forecast.com/breaks/Safi-Morocco/webcams/latest' },
+  { id: 'canada-nouvelle-ecosse-lawrencetown', name: 'Lawrencetown', latitude: 44.6480, longitude: -63.3580, beachOrientation: 90, optimalSwellDirMin: 50, optimalSwellDirMax: 130, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Nouvelle-Écosse', country: 'Canada', description: 'Beach break atlantique. Eau froide, bonne houle.', dangers: ['Eau froide', 'Courants'] },
+  { id: 'usa-oregon-pacific-city', name: 'Pacific City (Cape Kiwanda)', latitude: 45.2080, longitude: -123.9680, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Oregon', country: 'USA - Oregon', description: 'Beach break devant Haystack Rock. Bonne houle Pacifique.', dangers: ['Eau froide', 'Courants', 'Bateaux'] },
+  { id: 'usa-washington-westport', name: 'Westport', latitude: 46.8980, longitude: -124.1080, beachOrientation: 290, optimalSwellDirMin: 260, optimalSwellDirMax: 320, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Washington', country: 'USA - Washington', description: 'Jetty et beach break. Spot principal de l\'État.', dangers: ['Eau froide', 'Courants'] },
+  { id: 'mexico-puerto-escondido-zicatela', name: 'Zicatela (Puerto Escondido)', latitude: 15.8680, longitude: -97.0780, beachOrientation: 200, optimalSwellDirMin: 180, optimalSwellDirMax: 250, optimalSwellHeightMin: 1.0, optimalSwellHeightMax: 4.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'expert', region: 'Oaxaca', country: 'Mexique', description: 'Plage des tubes géants. Mexican Pipeline, beach break puissant.', dangers: ['Shore break violent', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Puerto-Escondido-Zicatela/webcams/latest' },
+  { id: 'peru-mancora', name: 'Mancora', latitude: -4.1080, longitude: -81.0480, beachOrientation: 250, optimalSwellDirMin: 220, optimalSwellDirMax: 280, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Piura', country: 'Pérou', description: 'Spot du nord péruvien. Beach break, eau plus chaude.', dangers: ['Courants', 'Soleil'], webcamUrl: 'https://www.surf-forecast.com/breaks/Mancora-Peru/webcams/latest' },
+  { id: 'peru-punta-hermosa', name: 'Punta Hermosa (Senoritas)', latitude: -12.3480, longitude: -76.8080, beachOrientation: 220, optimalSwellDirMin: 200, optimalSwellDirMax: 260, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'point', recommendedLevel: 'intermediate', region: 'Lima', country: 'Pérou', description: 'Point break près de Lima. Plusieurs pics (Senoritas, La Isla).', dangers: ['Foule', 'Rochers'], webcamUrl: 'https://www.surf-forecast.com/breaks/Punta-Hermosa-Peru/webcams/latest' },
+  { id: 'bresil-praia-da-tiririca', name: 'Praia da Tiririca (Itacaré)', latitude: -14.2780, longitude: -38.9980, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 140, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Bahia', country: 'Brésil', description: 'Beach break de Bahia. Forêt tropicale, bonne ambiance.', dangers: ['Courants', 'Rochers'] },
+  { id: 'bresil-fernando-noronha', name: 'Cacimba do Padre (Fernando de Noronha)', latitude: -3.8480, longitude: -32.4180, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 130, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Pernambuco', country: 'Brésil', description: 'Île paradisiaque. Beach break puissant, préservé.', dangers: ['Courants', 'Accès limité'] },
+  { id: 'uruguay-la-paloma', name: 'La Paloma', latitude: -34.6680, longitude: -54.1680, beachOrientation: 120, optimalSwellDirMin: 90, optimalSwellDirMax: 160, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Rocha', country: 'Uruguay', description: 'Station balnéaire tranquille. Beach break, moins de monde que Punta.', dangers: ['Courants', 'Eau froide'] },
+  { id: 'taiwan-fulong', name: 'Fulong', latitude: 25.0180, longitude: 121.9480, beachOrientation: 80, optimalSwellDirMin: 50, optimalSwellDirMax: 120, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'New Taipei', country: 'Taïwan', description: 'Plage de la côte nord. Beach break, communauté en croissance.', dangers: ['Typhons', 'Foule en été'] },
+  { id: 'indonesia-sumbawa-supersuck', name: 'Supersuck (Sumbawa)', latitude: -8.4680, longitude: 117.4180, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'low', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Sumbawa', country: 'Indonésie', description: 'Reef break de Sumbawa. Tube court et intense.', dangers: ['Récif', 'Isolation'] },
+  { id: 'indonesia-mentawai-thunders', name: 'Thunders', latitude: -2.7680, longitude: 99.9680, beachOrientation: 220, optimalSwellDirMin: 200, optimalSwellDirMax: 260, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 3.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Mentawai', country: 'Indonésie', description: 'Reef break des Mentawai. Droite longue, bateau nécessaire.', dangers: ['Récif', 'Boat only'] },
+  { id: 'sri-lanka-arugam-bay', name: 'Arugam Bay (Main Point)', latitude: 6.8380, longitude: 81.8480, beachOrientation: 200, optimalSwellDirMin: 180, optimalSwellDirMax: 240, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'point', recommendedLevel: 'intermediate', region: 'Eastern Province', country: 'Sri Lanka', description: 'Point break de la côte est. Saison avril-octobre.', dangers: ['Courants', 'Conflits passés'] },
+  { id: 'maldives-honkeys', name: 'Honkeys', latitude: 4.2180, longitude: 73.4980, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Atoll de Malé Nord', country: 'Maldives', description: 'Droite rapide des Maldives. Accès en bateau.', dangers: ['Récif', 'Boat only'] },
+  { id: 'fiji-namotu-left', name: 'Namotu Left', latitude: -18.2480, longitude: 177.1480, beachOrientation: 200, optimalSwellDirMin: 180, optimalSwellDirMax: 240, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Mamanuca', country: 'Fidji', description: 'Gauche près de Namotu Island. Moins gros que Cloudbreak.', dangers: ['Récif', 'Accès bateau'] },
+  { id: 'tonga-haatafu', name: 'Ha\'atafu', latitude: -21.1580, longitude: -175.2480, beachOrientation: 0, optimalSwellDirMin: 320, optimalSwellDirMax: 40, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Tongatapu', country: 'Tonga', description: 'Reef break des Tonga. Peu de monde, authentique.', dangers: ['Récif', 'Courants'] },
+  { id: 'nouvelle-caledonie-bourail', name: 'Bourail (La Roche Percée)', latitude: -21.5980, longitude: 165.4980, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 140, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Côte Ouest', country: 'Nouvelle-Calédonie', description: 'Beach break de la Grande Terre. Lagoon et océan.', dangers: ['Requins', 'Courants'] },
+  { id: 'iles-cook-raggie', name: 'Rarotonga (Black Rock)', latitude: -21.2280, longitude: -159.7780, beachOrientation: 0, optimalSwellDirMin: 320, optimalSwellDirMax: 50, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'beginner', region: 'Rarotonga', country: 'Îles Cook', description: 'Reef break des Cook. Petite houle, paysages magnifiques.', dangers: ['Récif', 'Petite houle'] },
+  { id: 'samoa-american-savu', name: 'Savai\'i (Salelavalu)', latitude: -13.6780, longitude: -172.1980, beachOrientation: 350, optimalSwellDirMin: 310, optimalSwellDirMax: 40, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Savai\'i', country: 'Samoa', description: 'Reef break de la grande île. Moins de monde qu\'à Upolu.', dangers: ['Récif', 'Courants'] },
+  { id: 'papouasie-nouvelle-guinee-tupira', name: 'Tupira', latitude: -4.3480, longitude: 152.2680, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 140, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'East New Britain', country: 'Papouasie-Nouvelle-Guinée', description: 'Reef break isolé. Aventure et vagues peu fréquentées.', dangers: ['Récif', 'Isolation', 'Sécurité'] },
+  { id: 'australie-western-australia-margarets', name: 'Margaret River (Surfers Point)', latitude: -33.9580, longitude: 115.0480, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 1.0, optimalSwellHeightMax: 3.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'expert', region: 'Australie Occidentale', country: 'Australie', description: 'Spot WSL. Reef break puissant, requins à surveiller.', dangers: ['Requins', 'Récif', 'Eau froide'], webcamUrl: 'https://www.surf-forecast.com/breaks/Margaret-River-Main-Break/webcams/latest' },
+  { id: 'australie-tasmanie-clifton', name: 'Clifton Beach (Tasmanie)', latitude: -42.9880, longitude: 147.5280, beachOrientation: 180, optimalSwellDirMin: 140, optimalSwellDirMax: 220, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Tasmanie', country: 'Australie', description: 'Beach break au sud de Hobart. Eau froide, paysages sauvages.', dangers: ['Eau froide', 'Courants'] },
+  { id: 'nouvelle-zelande-piha', name: 'Piha', latitude: -36.9580, longitude: 174.4680, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Auckland', country: 'Nouvelle-Zélande', description: 'Beach break noir (sable volcanique). Proche d\'Auckland.', dangers: ['Courants', 'Rip', 'Eau froide'], webcamUrl: 'https://www.surf-forecast.com/breaks/Piha-New-Zealand/webcams/latest' },
+  { id: 'afrique-sud-umhlanga', name: 'Umhlanga', latitude: -29.7280, longitude: 31.0880, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 140, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'KwaZulu-Natal', country: 'Afrique du Sud', description: 'Plage au nord de Durban. Beach break familial.', dangers: ['Requins', 'Foule'] },
+  { id: 'afrique-sud-cape-town-muizenberg', name: 'Muizenberg (Cape Town)', latitude: -34.1080, longitude: 18.4680, beachOrientation: 180, optimalSwellDirMin: 140, optimalSwellDirMax: 220, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Le Cap', country: 'Afrique du Sud', description: 'Spot historique du Cap. Beach break, écoles de surf.', dangers: ['Requins', 'Eau froide'], webcamUrl: 'https://www.surf-forecast.com/breaks/Muizenberg-Cape-Town/webcams/latest' },
+  { id: 'namibie-skeleton-coast', name: 'Swakopmund', latitude: -22.6780, longitude: 14.5280, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Erongo', country: 'Namibie', description: 'Beach break atlantique. Désert et océan, eau froide.', dangers: ['Eau froide', 'Courants'] },
+  { id: 'iles-canaries-gran-canaria-las-canteras', name: 'Las Canteras (Gran Canaria)', latitude: 28.1380, longitude: -15.4380, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Gran Canaria', country: 'Espagne', description: 'Plage urbaine de Las Palmas. Reef naturel, bonne pour débuter.', dangers: ['Foule', 'Rochers'], webcamUrl: 'https://www.surf-forecast.com/breaks/Las-Canteras-Gran-Canaria/webcams/latest' },
+  { id: 'madere-ponta-delgada', name: 'Ponta Delgada (Madère)', latitude: 32.6680, longitude: -16.8480, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Madère', country: 'Portugal', description: 'Reef break de Madère. Paysages verts et océan.', dangers: ['Récif', 'Accès'] },
+  { id: 'azores-sao-miguel', name: 'Monte Verde (São Miguel)', latitude: 37.7480, longitude: -25.6680, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Açores', country: 'Portugal', description: 'Beach break des Açores. Volcans et vagues atlantiques.', dangers: ['Courants', 'Vent'] },
+  { id: 'france-bretagne-la-torche', name: 'La Torche (Bretagne)', latitude: 47.8580, longitude: -4.3380, beachOrientation: 240, optimalSwellDirMin: 220, optimalSwellDirMax: 280, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Finistère', country: 'France', description: 'Spot exposé de la pointe bretonne. Beach break, vent souvent.', dangers: ['Vent', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/La-Torche-Brittany/webcams/latest' },
+  { id: 'france-noirmoutier', name: 'Noirmoutier (L\'Épine)', latitude: 46.9980, longitude: -2.2480, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Vendée', country: 'France', description: 'Île de Vendée. Beach break, marée et passage du Gois.', dangers: ['Marée', 'Courants'] },
+  { id: 'italie-sicile-mondello', name: 'Mondello (Sicile)', latitude: 38.2080, longitude: 13.3280, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.2, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Sicile', country: 'Italie', description: 'Plage de Palerme. Petite houle méditerranéenne.', dangers: ['Petite houle', 'Foule'] },
+  { id: 'croatie-premantura', name: 'Premantura (Pula)', latitude: 44.7980, longitude: 13.9180, beachOrientation: 270, optimalSwellDirMin: 240, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.2, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Istrie', country: 'Croatie', description: 'Pointe sud de l\'Istrie. Vent jugo, petite houle.', dangers: ['Petite houle', 'Vent'] },
+  { id: 'portugal-ericeira-cave', name: 'Cave (Ericeira)', latitude: 38.9680, longitude: -9.4180, beachOrientation: 310, optimalSwellDirMin: 280, optimalSwellDirMax: 340, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'low', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Ericeira', country: 'Portugal', description: 'Reef break de la réserve. Droite technique.', dangers: ['Récif', 'Marée'], webcamUrl: 'https://www.surf-forecast.com/breaks/Cave-Ericeira/webcams/latest' },
+  { id: 'espagne-cantabrique-liencres', name: 'Liencres (Cantabrie)', latitude: 43.4580, longitude: -3.9680, beachOrientation: 350, optimalSwellDirMin: 300, optimalSwellDirMax: 40, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Cantabrie', country: 'Espagne', description: 'Dunes et beach break. Proche de Santander.', dangers: ['Courants', 'Eau froide'] },
+  { id: 'el-salvador-la-libertad', name: 'La Libertad (El Sunzal)', latitude: 13.4880, longitude: -89.3180, beachOrientation: 220, optimalSwellDirMin: 200, optimalSwellDirMax: 260, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'point', recommendedLevel: 'intermediate', region: 'La Libertad', country: 'El Salvador', description: 'Point break du Pacifique. El Sunzal et La Punta, droite longue.', dangers: ['Courants', 'Sécurité à vérifier'], webcamUrl: 'https://www.surf-forecast.com/breaks/El-Sunzal-El-Salvador/webcams/latest' },
+  { id: 'guatemala-sipacate', name: 'Sipacate', latitude: 13.8980, longitude: -90.6580, beachOrientation: 240, optimalSwellDirMin: 220, optimalSwellDirMax: 280, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Escuintla', country: 'Guatemala', description: 'Beach break du Pacifique guatémaltèque. Peu de monde.', dangers: ['Courants', 'Accès'] },
+  { id: 'honduras-tela', name: 'Tela', latitude: 15.7780, longitude: -87.4580, beachOrientation: 0, optimalSwellDirMin: 320, optimalSwellDirMax: 40, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Atlántida', country: 'Honduras', description: 'Beach break caraïbe. Petite houle, forêt et plage.', dangers: ['Petite houle', 'Courants'] },
+  { id: 'belize-caye-caulker', name: 'Caye Caulker', latitude: 17.7280, longitude: -88.0280, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 140, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.2, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Belize', country: 'Belize', description: 'Île caraïbe. Petite houle, kitesurf et paddle.', dangers: ['Petite houle'] },
+  { id: 'republique-dominicaine-cabarete', name: 'Cabarete', latitude: 19.7480, longitude: -70.4080, beachOrientation: 90, optimalSwellDirMin: 50, optimalSwellDirMax: 130, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Puerto Plata', country: 'République dominicaine', description: 'Spot kitesurf et surf. Vent alizé, bonne ambiance.', dangers: ['Vent', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Cabarete-Dominican-Republic/webcams/latest' },
+  { id: 'puerto-rico-rincon', name: 'Rincón (Domes)', latitude: 18.3480, longitude: -67.2680, beachOrientation: 310, optimalSwellDirMin: 280, optimalSwellDirMax: 340, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Rincón', country: 'Porto Rico', description: 'Spot historique. Reef break, saison hiver nord.', dangers: ['Récif', 'Foule en saison'], webcamUrl: 'https://www.surf-forecast.com/breaks/Rincon-Puerto-Rico/webcams/latest' },
+  { id: 'barbade-soup-bowl', name: 'Soup Bowl (Bathsheba)', latitude: 13.2180, longitude: -59.5180, beachOrientation: 90, optimalSwellDirMin: 50, optimalSwellDirMax: 130, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Saint Joseph', country: 'Barbade', description: 'Reef break de la côte est. Qualité caraïbe.', dangers: ['Récif', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Soup-Bowl-Barbados/webcams/latest' },
+  { id: 'trinite-tobago-bacolet', name: 'Bacolet (Tobago)', latitude: 11.1780, longitude: -60.6680, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 140, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Tobago', country: 'Trinité-et-Tobago', description: 'Beach break de Tobago. Petite houle atlantique.', dangers: ['Courants'] },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 50 SPOTS IMPORTANTS MONDAUX (nouveaux)
+  // ══════════════════════════════════════════════════════════════════════════
+  { id: 'usa-california-swamis', name: "Swami's", latitude: 33.0480, longitude: -117.2980, beachOrientation: 250, optimalSwellDirMin: 220, optimalSwellDirMax: 280, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'low', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'San Diego', country: 'USA - Californie', description: 'Point break devant le temple. Longue droite de qualité.', dangers: ['Récif', 'Foule'], webcamUrl: 'https://www.surf-forecast.com/breaks/Swamis/webcams/latest' },
+  { id: 'usa-california-ocean-beach-sf', name: 'Ocean Beach (San Francisco)', latitude: 37.7580, longitude: -122.5080, beachOrientation: 280, optimalSwellDirMin: 260, optimalSwellDirMax: 310, optimalSwellHeightMin: 1.0, optimalSwellHeightMax: 3.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'San Francisco', country: 'USA - Californie', description: 'Beach break puissant de la baie. Eau froide, courants forts.', dangers: ['Courants', 'Eau froide', 'Brouillard'], webcamUrl: 'https://www.surf-forecast.com/breaks/Ocean-Beach-San-Francisco/webcams/latest' },
+  { id: 'costa-rica-tamarindo', name: 'Tamarindo', latitude: 10.2980, longitude: -85.8380, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Guanacaste', country: 'Costa Rica', description: 'Spot le plus fréquenté du pays. Idéal pour débuter.', dangers: ['Foule', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Tamarindo/webcams/latest' },
+  { id: 'costa-rica-nosara', name: 'Nosara (Guiones)', latitude: 9.9780, longitude: -85.6680, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Guanacaste', country: 'Costa Rica', description: 'Longue plage de sable blanc. Yoga et surf.', dangers: ['Courants', 'Rip'], webcamUrl: 'https://www.surf-forecast.com/breaks/Nosara/webcams/latest' },
+  { id: 'peru-cabo-blanco', name: 'Cabo Blanco', latitude: -4.2680, longitude: -81.1280, beachOrientation: 250, optimalSwellDirMin: 220, optimalSwellDirMax: 280, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'point', recommendedLevel: 'intermediate', region: 'Piura', country: 'Pérou', description: 'Point break historique. Hemingway y a pêché.', dangers: ['Courants', 'Isolation'], webcamUrl: 'https://www.surf-forecast.com/breaks/Cabo-Blanco-Peru/webcams/latest' },
+  { id: 'peru-huanchaco', name: 'Huanchaco', latitude: -8.0780, longitude: -79.1180, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'La Libertad', country: 'Pérou', description: 'Village de pêcheurs. Chevaux de totora, culture péruvienne.', dangers: ['Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Huanchaco/webcams/latest' },
+  { id: 'chili-pichilemu', name: 'Pichilemu (Punta de Lobos)', latitude: -34.3880, longitude: -72.0080, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 1.0, optimalSwellHeightMax: 4.0, optimalTide: 'mid', bottomType: 'point', recommendedLevel: 'expert', region: 'O\'Higgins', country: 'Chili', description: 'Big wave spot et point break légendaire. Gauche puissante.', dangers: ['Vagues puissantes', 'Eau froide'], webcamUrl: 'https://www.surf-forecast.com/breaks/Punta-de-Lobos/webcams/latest' },
+  { id: 'chili-matanzas', name: 'Matanzas', latitude: -33.9680, longitude: -71.8680, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'O\'Higgins', country: 'Chili', description: 'Beach break consistant. Bonne ambiance, moins exigeant que Lobos.', dangers: ['Eau froide', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Matanzas-Chile/webcams/latest' },
+  { id: 'usa-new-york-montauk', name: 'Montauk', latitude: 41.0680, longitude: -71.9480, beachOrientation: 180, optimalSwellDirMin: 140, optimalSwellDirMax: 220, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Long Island', country: 'USA - New York', description: 'Pointe est de Long Island. Hurricane swells.', dangers: ['Eau froide', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Montauk/webcams/latest' },
+  { id: 'usa-florida-sebastian-inlet', name: 'Sebastian Inlet', latitude: 27.8580, longitude: -80.4680, beachOrientation: 90, optimalSwellDirMin: 50, optimalSwellDirMax: 130, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Floride', country: 'USA - Floride', description: 'Spot le plus consistant de la côte est. Compétitions.', dangers: ['Récif', 'Requins'], webcamUrl: 'https://www.surf-forecast.com/breaks/Sebastian-Inlet/webcams/latest' },
+  { id: 'france-wissant', name: 'Wissant', latitude: 50.8880, longitude: 1.6580, beachOrientation: 320, optimalSwellDirMin: 280, optimalSwellDirMax: 350, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Nord', country: 'France', description: 'Grande plage entre les deux caps. Côte d\'Opale.', dangers: ['Eau froide', 'Marée'], webcamUrl: 'https://www.surf-forecast.com/breaks/Wissant/webcams/latest' },
+  { id: 'reunion-saint-leu', name: 'Saint-Leu', latitude: -21.1680, longitude: 55.2880, beachOrientation: 220, optimalSwellDirMin: 180, optimalSwellDirMax: 260, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'La Réunion', country: 'La Réunion', description: 'Reef break de l\'ouest. Attention requins.', dangers: ['Requins', 'Récif'], webcamUrl: 'https://www.surf-forecast.com/breaks/Saint-Leu-Reunion/webcams/latest' },
+  { id: 'sri-lanka-hikkaduwa', name: 'Hikkaduwa', latitude: 6.1380, longitude: 80.1080, beachOrientation: 220, optimalSwellDirMin: 180, optimalSwellDirMax: 260, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'beginner', region: 'Southern Province', country: 'Sri Lanka', description: 'Spot touristique du sud. Reef et beach break.', dangers: ['Récif', 'Foule'], webcamUrl: 'https://www.surf-forecast.com/breaks/Hikkaduwa/webcams/latest' },
+  { id: 'taiwan-jinzun', name: 'Jinzun', latitude: 22.4680, longitude: 120.8980, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 140, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Taitung', country: 'Taïwan', description: 'Spot principal de la côte est. Typhons en été.', dangers: ['Typhons', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Jinzun-Harbor/webcams/latest' },
+  { id: 'philippines-baler', name: 'Baler', latitude: 15.7580, longitude: 121.6680, beachOrientation: 0, optimalSwellDirMin: 320, optimalSwellDirMax: 50, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Aurora', country: 'Philippines', description: 'Berceau du surf philippin. Beach break, bon pour débuter.', dangers: ['Courants', 'Mousson'], webcamUrl: 'https://www.surf-forecast.com/breaks/Baler-Philippines/webcams/latest' },
+  { id: 'australie-byron-the-pass', name: 'The Pass (Byron Bay)', latitude: -28.6380, longitude: 153.6380, beachOrientation: 80, optimalSwellDirMin: 50, optimalSwellDirMax: 120, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'point', recommendedLevel: 'beginner', region: 'Northern NSW', country: 'Australie', description: 'Longue droite douce. Paradis longboard.', dangers: ['Foule', 'Rochers'], webcamUrl: 'https://www.surf-forecast.com/breaks/The-Pass-Byron-Bay/webcams/latest' },
+  { id: 'puerto-rico-jobos', name: 'Jobos (Isabella)', latitude: 18.4780, longitude: -67.1580, beachOrientation: 0, optimalSwellDirMin: 320, optimalSwellDirMax: 50, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'Isabella', country: 'Porto Rico', description: 'Reef break de la côte nord. Bonne ambiance.', dangers: ['Récif', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Jobos-Puerto-Rico/webcams/latest' },
+  { id: 'mexico-punta-mita', name: 'Punta Mita', latitude: 20.7680, longitude: -105.5280, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Nayarit', country: 'Mexique', description: 'Péninsule au nord de Puerto Vallarta. Plusieurs baies.', dangers: ['Rochers', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Punta-Mita/webcams/latest' },
+  { id: 'mexico-san-blas', name: 'San Blas', latitude: 21.5380, longitude: -105.2880, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Nayarit', country: 'Mexique', description: 'Village historique. Beach break, mangrove.', dangers: ['Moustiques', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/San-Blas-Mexico/webcams/latest' },
+  { id: 'afrique-sud-elands-bay', name: 'Elands Bay', latitude: -32.3080, longitude: 18.3280, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'point', recommendedLevel: 'intermediate', region: 'West Coast', country: 'Afrique du Sud', description: 'Point break devant la grotte. Longue gauche.', dangers: ['Requins', 'Eau froide'], webcamUrl: 'https://www.surf-forecast.com/breaks/Elands-Bay/webcams/latest' },
+  { id: 'afrique-sud-scarborough', name: 'Scarborough', latitude: -34.1980, longitude: 18.3780, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Cape Peninsula', country: 'Afrique du Sud', description: 'Village arty au sud du Cap. Beach break.', dangers: ['Requins', 'Eau froide'], webcamUrl: 'https://www.surf-forecast.com/breaks/Scarborough-Cape-Town/webcams/latest' },
+  { id: 'usa-california-san-onofre', name: 'San Onofre', latitude: 33.3880, longitude: -117.5980, beachOrientation: 220, optimalSwellDirMin: 190, optimalSwellDirMax: 260, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'San Clemente', country: 'USA - Californie', description: 'Spot familial. Longboard et débutants.', dangers: ['Base militaire', 'Parking'], webcamUrl: 'https://www.surf-forecast.com/breaks/San-Onofre-State-Beach/webcams/latest' },
+  { id: 'usa-california-cardiff', name: 'Cardiff Reef', latitude: 33.0180, longitude: -117.2780, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'low', bottomType: 'reef', recommendedLevel: 'intermediate', region: 'San Diego', country: 'USA - Californie', description: 'Reef break devant le restaurant. Longboard friendly.', dangers: ['Récif', 'Foule'], webcamUrl: 'https://www.surf-forecast.com/breaks/Cardiff-Reef/webcams/latest' },
+  { id: 'costa-rica-hermosa', name: 'Playa Hermosa (Puntarenas)', latitude: 9.6180, longitude: -84.6280, beachOrientation: 230, optimalSwellDirMin: 200, optimalSwellDirMax: 260, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Puntarenas', country: 'Costa Rica', description: 'Beach break puissant. Compétitions nationales.', dangers: ['Courants', 'Shore break'], webcamUrl: 'https://www.surf-forecast.com/breaks/Hermosa-Costa-Rica/webcams/latest' },
+  { id: 'espagne-loredo', name: 'Loredo', latitude: 43.4680, longitude: -3.7580, beachOrientation: 350, optimalSwellDirMin: 310, optimalSwellDirMax: 30, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Cantabrie', country: 'Espagne', description: 'Grande plage de Cantabrie. Nombreux pics.', dangers: ['Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Loredo-Spain/webcams/latest' },
+  { id: 'portugal-ericeira-pedra-branca', name: 'Pedra Branca (Ericeira)', latitude: 38.9980, longitude: -9.4280, beachOrientation: 290, optimalSwellDirMin: 270, optimalSwellDirMax: 320, optimalSwellHeightMin: 1.0, optimalSwellHeightMax: 3.0, optimalTide: 'low', bottomType: 'reef', recommendedLevel: 'expert', region: 'Ericeira', country: 'Portugal', description: 'Reef break technique. Droite creuse.', dangers: ['Récif', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Pedra-Branca-Ericeira/webcams/latest' },
+  { id: 'maroc-agadir-anza', name: 'Anza (Agadir)', latitude: 30.3980, longitude: -9.5980, beachOrientation: 280, optimalSwellDirMin: 260, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Agadir', country: 'Maroc', description: 'Plage au nord d\'Agadir. Beach break, écoles de surf.', dangers: ['Vent', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Anza-Agadir/webcams/latest' },
+  { id: 'indonesia-bali-dreamland', name: 'Dreamland (Bali)', latitude: -8.8180, longitude: 115.0980, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'all', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Bali - Bukit', country: 'Indonésie', description: 'Beach break au pied des falaises. Bon pour tous niveaux.', dangers: ['Courants', 'Foule'], webcamUrl: 'https://www.surf-forecast.com/breaks/Dreamland-Bali/webcams/latest' },
+  { id: 'fiji-tavarua', name: 'Tavarua (Cloudbreak)', latitude: -17.8520, longitude: 177.1780, beachOrientation: 200, optimalSwellDirMin: 170, optimalSwellDirMax: 230, optimalSwellHeightMin: 1.0, optimalSwellHeightMax: 5.0, optimalTide: 'mid', bottomType: 'reef', recommendedLevel: 'expert', region: 'Tavarua', country: 'Fidji', description: 'Île en forme de cœur. Cloudbreak au large.', dangers: ['Récif', 'Accès réservé'], webcamUrl: 'https://www.surf-forecast.com/breaks/Cloudbreak-Fiji/webcams/latest' },
+  { id: 'nouvelle-zelande-gisborne-makorori', name: 'Makorori (Gisborne)', latitude: -38.6680, longitude: 178.0280, beachOrientation: 90, optimalSwellDirMin: 70, optimalSwellDirMax: 140, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Côte Est', country: 'Nouvelle-Zélande', description: 'Première ville au soleil. Beach break.', dangers: ['Courants', 'Eau froide'], webcamUrl: 'https://www.surf-forecast.com/breaks/Makorori-Beach/webcams/latest' },
+  { id: 'canada-vancouver-tofino-cox-bay', name: 'Cox Bay (Tofino)', latitude: 49.1280, longitude: -125.8980, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.8, optimalSwellHeightMax: 2.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'intermediate', region: 'Vancouver Island', country: 'Canada', description: 'Un des meilleurs beach breaks de Tofino.', dangers: ['Eau froide', 'Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Cox-Bay-Tofino/webcams/latest' },
+  { id: 'usa-outer-banks-nags-head', name: 'Nags Head', latitude: 35.9580, longitude: -75.6180, beachOrientation: 90, optimalSwellDirMin: 50, optimalSwellDirMax: 130, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Caroline du Nord', country: 'USA - Est', description: 'Outer Banks. Hurricane swells, eau chaude.', dangers: ['Courants', 'Ouragan'], webcamUrl: 'https://www.surf-forecast.com/breaks/Nags-Head-North-Carolina/webcams/latest' },
+  { id: 'colombia-palomino', name: 'Palomino', latitude: 11.2680, longitude: -73.5980, beachOrientation: 350, optimalSwellDirMin: 310, optimalSwellDirMax: 40, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 1.5, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'La Guajira', country: 'Colombie', description: 'Village bohème. Beach break, Sierra Nevada en fond.', dangers: ['Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Palomino-Colombia/webcams/latest' },
+  { id: 'equateur-canoa', name: 'Canoa', latitude: -0.6980, longitude: -80.6280, beachOrientation: 270, optimalSwellDirMin: 250, optimalSwellDirMax: 310, optimalSwellHeightMin: 0.5, optimalSwellHeightMax: 2.0, optimalTide: 'mid', bottomType: 'beach', recommendedLevel: 'beginner', region: 'Manabí', country: 'Équateur', description: 'Longue plage de sable. Ambiance décontractée.', dangers: ['Courants'], webcamUrl: 'https://www.surf-forecast.com/breaks/Canoa-Ecuador/webcams/latest' },
 ];
 
 export default SPOTS;

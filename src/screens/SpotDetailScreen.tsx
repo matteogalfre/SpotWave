@@ -6,8 +6,7 @@ import ScoreBadge from '../components/ScoreBadge';
 import { useTheme } from '../context/ThemeContext';
 import { useProfile } from '../context/ProfileContext';
 import { useLocation } from '../context/LocationContext';
-import { fetchSpotData } from '../services/api';
-import { DailyData } from '../services/api';
+import { fetchSpotData, DailyData } from '../services/api';
 import { computeSpotForecast } from '../utils/scoring';
 import { haversineDistance, formatDistance } from '../services/location';
 import { getStoredForecasts } from '../context/ForecastStore';
@@ -19,6 +18,8 @@ import { scoreColor, scoreBg, scoreLabel, scoreEmoji, dirLabel, windLabel, isDay
 import { SpotDetailScreenProps } from '../navigation/types';
 import { LEVEL_LABELS, BREAK_LABELS, TIDE_LABELS, fmtDayLabelShort, fmtRange, fmtH } from '../utils/constants';
 import * as Haptics from 'expo-haptics';
+import { log } from '../utils/logger';
+import { useI18n } from '../i18n';
 
 const W = Dimensions.get('window').width;
 
@@ -56,16 +57,16 @@ function buildTideChart(data: HourlyCondition[], blueColor: string) {
 }
 
 
-function getTideTrend(slice: HourlyCondition[], currentIdx: number): { arrow: string; label: string } {
+function getTideTrend(slice: HourlyCondition[], currentIdx: number, t: any): { arrow: string; label: string } {
   if (slice.length < 3) return { arrow: '—', label: 'N/A' };
   const idx = Math.min(currentIdx, slice.length - 2);
   const prev = slice[Math.max(0, idx - 1)]?.seaLevel ?? 0;
   const curr = slice[idx]?.seaLevel ?? 0;
   const next = slice[Math.min(slice.length - 1, idx + 1)]?.seaLevel ?? 0;
   const trend = (curr - prev) + (next - curr);
-  if (trend > 0.02) return { arrow: '↑', label: 'Montante' };
-  if (trend < -0.02) return { arrow: '↓', label: 'Descendante' };
-  return { arrow: '→', label: 'Marée étale' };
+  if (trend > 0.02) return { arrow: '↑', label: t.detailTideRising };
+  if (trend < -0.02) return { arrow: '↓', label: t.detailTideFalling };
+  return { arrow: '→', label: t.detailTideSlack };
 }
 
 function buildDaySummary(slice: HourlyCondition[], spot: any): string {
@@ -166,6 +167,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
   const [ready, setReady] = useState(false);
   const [isFav, setIsFav] = useState(false);
   const { show: showToast } = useToast();
+  const { t, locale } = useI18n();
   const { spot, currentCondition, bestTime } = forecast;
   const { colors } = useTheme();
   const { profile } = useProfile();
@@ -190,7 +192,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     const next = await toggleFavorite(spot.id);
     const nowFav = next.includes(spot.id);
     setIsFav(nowFav);
-    showToast(nowFav ? 'Ajouté aux favoris ⭐' : 'Retiré des favoris', 'success');
+    showToast(nowFav ? t.spotsAddedFav : t.spotsRemovedFav, 'success');
   }, [spot.id, showToast]);
   const slice = useMemo(() => getDaySlice(forecast.hourlyConditions, profile.availableFrom, profile.availableTo), [forecast.hourlyConditions, profile.availableFrom, profile.availableTo]);
   const scrollRef = useRef<ScrollView>(null);
@@ -205,10 +207,12 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     setRefreshing(true);
     try {
       const { marine, weather, daily } = await fetchSpotData(spot.latitude, spot.longitude);
-      setForecast(computeSpotForecast(spot, marine, weather, profile));
+      setForecast(computeSpotForecast(spot, marine, weather, profile, locale));
       if (daily) setDailyData(daily);
-    } catch (e: any) {
-      console.warn('[SpotWave] Refresh failed:', e?.message);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Erreur inconnue';
+      log.warn('Refresh failed:', msg);
+      showToast(t.detailRefreshError, 'error');
     }
     setRefreshing(false);
   }, [spot, profile]);
@@ -242,7 +246,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     return currentIdx + minutes / 60;
   }, [currentIdx]);
 
-  const tideTrend = useMemo(() => getTideTrend(slice, currentIdx), [slice, currentIdx]);
+  const tideTrend = useMemo(() => getTideTrend(slice, currentIdx, t), [slice, currentIdx, t]);
 
   const nowX = useMemo(() => getNowLineX(nowFractionalIdx, slice.length, chartWidth), [nowFractionalIdx, slice.length, chartWidth]);
 
@@ -318,14 +322,13 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     );
   }, [spot.beachOrientation, colors]);
 
-  const hasPrev = allForecasts && allForecasts.length > 1;
-  const hasNext = allForecasts && allForecasts.length > 1;
+  const canSwipe = allForecasts && allForecasts.length > 1;
 
   return (
     <ScrollView ref={scrollRef} style={{ flex: 1, backgroundColor: colors.bg }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
       {/* Header */}
       <View style={[s.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={[s.back, { backgroundColor: colors.cardLight }]} accessibilityLabel="Retour" accessibilityRole="button">
+        <TouchableOpacity onPress={() => navigation.goBack()} style={[s.back, { backgroundColor: colors.cardLight }]} accessibilityLabel={t.back} accessibilityRole="button">
           <Text style={[s.backTxt, { color: colors.white }]}>‹</Text>
         </TouchableOpacity>
         <View style={s.hCenter}>
@@ -353,7 +356,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
             style={[s.favBtn, { backgroundColor: isFav ? colors.yellowDim : colors.white08 }]}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             activeOpacity={0.7}
-            accessibilityLabel={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+            accessibilityLabel={isFav ? t.spotsRemovedFav : t.spotsAddedFav}
             accessibilityRole="button"
           >
             <Ionicons name={isFav ? 'star' : 'star-outline'} size={20} color={isFav ? colors.yellow : colors.white40} />
@@ -365,12 +368,12 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
       {/* Swipe navigation */}
       {allForecasts && allForecasts.length > 1 && (
         <View style={s.swipeNav}>
-          <TouchableOpacity onPress={() => navigateToSpot('prev')} style={[s.swipeBtn, { backgroundColor: colors.cardLight }]} accessibilityLabel="Spot précédent" accessibilityRole="button">
-            <Text style={[s.swipeTxt, { color: colors.white70 }]}>‹ Précédent</Text>
+          <TouchableOpacity onPress={() => navigateToSpot('prev')} style={[s.swipeBtn, { backgroundColor: colors.cardLight }]} accessibilityLabel={t.detailPrev} accessibilityRole="button">
+            <Text style={[s.swipeTxt, { color: colors.white70 }]}>{t.detailPrev}</Text>
           </TouchableOpacity>
           <Text style={[s.swipeCounter, { color: colors.white40 }]}>{currentSpotIdx + 1}/{allForecasts.length}</Text>
-          <TouchableOpacity onPress={() => navigateToSpot('next')} style={[s.swipeBtn, { backgroundColor: colors.cardLight }]} accessibilityLabel="Spot suivant" accessibilityRole="button">
-            <Text style={[s.swipeTxt, { color: colors.white70 }]}>Suivant ›</Text>
+          <TouchableOpacity onPress={() => navigateToSpot('next')} style={[s.swipeBtn, { backgroundColor: colors.cardLight }]} accessibilityLabel={t.detailNext} accessibilityRole="button">
+            <Text style={[s.swipeTxt, { color: colors.white70 }]}>{t.detailNext}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -379,7 +382,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
       {spotBests.today && (
         <View style={[s.bestCard, { backgroundColor: scoreBg(spotBests.today.cond.score), borderColor: scoreColor(spotBests.today.cond.score) }]}>
           <View style={s.bestCardLeft}>
-            <Text style={[s.bestCardLabel, { color: colors.white40 }]}>Meilleur créneau aujourd'hui</Text>
+            <Text style={[s.bestCardLabel, { color: colors.white40 }]}>{t.detailBestToday}</Text>
             <Text style={[s.bestCardTime, { color: scoreColor(spotBests.today.cond.score) }]}>
               {scoreEmoji(spotBests.today.cond.score)}  {spotBests.today.timeRange}
             </Text>
@@ -391,7 +394,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
       {spotBests.next && (
         <View style={[s.bestCard, { backgroundColor: colors.card, borderColor: colors.white15 }]}>
           <View style={s.bestCardLeft}>
-            <Text style={[s.bestCardLabel, { color: colors.white40 }]}>Prochain meilleur créneau</Text>
+            <Text style={[s.bestCardLabel, { color: colors.white40 }]}>{t.detailBestNext}</Text>
             <Text style={[s.bestCardTime, { color: colors.white }]}>
               {scoreEmoji(spotBests.next.cond.score)}  {spotBests.next.dayLabel} · {spotBests.next.timeRange}
             </Text>
@@ -404,7 +407,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
       {/* Day summary */}
       <FadeInView delay={100}>
         <View style={[s.summaryBox, { backgroundColor: colors.card, borderColor: colors.white15 }]}>
-          <Text style={[s.summaryTitle, { color: colors.white }]}>📝 Résumé du jour</Text>
+          <Text style={[s.summaryTitle, { color: colors.white }]}>{t.detailDaySummary}</Text>
           <Text style={[s.summaryTxt, { color: colors.white70 }]}>{summary}</Text>
         </View>
       </FadeInView>
@@ -415,19 +418,19 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
           <View style={[s.tideRow, { backgroundColor: colors.card }]}>
             <View style={s.tideItem}>
               <Text style={s.tideIcon}>📐</Text>
-              <Text style={[s.tideLabel, { color: colors.white40 }]}>Niveau mer</Text>
+              <Text style={[s.tideLabel, { color: colors.white40 }]}>{t.detailSeaLevel}</Text>
               <Text style={[s.tideVal, { color: colors.white }]}>{currentCondition.seaLevel >= 0 ? '+' : ''}{currentCondition.seaLevel.toFixed(2)} m</Text>
             </View>
             <View style={[s.tideSep, { backgroundColor: colors.white15 }]} />
             <View style={s.tideItem}>
               <Text style={s.tideIcon}>{tideTrend.arrow === '↑' ? '🔺' : tideTrend.arrow === '↓' ? '🔻' : '➡️'}</Text>
-              <Text style={[s.tideLabel, { color: colors.white40 }]}>Marée</Text>
+              <Text style={[s.tideLabel, { color: colors.white40 }]}>{t.detailTide}</Text>
               <Text style={[s.tideVal, { color: tideTrend.arrow === '↑' ? colors.accent : tideTrend.arrow === '↓' ? colors.orange : colors.white }]}>{tideTrend.arrow} {tideTrend.label}</Text>
             </View>
             <View style={[s.tideSep, { backgroundColor: colors.white15 }]} />
             <View style={s.tideItem}>
               <Text style={s.tideIcon}>⚓</Text>
-              <Text style={[s.tideLabel, { color: colors.white40 }]}>Optimale</Text>
+              <Text style={[s.tideLabel, { color: colors.white40 }]}>{t.detailOptimalTide}</Text>
               <Text style={[s.tideVal, { color: colors.white }]}>{TIDE_LABELS[spot.optimalTide]}</Text>
             </View>
           </View>
@@ -440,19 +443,37 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
           style={[s.webcamBtn, { backgroundColor: colors.blueDim, borderColor: colors.blue }]}
           onPress={() => Linking.openURL(spot.webcamUrl!)}
           activeOpacity={0.7}
-          accessibilityLabel="Ouvrir la webcam live"
+          accessibilityLabel={t.detailWebcam}
           accessibilityRole="link"
         >
           <Text style={s.webcamIcon}>📹</Text>
           <View style={{ flex: 1 }}>
-            <Text style={[s.webcamTxt, { color: colors.blue }]}>Webcam live</Text>
-            <Text style={[s.webcamSub, { color: colors.white40 }]}>Voir les conditions en direct</Text>
+            <Text style={[s.webcamTxt, { color: colors.blue }]}>{t.detailWebcam}</Text>
+            <Text style={[s.webcamSub, { color: colors.white40 }]}>{t.detailWebcamSub}</Text>
           </View>
           <View style={[s.webcamGo, { backgroundColor: colors.blue }]}>
-            <Text style={s.webcamGoTxt}>OUVRIR</Text>
+            <Text style={s.webcamGoTxt}>{t.detailWebcamOpen}</Text>
           </View>
         </TouchableOpacity>
       )}
+
+      {/* Voir sur la carte */}
+      <TouchableOpacity
+        style={[s.webcamBtn, { backgroundColor: colors.accentDim, borderColor: colors.accent }]}
+        onPress={() => navigation.navigate('MainTabs', { screen: 'MapTab', params: { focusSpotId: spot.id } })}
+        activeOpacity={0.7}
+        accessibilityLabel={t.detailMap}
+        accessibilityRole="button"
+      >
+        <Text style={s.webcamIcon}>🗺️</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[s.webcamTxt, { color: colors.accent }]}>{t.detailMap}</Text>
+          <Text style={[s.webcamSub, { color: colors.white40 }]}>{t.detailMapSub}</Text>
+        </View>
+          <View style={[s.webcamGo, { backgroundColor: colors.accent }]}>
+            <Text style={s.webcamGoTxt}>{t.detailMapBtn}</Text>
+        </View>
+      </TouchableOpacity>
 
       {/* Deferred heavy content */}
       {!ready ? (
@@ -464,7 +485,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
           {/* Combined chart: Houle vs Vent */}
           <FadeInView delay={50}>
             <View style={s.sec}>
-              <Text style={[s.secT, { color: colors.white }]}>📊  Houle & Vent</Text>
+              <Text style={[s.secT, { color: colors.white }]}>{t.detailSwellWind}</Text>
               <View style={[s.chartBox, { backgroundColor: colors.card }]}>
                 <ScrollView horizontal showsHorizontalScrollIndicator>
                   <View>
@@ -486,15 +507,15 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
                 <View style={s.legendRow}>
                   <View style={s.legendItem}>
                     <View style={[s.legendDot, { backgroundColor: colors.accent }]} />
-                    <Text style={[s.legendTxt, { color: colors.white40 }]}>Houle (m)</Text>
+                    <Text style={[s.legendTxt, { color: colors.white40 }]}>{t.detailSwellM}</Text>
                   </View>
                   <View style={s.legendItem}>
                     <View style={[s.legendDot, { backgroundColor: colors.orange }]} />
-                    <Text style={[s.legendTxt, { color: colors.white40 }]}>Vent (÷10 km/h)</Text>
+                    <Text style={[s.legendTxt, { color: colors.white40 }]}>{t.detailWindDiv}</Text>
                   </View>
                   <View style={s.legendItem}>
                     <View style={[s.legendDot, { backgroundColor: colors.white40, width: 1.5, height: 14, borderRadius: 0 }]} />
-                    <Text style={[s.legendTxt, { color: colors.white40 }]}>Maintenant</Text>
+                    <Text style={[s.legendTxt, { color: colors.white40 }]}>{t.detailNow}</Text>
                   </View>
                 </View>
               </View>
@@ -504,7 +525,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
           {/* Tide chart */}
           <FadeInView delay={150}>
             <View style={s.sec}>
-              <Text style={[s.secT, { color: colors.white }]}>🌊  Marée</Text>
+              <Text style={[s.secT, { color: colors.white }]}>{t.detailTideChart}</Text>
               <View style={[s.chartBox, { backgroundColor: colors.card }]}>
                 <ScrollView horizontal showsHorizontalScrollIndicator>
                   <View>
@@ -529,47 +550,47 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
 
           {/* Hourly rows */}
           <FadeInView delay={250}>
-            <HourlySection slice={slice} renderRow={renderRow} colors={colors} />
+            <HourlySection slice={slice} renderRow={renderRow} colors={colors} t={t} />
           </FadeInView>
 
           {/* Spot info */}
           <FadeInView delay={350}>
             <View style={s.sec}>
-              <Text style={[s.secT, { color: colors.white }]}>📍  Fiche du spot</Text>
+              <Text style={[s.secT, { color: colors.white }]}>{t.detailSpotInfo}</Text>
               <View style={[s.info, { backgroundColor: colors.card }]}>
                 <Text style={[s.desc, { color: colors.white70 }]}>{spot.description}</Text>
 
-                <Text style={[s.infoGroupTitle, { color: colors.accent }]}>Conditions idéales</Text>
+                <Text style={[s.infoGroupTitle, { color: colors.accent }]}>{t.detailIdealCond}</Text>
                 <View style={s.idealGrid}>
                   <IdealCard
-                    icon="🧭" title="Direction houle"
+                    icon="🧭" title={t.detailSwellDir}
                     value={`${dirLabel(spot.optimalSwellDirMin)} → ${dirLabel(spot.optimalSwellDirMax)}`}
                     sub={`${spot.optimalSwellDirMin}° – ${spot.optimalSwellDirMax}°`}
                     colors={colors}
                   />
                   <IdealCard
-                    icon="🌊" title="Hauteur idéale"
+                    icon="🌊" title={t.detailSwellHeight}
                     value={`${spot.optimalSwellHeightMin} – ${spot.optimalSwellHeightMax}m`}
                     colors={colors}
                   />
                   <IdealCard
-                    icon="💨" title="Vent idéal"
-                    value="Offshore"
-                    sub={`Direction ${dirLabel(offshoreDir)} (${offshoreDir}°)`}
+                    icon="💨" title={t.detailIdealWind}
+                    value={t.detailOffshore}
+                    sub={t.detailWindDir(dirLabel(offshoreDir), offshoreDir)}
                     colors={colors}
                   />
                   <IdealCard
-                    icon="⚓" title="Marée"
+                    icon="⚓" title={t.detailTideLabel}
                     value={TIDE_LABELS[spot.optimalTide]}
                     colors={colors}
                   />
                   <IdealCard
-                    icon="🏖" title="Type de fond"
+                    icon="🏖" title={t.detailBottom}
                     value={BREAK_LABELS[spot.bottomType]}
                     colors={colors}
                   />
                   <IdealCard
-                    icon="🎯" title="Niveau"
+                    icon="🎯" title={t.detailLevel}
                     value={LEVEL_LABELS[spot.recommendedLevel]}
                     colors={colors}
                   />
@@ -577,7 +598,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
 
                 {spot.dangers.length > 0 && (
                   <>
-                    <Text style={[s.infoGroupTitle, { color: colors.red, marginTop: 16 }]}>Dangers</Text>
+                    <Text style={[s.infoGroupTitle, { color: colors.red, marginTop: 16 }]}>{t.detailDangers}</Text>
                     <View style={[s.dangerBox, { backgroundColor: colors.redDim }]}>
                       {spot.dangers.map((d: string, i: number) => (
                         <Text key={i} style={[s.dangerTxt, { color: colors.red }]}>⚠️  {d}</Text>
@@ -598,25 +619,25 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
 
 const INITIAL_ROWS = 12;
 
-function HourlySection({ slice, renderRow, colors }: { slice: HourlyCondition[]; renderRow: (c: HourlyCondition, i: number) => React.ReactNode; colors: import('../context/ThemeContext').ThemePalette }) {
+function HourlySection({ slice, renderRow, colors, t }: { slice: HourlyCondition[]; renderRow: (c: HourlyCondition, i: number) => React.ReactNode; colors: import('../context/ThemeContext').ThemePalette; t: any }) {
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? slice : slice.slice(0, INITIAL_ROWS);
   const hasMore = slice.length > INITIAL_ROWS;
 
   return (
     <View style={s.sec}>
-      <Text style={[s.secT, { color: colors.white }]}>📋  Prévisions heure par heure</Text>
+      <Text style={[s.secT, { color: colors.white }]}>{t.detailHourly}</Text>
       {visible.map(renderRow)}
       {hasMore && !expanded && (
         <TouchableOpacity
           style={[s.showMore, { backgroundColor: colors.accentDim }]}
           onPress={() => setExpanded(true)}
           activeOpacity={0.7}
-          accessibilityLabel={`Voir les ${slice.length - INITIAL_ROWS} heures suivantes`}
+          accessibilityLabel={t.detailShowMore(slice.length - INITIAL_ROWS)}
           accessibilityRole="button"
         >
           <Text style={[s.showMoreTxt, { color: colors.accent }]}>
-            Voir les {slice.length - INITIAL_ROWS} heures suivantes ↓
+            {t.detailShowMore(slice.length - INITIAL_ROWS)}
           </Text>
         </TouchableOpacity>
       )}
@@ -701,7 +722,7 @@ const s = StyleSheet.create({
   desc: { fontSize: 14, lineHeight: 21, marginBottom: 12 },
   infoGroupTitle: { fontSize: 13, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
   idealGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  idealCard: { width: '47%' as any, borderRadius: 12, padding: 12 },
+  idealCard: { flexBasis: '46%', flexGrow: 1, borderRadius: 12, padding: 12 },
   idealIcon: { fontSize: 18, marginBottom: 6 },
   idealTitle: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   idealValue: { fontSize: 14, fontWeight: '800', marginTop: 4 },

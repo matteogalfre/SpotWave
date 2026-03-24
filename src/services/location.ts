@@ -78,3 +78,29 @@ export function getNearbySpotsWithFallback(
 
   return nearby;
 }
+
+export function getGlobalShowcase(spots: SpotConfig[], limit = 30): SpotConfig[] {
+  const byCountry: Record<string, SpotConfig[]> = {};
+  spots.forEach(s => {
+    if (!byCountry[s.country]) byCountry[s.country] = [];
+    byCountry[s.country].push(s);
+  });
+  const countries = Object.keys(byCountry).sort(
+    (a, b) => byCountry[b].length - byCountry[a].length,
+  );
+  const result: SpotConfig[] = [];
+  const used = new Set<string>();
+  let round = 0;
+  while (result.length < limit && round < 10) {
+    for (const country of countries) {
+      const pool = byCountry[country];
+      if (round < pool.length && !used.has(pool[round].id)) {
+        result.push(pool[round]);
+        used.add(pool[round].id);
+        if (result.length >= limit) break;
+      }
+    }
+    round++;
+  }
+  return result;
+}

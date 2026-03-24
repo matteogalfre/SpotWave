@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserLocation, requestLocation } from '../services/location';
+import { log } from '../utils/logger';
 
 interface LocationState {
   location: UserLocation | null;
@@ -37,7 +38,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (e) {
-      console.warn('[SpotWave] Location cache read error:', e);
+      log.warn('Location cache read error:', e);
     }
 
     const loc = await requestLocation();
@@ -47,7 +48,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       try {
         await AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ data: loc, ts: Date.now() }));
       } catch (e) {
-        console.warn('[SpotWave] Location cache write error:', e);
+        log.warn('Location cache write error:', e);
       }
     } else {
       setDenied(true);

@@ -44,7 +44,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const updateProfile = useCallback(async (p: SurferProfile) => {
     setProfile(p);
     setVersion(v => v + 1);
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+    } catch (e) {
+      console.warn('[SpotWave] Failed to persist profile:', e);
+    }
   }, []);
 
   return (

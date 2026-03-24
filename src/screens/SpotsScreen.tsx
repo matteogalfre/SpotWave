@@ -16,7 +16,7 @@ import { useLocation } from '../context/LocationContext';
 import { fetchSpotData } from '../services/api';
 import { computeSpotForecast } from '../utils/scoring';
 import { getFavorites, toggleFavorite } from '../services/favorites';
-import { getNearbySpotsWithFallback, haversineDistance, formatDistance } from '../services/location';
+import { getNearbySpotsWithFallback, getGlobalShowcase, haversineDistance, formatDistance } from '../services/location';
 import { setStoredForecasts } from '../context/ForecastStore';
 import SPOTS from '../data/spots';
 import ScoreBadge from '../components/ScoreBadge';
@@ -27,24 +27,45 @@ import { Ionicons } from '@expo/vector-icons';
 import { scoreColor, scoreBg, scoreLabel, scoreEmoji, scoreShort, dirLabel, windLabel, isDaytime, weatherIcon } from '../theme';
 import { SurferProfile } from '../types';
 import { SpotsScreenProps } from '../navigation/types';
+import { CONTINENTS, COUNTRY_TO_CONTINENT, ContinentKey } from '../data/continents';
 import * as Haptics from 'expo-haptics';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToast } from '../components/Toast';
-import { LEVEL_BADGE, DAY_NAMES_FULL, fmtDayLabel, fmtRange, fmtElapsed } from '../utils/constants';
+import { useI18n } from '../i18n';
+import { scheduleGoodConditionAlerts, getAlertsEnabled } from '../services/notifications';
+import { LEVEL_BADGE, fmtDayLabel, fmtRange, fmtElapsed } from '../utils/constants';
 
-const DESTINATIONS = [
-  { country: 'Indonésie', emoji: '🇮🇩', spots: SPOTS.filter(s => s.country === 'Indonésie').length },
-  { country: 'USA - Hawaii', emoji: '🌺', spots: SPOTS.filter(s => s.country === 'USA - Hawaii').length },
-  { country: 'Australie', emoji: '🇦🇺', spots: SPOTS.filter(s => s.country === 'Australie').length },
-  { country: 'France', emoji: '🇫🇷', spots: SPOTS.filter(s => s.country === 'France').length },
-  { country: 'Portugal', emoji: '🇵🇹', spots: SPOTS.filter(s => s.country === 'Portugal').length },
-  { country: 'Maroc', emoji: '🇲🇦', spots: SPOTS.filter(s => s.country === 'Maroc').length },
-  { country: 'Espagne', emoji: '🇪🇸', spots: SPOTS.filter(s => s.country === 'Espagne').length },
-  { country: 'USA - Californie', emoji: '🌴', spots: SPOTS.filter(s => s.country === 'USA - Californie').length },
-  { country: 'Costa Rica', emoji: '🇨🇷', spots: SPOTS.filter(s => s.country === 'Costa Rica').length },
-  { country: 'Afrique du Sud', emoji: '🇿🇦', spots: SPOTS.filter(s => s.country === 'Afrique du Sud').length },
-];
+const COUNTRY_EMOJI: Record<string, string> = {
+  'Portugal': '🇵🇹', 'France': '🇫🇷', 'Espagne': '🇪🇸', 'Indonésie': '🇮🇩',
+  'Australie': '🇦🇺', 'USA - Californie': '🌴', 'USA - Hawaii': '🌺',
+  'USA - Floride': '🇺🇸', 'USA - Est': '🇺🇸', 'USA - Oregon': '🇺🇸',
+  'USA - Washington': '🇺🇸', 'USA - New York': '🇺🇸',
+  'Maroc': '🇲🇦', 'Afrique du Sud': '🇿🇦', 'Costa Rica': '🇨🇷',
+  'Mexique': '🇲🇽', 'Brésil': '🇧🇷', 'Pérou': '🇵🇪', 'Royaume-Uni': '🇬🇧',
+  'Irlande': '🇮🇪', 'Fidji': '🇫🇯', 'Maldives': '🇲🇻', 'Sri Lanka': '🇱🇰',
+  'Nouvelle-Zélande': '🇳🇿', 'Philippines': '🇵🇭', 'Chili': '🇨🇱',
+  'Japon': '🇯🇵', 'Nicaragua': '🇳🇮', 'Panama': '🇵🇦', 'Taïwan': '🇹🇼',
+  'Canada': '🇨🇦', 'Italie': '🇮🇹', 'Polynésie française': '🇵🇫',
+  'Sénégal': '🇸🇳', 'Namibie': '🇳🇦', 'El Salvador': '🇸🇻',
+  'Équateur': '🇪🇨', 'La Réunion': '🇷🇪', 'Colombie': '🇨🇴',
+  'Uruguay': '🇺🇾', 'Samoa': '🇼🇸', 'Porto Rico': '🇵🇷',
+  'Inde': '🇮🇳', 'Argentine': '🇦🇷', 'Grèce': '🇬🇷', 'Turquie': '🇹🇷',
+  'Thaïlande': '🇹🇭', 'Corée du Sud': '🇰🇷', 'Madagascar': '🇲🇬',
+};
+
+const DESTINATIONS = (() => {
+  const counts: Record<string, number> = {};
+  SPOTS.forEach(s => { counts[s.country] = (counts[s.country] || 0) + 1; });
+  return Object.entries(counts)
+    .filter(([, n]) => n >= 3)
+    .sort((a, b) => b[1] - a[1])
+    .map(([country, spots]) => ({
+      country,
+      emoji: COUNTRY_EMOJI[country] || '🏄',
+      spots,
+    }));
+})();
 
 interface BestPick {
   spotName: string;
@@ -88,8 +109,9 @@ function findBestPicks(forecasts: SpotForecast[], profile: SurferProfile): { bes
 export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   const { profile, version } = useProfile();
   const { colors } = useTheme();
-  const { location, loading: locLoading, denied: locDenied } = useLocation();
+  const { location, loading: locLoading } = useLocation();
   const { show: showToast } = useToast();
+  const { t, locale } = useI18n();
   const insets = useSafeAreaInsets();
 
   const [forecasts, setForecasts] = useState<SpotForecast[]>([]);
@@ -109,6 +131,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   const initialLoad = useRef(true);
   const prevVersion = useRef(version);
   const prevLocationKey = useRef('');
+  const prevZone = useRef(profile.preferredZone);
 
   const distanceMap = useMemo(() => {
     if (!location) return new Map<string, number>();
@@ -120,11 +143,15 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   }, [location]);
 
   const activeSpots = useMemo((): SpotConfig[] => {
+    if (profile.preferredZone) {
+      const zoneSpots = SPOTS.filter(s => s.country === profile.preferredZone);
+      if (zoneSpots.length >= 3) return zoneSpots;
+    }
     if (location) {
       return getNearbySpotsWithFallback(SPOTS, location.latitude, location.longitude, 200, 5, 1000);
     }
-    return SPOTS.slice(0, 20);
-  }, [location]);
+    return getGlobalShowcase(SPOTS, 30);
+  }, [location, profile.preferredZone]);
 
   const favSpotsOutsideZone = useMemo(() => {
     return SPOTS.filter(s => favs.includes(s.id) && !activeSpots.find(a => a.id === s.id));
@@ -152,8 +179,13 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     const next = await toggleFavorite(spotId);
     setFavs(next);
-    showToast(next.includes(spotId) ? 'Ajouté aux favoris ⭐' : 'Retiré des favoris', 'success');
+    showToast(next.includes(spotId) ? t.spotsAddedFav : t.spotsRemovedFav, 'success');
   }, [showToast]);
+
+  const forecastsRef2 = useRef<SpotForecast[]>([]);
+  forecastsRef2.current = forecasts;
+  const loadedCountRef = useRef(0);
+  loadedCountRef.current = loadedCount;
 
   const loadData = useCallback(async (force = false) => {
     const spotsToLoad = allSpotsToLoad;
@@ -161,8 +193,8 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
       setError(null);
       if (force) { setForecasts([]); setLoadedCount(0); setFailedCount(0); }
       setTotalCount(spotsToLoad.length);
-      const results: SpotForecast[] = force ? [] : [...forecasts];
-      let count = force ? 0 : loadedCount;
+      const results: SpotForecast[] = force ? [] : [...forecastsRef2.current];
+      let count = force ? 0 : loadedCountRef.current;
       let failed = 0;
 
       const BATCH_SIZE = 4;
@@ -175,7 +207,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
         const settled = await Promise.allSettled(
           batch.map(async (spot) => {
             const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude);
-            return computeSpotForecast(spot, marine, weather, profile);
+            return computeSpotForecast(spot, marine, weather, profile, locale);
           })
         );
 
@@ -194,10 +226,13 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
         setFailedCount(failed);
       }
       setLastUpdate(new Date());
+      getAlertsEnabled().then(on => {
+        if (on) scheduleGoodConditionAlerts(results, locale === 'fr').catch(() => {});
+      }).catch(() => {});
     } catch (e: any) {
-      setError(e.message || 'Erreur de chargement');
+      setError(e.message || t.spotsLoadError);
     }
-  }, [profile, allSpotsToLoad]);
+  }, [profile, allSpotsToLoad, locale]);
 
   useEffect(() => {
     if (locLoading) return;
@@ -210,11 +245,15 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   }, [locLoading, location, loadData]);
 
   useEffect(() => {
-    if (prevVersion.current !== version && forecasts.length > 0) {
+    const zoneChanged = prevZone.current !== profile.preferredZone;
+    if (prevVersion.current !== version) {
       prevVersion.current = version;
-      loadData(true);
+      prevZone.current = profile.preferredZone;
+      if (forecasts.length > 0 || zoneChanged) {
+        loadData(true);
+      }
     }
-  }, [version, forecasts.length, loadData]);
+  }, [version, forecasts.length, loadData, profile.preferredZone]);
 
   const onRefresh = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
@@ -246,16 +285,16 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   }, [forecasts, countryFilter, regionFilter]);
 
   const { bestToday, bestWeek } = useMemo(() => findBestPicks(filteredForBest, profile), [filteredForBest, profile]);
-  const levelTxt = profile.level === 'beginner' ? 'Débutant' : profile.level === 'intermediate' ? 'Intermédiaire' : 'Expert';
+  const levelTxt = profile.level === 'beginner' ? t.levelBeginner : profile.level === 'intermediate' ? t.levelIntermediate : t.levelExpert;
 
   const locationLabel = useMemo(() => {
-    if (locLoading) return 'Localisation...';
+    if (locLoading) return t.spotsLocating;
     if (location && activeSpots.length > 0) {
       const nearCountries = Array.from(new Set(activeSpots.slice(0, 10).map(s => s.country)));
-      return nearCountries.length <= 2 ? nearCountries.join(' · ') : `${activeSpots.length} spots proches`;
+      return nearCountries.length <= 2 ? nearCountries.join(' · ') : t.spotsNearby(activeSpots.length);
     }
-    return 'Mondial';
-  }, [locLoading, location, activeSpots]);
+    return t.spotsGlobal;
+  }, [locLoading, location, activeSpots, t]);
 
   const sortedForecasts = useMemo(() => {
     let list = forecasts;
@@ -294,37 +333,42 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     setLoadingSearchSpot(spot.id);
     try {
       const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude);
-      const forecast = computeSpotForecast(spot, marine, weather, profile);
+      const forecast = computeSpotForecast(spot, marine, weather, profile, locale);
       setForecasts(prev => {
         const next = [...prev.filter(f => f.spot.id !== spot.id), forecast].sort((a, b) => b.currentScore - a.currentScore);
         setStoredForecasts(next);
+        const idx = next.findIndex(f => f.spot.id === spot.id);
+        setTimeout(() => navigation.navigate('SpotDetail', { forecast, spotIndex: idx >= 0 ? idx : 0 }), 0);
         return next;
       });
+      setLoadingSearchSpot(null);
       setSearchOpen(false);
       setSearchQuery('');
-      const allList = [...forecasts.filter(f => f.spot.id !== spot.id), forecast];
-      setStoredForecasts(allList);
-      navigation.navigate('SpotDetail', { forecast, spotIndex: 0 });
     } catch {
       setLoadingSearchSpot(null);
+      showToast(t.spotsSearchError, 'error');
     }
-  }, [profile, forecasts, navigation]);
+  }, [profile, navigation, showToast]);
 
   const isLoading = (loadedCount === 0 && forecasts.length === 0 && !error) || locLoading;
+  const hasEnoughData = totalCount > 0 && (forecasts.length >= Math.min(8, totalCount) || loadedCount >= totalCount);
 
-  if (isLoading) {
+  if (isLoading || !hasEnoughData) {
     return (
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} showsVerticalScrollIndicator={false}>
         <View style={[ss.header, { paddingTop: insets.top + 12 }]}>
           <View style={ss.headerLeft}>
-            <Text style={[ss.logo, { color: colors.white }]}>SpotWave</Text>
+            <View style={ss.logoRow}>
+              <Logo size={26} color={colors.accent} />
+              <Text style={[ss.logo, { color: colors.white }]}>SpotWave</Text>
+            </View>
             <Text style={[ss.subtitle, { color: colors.white40 }]}>
-              {locLoading ? 'Recherche de votre position...' : 'Analyse des conditions...'}
+              {locLoading ? t.spotsLocating : t.spotsLoading}
             </Text>
           </View>
         </View>
         <View style={{ marginTop: 20 }}>
-          {[0, 1, 2, 3].map(i => <SkeletonCard key={i} />)}
+          {[0, 1, 2, 3, 4].map(i => <SkeletonCard key={i} />)}
         </View>
       </ScrollView>
     );
@@ -332,17 +376,17 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
 
   if (error && forecasts.length === 0) {
     return (
-      <View style={[ss.loadWrap, { backgroundColor: colors.bg }]}>
+      <View style={[ss.loadWrap, { backgroundColor: colors.bg, paddingTop: insets.top + 40 }]}>
         <Text style={[ss.errTxt, { color: colors.red }]}>{error}</Text>
-        <TouchableOpacity onPress={onRefresh} style={[ss.retryBtn, { backgroundColor: colors.cardLight }]}>
-          <Text style={[ss.retryTxt, { color: colors.accent }]}>Réessayer</Text>
+        <TouchableOpacity onPress={onRefresh} style={[ss.retryBtn, { backgroundColor: colors.cardLight }]}           accessibilityLabel={t.retry} accessibilityRole="button">
+          <Text style={[ss.retryTxt, { color: colors.accent }]}>{t.retry}</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   const filterChips: { key: string; label: string; active: boolean; onPress: () => void }[] = [];
-  filterChips.push({ key: 'all', label: 'Tous', active: !countryFilter && !regionFilter, onPress: () => { setCountryFilter(null); setRegionFilter(null); } });
+  filterChips.push({ key: 'all', label: t.spotsAll, active: !countryFilter && !regionFilter, onPress: () => { setCountryFilter(null); setRegionFilter(null); } });
 
   if (countries.length > 1) {
     for (const c of countries) {
@@ -384,17 +428,17 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
           </Text>
         </View>
         <View style={ss.headerRight}>
-          {loadedCount < totalCount && totalCount > 0 && (
+          {refreshing && (
             <View style={[ss.loadingPill, { backgroundColor: colors.cardLight }]}>
               <ActivityIndicator size="small" color={colors.accent} />
               <Text style={[ss.loadingTxt, { color: colors.white40 }]}>{loadedCount}/{totalCount}</Text>
             </View>
           )}
-          <TouchableOpacity style={[ss.headerBtn, { backgroundColor: searchOpen ? colors.accentDim : colors.cardLight }]} onPress={() => { setSearchOpen(!searchOpen); if (searchOpen) setSearchQuery(''); }} activeOpacity={0.7} accessibilityLabel="Rechercher" accessibilityRole="button">
+          <TouchableOpacity style={[ss.headerBtn, { backgroundColor: searchOpen ? colors.accentDim : colors.cardLight }]} onPress={() => { setSearchOpen(!searchOpen); if (searchOpen) setSearchQuery(''); }} activeOpacity={0.7} accessibilityLabel={t.spotsSearch} accessibilityRole="button">
             <Ionicons name={searchOpen ? 'close' : 'search'} size={20} color={searchOpen ? colors.accent : colors.white70} />
           </TouchableOpacity>
-          <TouchableOpacity style={[ss.headerBtn, { backgroundColor: colors.cardLight }]} onPress={() => navigation.navigate('MapTab')} activeOpacity={0.7} accessibilityLabel="Carte mondiale" accessibilityRole="button">
-            <Ionicons name="earth-outline" size={20} color={colors.white70} />
+          <TouchableOpacity style={[ss.headerBtn, { backgroundColor: colors.cardLight }]} onPress={() => navigation.navigate('Guide')} activeOpacity={0.7} accessibilityLabel={t.profileGuide} accessibilityRole="button">
+            <Ionicons name="help-circle-outline" size={20} color={colors.white70} />
           </TouchableOpacity>
         </View>
       </View>
@@ -426,7 +470,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
       {searchOpen && searchQuery.length > 0 && (
         <View style={ss.searchResults}>
           {searchResults.length === 0 ? (
-            <Text style={[ss.searchEmpty, { color: colors.white40 }]}>Aucun résultat pour "{searchQuery}"</Text>
+            <Text style={[ss.searchEmpty, { color: colors.white40 }]}>{t.spotsSearchEmpty(searchQuery)}</Text>
           ) : (
             searchResults.map((spot) => {
               const forecast = forecasts.find(f => f.spot.id === spot.id);
@@ -456,7 +500,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                       {dist != null ? `  ·  📍 ${formatDistance(dist)}` : ''}
                     </Text>
                     {isLoadingThis && (
-                      <Text style={[ss.searchLoading, { color: colors.accent }]}>Chargement des conditions…</Text>
+                      <Text style={[ss.searchLoading, { color: colors.accent }]}>{t.spotsSearchLoading}</Text>
                     )}
                   </View>
                   <View style={[ss.levelBadge, { backgroundColor: badge.bg }]}>
@@ -481,6 +525,8 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                 style={[ss.filterChip, { backgroundColor: chip.active ? colors.accentDim : colors.cardLight, borderColor: chip.active ? colors.accent : 'transparent' }]}
                 onPress={chip.onPress}
                 activeOpacity={0.7}
+                accessibilityLabel={chip.label}
+                accessibilityRole="button"
               >
                 <Text style={[ss.filterTxt, { color: chip.active ? colors.accent : colors.white40 }]}>{chip.label}</Text>
               </TouchableOpacity>
@@ -489,14 +535,14 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
 
           {/* Meta */}
           <View style={ss.metaRow}>
-            {lastUpdate && <Text style={[ss.metaTxt, { color: colors.white40 }]}>Mis à jour {fmtElapsed(lastUpdate)}</Text>}
-            {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.orange }]}>{failedCount} spot{failedCount > 1 ? 's' : ''} indisponible{failedCount > 1 ? 's' : ''}</Text>}
+            {lastUpdate && <Text style={[ss.metaTxt, { color: colors.white40 }]}>{t.spotsUpdated(fmtElapsed(lastUpdate))}</Text>}
+            {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.orange }]}>{t.spotsUnavailable(failedCount)}</Text>}
           </View>
 
           {/* HERO */}
           {bestToday ? (
             <TouchableOpacity style={[ss.hero, { backgroundColor: colors.card, borderColor: `${colors.accent}25` }]} activeOpacity={0.8} onPress={() => navigateToPick(bestToday)}>
-              <Text style={[ss.heroQ, { color: colors.white }]}>Où surfer aujourd'hui ?</Text>
+              <Text style={[ss.heroQ, { color: colors.white }]}>{t.spotsWhereToSurf}</Text>
               <View style={ss.heroMain}>
                 <View style={ss.heroLeft}>
                   <Text style={ss.heroEmoji}>{scoreEmoji(bestToday.cond.score)}</Text>
@@ -524,9 +570,9 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
           ) : (
             <View style={[ss.emptyHero, { backgroundColor: colors.card }]}>
               <Text style={ss.emptyEmoji}>🏖️</Text>
-              <Text style={[ss.emptyTitle, { color: colors.white }]}>Pas de bonnes conditions aujourd'hui</Text>
+              <Text style={[ss.emptyTitle, { color: colors.white }]}>{t.spotsNoConditions}</Text>
               <Text style={[ss.emptySubtitle, { color: colors.white40 }]}>
-                {bestWeek.length > 0 ? `Prochain bon créneau : ${bestWeek[0].dayLabel} à ${bestWeek[0].spotName}` : 'Aucun bon créneau cette semaine'}
+                {bestWeek.length > 0 ? t.spotsNextSlot(bestWeek[0].dayLabel, bestWeek[0].spotName) : t.spotsNoSlotWeek}
               </Text>
             </View>
           )}
@@ -534,7 +580,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
           {/* Best week */}
           {bestWeek.length > 0 && (
             <View style={ss.weekSection}>
-              <Text style={[ss.weekTitle, { color: colors.white }]}>Meilleurs créneaux cette semaine</Text>
+              <Text style={[ss.weekTitle, { color: colors.white }]}>{t.spotsBestWeek}</Text>
               {bestWeek.map((pick, idx) => (
                 <SlideFromRight key={`${pick.spotId}-${pick.cond.time}`} index={idx}>
                   <TouchableOpacity
@@ -586,26 +632,35 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
             );
           })}
 
-          {/* Destinations populaires */}
+          {/* Explorer par continent */}
           <View style={ss.destSection}>
-            <Text style={[ss.secTitle, { color: colors.white }]}>Explorer le monde</Text>
+            <Text style={[ss.secTitle, { color: colors.white }]}>{t.spotsExplore}</Text>
             <Text style={[ss.destSub, { color: colors.white40 }]}>
-              {SPOTS.length} spots dans {Array.from(new Set(SPOTS.map(s => s.country))).length} pays · Ouvre la carte pour tous les voir
+              {t.spotsExploreDesc(SPOTS.length, Array.from(new Set(SPOTS.map(s => s.country))).length)}
             </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={ss.destRow}>
-              {DESTINATIONS.map((d) => (
-                <TouchableOpacity
-                  key={d.country}
-                  style={[ss.destCard, { backgroundColor: colors.card }]}
-                  activeOpacity={0.7}
-                  onPress={() => navigation.navigate('MapTab', { focusCountry: d.country })}
-                >
-                  <Text style={ss.destEmoji}>{d.emoji}</Text>
-                  <Text style={[ss.destName, { color: colors.white }]} numberOfLines={1}>{d.country}</Text>
-                  <Text style={[ss.destCount, { color: colors.white40 }]}>{d.spots} spots</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            {CONTINENTS.map((cont) => {
+              const countriesInContinent = DESTINATIONS.filter(d => COUNTRY_TO_CONTINENT[d.country] === cont.key);
+              if (countriesInContinent.length === 0) return null;
+              return (
+                <View key={cont.key} style={ss.continentBlock}>
+                  <Text style={[ss.continentLabel, { color: colors.white70 }]}>{cont.emoji} {locale === 'fr' ? cont.labelFr : cont.labelEn}</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={ss.destRow}>
+                    {countriesInContinent.map((d) => (
+                      <TouchableOpacity
+                        key={d.country}
+                        style={[ss.destCard, { backgroundColor: colors.card }]}
+                        activeOpacity={0.7}
+                        onPress={() => navigation.navigate('MapTab', { focusCountry: d.country })}
+                      >
+                        <Text style={ss.destEmoji}>{d.emoji}</Text>
+                        <Text style={[ss.destName, { color: colors.white }]} numberOfLines={1}>{d.country}</Text>
+                        <Text style={[ss.destCount, { color: colors.white40 }]}>{d.spots} spots</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              );
+            })}
           </View>
 
           <View style={{ height: 100 }} />
@@ -792,7 +847,9 @@ const ss = StyleSheet.create({
 
   destSection: { marginTop: 10 },
   destSub: { fontSize: 12, fontWeight: '500', marginLeft: 20, marginBottom: 12 },
-  destRow: { paddingHorizontal: 16, gap: 10 },
+  continentBlock: { marginTop: 10 },
+  continentLabel: { fontSize: 13, fontWeight: '800', marginLeft: 20, marginBottom: 8 },
+  destRow: { paddingHorizontal: 16, gap: 10, paddingBottom: 4 },
   destCard: { width: 110, borderRadius: 14, padding: 14, alignItems: 'center' },
   destEmoji: { fontSize: 28, marginBottom: 6 },
   destName: { fontSize: 12, fontWeight: '700', textAlign: 'center' },

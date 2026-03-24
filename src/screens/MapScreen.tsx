@@ -12,6 +12,8 @@ import SPOTS from '../data/spots';
 import { SpotForecast } from '../types';
 import { scoreColor, scoreShort } from '../theme';
 import { MapScreenProps } from '../navigation/types';
+import { log } from '../utils/logger';
+import { useI18n } from '../i18n';
 
 interface MapSpot {
   lat: number;
@@ -67,11 +69,15 @@ function buildMapHtml(
   userLat?: number,
   userLon?: number,
   focusBounds?: { lat: number; lon: number }[],
+  darkContrast?: boolean,
+  focusSpotCenter?: { lat: number; lon: number },
 ): string {
   const spotsJson = JSON.stringify(spots);
 
   let initView: string;
-  if (focusBounds && focusBounds.length > 0) {
+  if (focusSpotCenter) {
+    initView = `map.setView([${focusSpotCenter.lat}, ${focusSpotCenter.lon}], 11);`;
+  } else if (focusBounds && focusBounds.length > 0) {
     const boundsJson = JSON.stringify(focusBounds.map(b => [b.lat, b.lon]));
     initView = `map.fitBounds(${boundsJson}, { padding: [40, 40], maxZoom: 8 });`;
   } else if (userLat != null && userLon != null) {
@@ -92,7 +98,7 @@ function buildMapHtml(
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: ${bgColor}; }
-  #map { width: 100vw; height: 100vh; }
+  #map { width: 100vw; height: 100vh; ${darkContrast ? 'filter: contrast(1.14) brightness(1.12);' : ''} }
   .leaflet-popup-content-wrapper {
     background: ${bgColor} !important; color: #EAEEF6 !important;
     border-radius: 14px !important; border: 1px solid rgba(128,128,128,0.2);
@@ -238,6 +244,7 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
   const { colors } = useTheme();
   const { profile } = useProfile();
   const { location } = useLocation();
+  const { locale } = useI18n();
   const [mapLoading, setMapLoading] = useState(true);
   const [loadingSpot, setLoadingSpot] = useState<string | null>(null);
   const [loadedCount, setLoadedCount] = useState(() => getStoredForecasts().length);
@@ -246,6 +253,7 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
   const forecastsRef = useRef<SpotForecast[]>(getStoredForecasts());
 
   const focusCountry = route.params?.focusCountry;
+  const focusSpotId = route.params?.focusSpotId;
 
   const initialForecastMap = useMemo(() => {
     const m = new Map<string, SpotForecast>();
@@ -256,14 +264,21 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
   const initialSpots = useMemo(() => buildAllMapSpots(initialForecastMap), [initialForecastMap]);
 
   const focusBounds = useMemo(() => {
+    if (focusSpotId) return undefined;
     if (!focusCountry) return undefined;
     const bounds = getCountryBounds(focusCountry);
     return bounds.length > 0 ? bounds : undefined;
-  }, [focusCountry]);
+  }, [focusCountry, focusSpotId]);
+
+  const focusSpotCenter = useMemo(() => {
+    if (!focusSpotId) return undefined;
+    const spot = SPOTS.find(s => s.id === focusSpotId);
+    return spot ? { lat: spot.latitude, lon: spot.longitude } : undefined;
+  }, [focusSpotId]);
 
   const html = useMemo(
-    () => buildMapHtml(initialSpots, colors.mapTile, colors.bg, colors.accent, location?.latitude, location?.longitude, focusBounds),
-    [initialSpots, colors.mapTile, colors.bg, colors.accent, location, focusBounds],
+    () => buildMapHtml(initialSpots, colors.mapTile, colors.bg, colors.accent, location?.latitude, location?.longitude, focusBounds, colors.mapContrast, focusSpotCenter),
+    [initialSpots, colors.mapTile, colors.bg, colors.accent, location, focusBounds, colors.mapContrast, focusSpotCenter],
   );
 
   const loadSpotOnMap = useCallback(async (spotId: string) => {
@@ -272,7 +287,7 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
     setLoadingSpot(spotId);
     try {
       const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude);
-      const forecast = computeSpotForecast(spot, marine, weather, profile);
+      const forecast = computeSpotForecast(spot, marine, weather, profile, locale);
 
       forecastsRef.current = [...forecastsRef.current.filter(f => f.spot.id !== spotId), forecast]
         .sort((a, b) => b.currentScore - a.currentScore);
@@ -303,7 +318,7 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
     }
   }, [profile]);
 
-  const onMessage = useCallback((event: any) => {
+  const onMessage = useCallback((event: { nativeEvent: { data: string } }) => {
     try {
       const msg = JSON.parse(event.nativeEvent.data);
       if (msg.action === 'detail') {
@@ -315,8 +330,9 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
       } else if (msg.action === 'load') {
         loadSpotOnMap(msg.id);
       }
-    } catch (e: any) {
-      console.warn('[SpotWave] Map message parse error:', e?.message);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      log.warn('Map message parse error:', msg);
     }
   }, [navigation, loadSpotOnMap]);
 
@@ -325,7 +341,7 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
       <View style={[s.header, { paddingTop: insets.top + 8 }]}>
         <View style={s.hCenter}>
           <Text style={[s.title, { color: colors.white }]}>
-            {focusCountry ? focusCountry : 'Carte mondiale'}
+            {focusSpotId ? SPOTS.find(s => s.id === focusSpotId)?.name : focusCountry ? focusCountry : 'Carte mondiale'}
           </Text>
           <Text style={[s.hSub, { color: colors.white40 }]}>
             {SPOTS.length} spots · {loadedCount} chargés
@@ -338,7 +354,7 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
           ref={webviewRef}
           source={{ html }}
           style={{ flex: 1, backgroundColor: colors.bg }}
-          originWhitelist={['*']}
+          originWhitelist={['https://*', 'http://*']}
           javaScriptEnabled
           onMessage={onMessage}
           onLoadEnd={() => setMapLoading(false)}

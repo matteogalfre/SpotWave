@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MarineData, WeatherData } from '../types';
+import { log } from '../utils/logger';
 
 const MARINE_BASE = 'https://marine-api.open-meteo.com/v1/marine';
 const WEATHER_BASE = 'https://api.open-meteo.com/v1/forecast';
@@ -8,7 +9,7 @@ const API_TIMEOUT_MS = 10_000;
 const MAX_RETRIES = 1;
 const MIN_REQUEST_INTERVAL_MS = 100;
 
-const inflight = new Map<string, Promise<any>>();
+const inflight = new Map<string, Promise<unknown>>();
 let lastRequestTime = 0;
 
 async function throttle(): Promise<void> {
@@ -61,7 +62,7 @@ async function getCached<T>(key: string, allowExpired = false): Promise<T | null
     if (!allowExpired && Date.now() - ts > CACHE_TTL_MS) return null;
     return data as T;
   } catch (e) {
-    console.warn('[SpotWave] Cache read error:', key, e);
+    log.warn('Cache read error:', key, e);
     return null;
   }
 }
@@ -70,7 +71,7 @@ async function setCache(key: string, data: unknown): Promise<void> {
   try {
     await AsyncStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
   } catch (e) {
-    console.warn('[SpotWave] Cache write error:', key, e);
+    log.warn('Cache write error:', key, e);
   }
 }
 
@@ -91,8 +92,9 @@ async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Respo
       const res = await fetchWithTimeout(url);
       if (res.status === 429) {
         const wait = Math.min(5000, 2000 * (attempt + 1));
-        console.warn(`[SpotWave] Rate limited (429), waiting ${wait}ms...`);
+        log.warn(`Rate limited (429), waiting ${wait}ms...`);
         await new Promise(r => setTimeout(r, wait));
+        if (attempt >= retries) throw new Error('Trop de requêtes (429) — réessaie plus tard');
         continue;
       }
       if (!res.ok) {
@@ -104,8 +106,8 @@ async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Respo
         throw new Error(msg);
       }
       return res;
-    } catch (err: any) {
-      if (err?.name === 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
         if (attempt === retries) throw new Error('Connexion trop lente — vérifie ton réseau');
         continue;
       }
@@ -124,6 +126,28 @@ function dedup<T>(key: string, factory: () => Promise<T>): Promise<T> {
   return promise;
 }
 
+function revalidateMarineInBackground(cacheKey: string, lat: number, lon: number, forecastDays: number): void {
+  const url = `${MARINE_BASE}?latitude=${lat}&longitude=${lon}&hourly=${MARINE_PARAMS}&forecast_days=${forecastDays}&timezone=auto`;
+  fetchWithRetry(url)
+    .then(res => res.json())
+    .then(json => {
+      const data = json.hourly;
+      if (validateMarineData(data)) setCache(cacheKey, data);
+    })
+    .catch(() => {});
+}
+
+function revalidateWeatherInBackground(cacheKey: string, lat: number, lon: number, forecastDays: number): void {
+  const url = `${WEATHER_BASE}?latitude=${lat}&longitude=${lon}&hourly=${WEATHER_PARAMS}&forecast_days=${forecastDays}&timezone=auto`;
+  fetchWithRetry(url)
+    .then(res => res.json())
+    .then(json => {
+      const data = json.hourly;
+      if (validateWeatherData(data)) setCache(cacheKey, data);
+    })
+    .catch(() => {});
+}
+
 export function fetchMarineData(lat: number, lon: number, forecastDays = 5): Promise<MarineData> {
   const cacheKey = `@sw_marine_${lat}_${lon}`;
   return dedup(cacheKey, async () => {
@@ -140,8 +164,9 @@ export function fetchMarineData(lat: number, lon: number, forecastDays = 5): Pro
       return data;
     } catch (err) {
       const expired = await getCached<MarineData>(cacheKey, true);
-      if (expired) {
-        console.warn('[SpotWave] Using expired marine cache for', lat, lon);
+      if (expired && expired.sea_level_height_msl) {
+        log.warn('Using expired marine cache for', lat, lon);
+        revalidateMarineInBackground(cacheKey, lat, lon, forecastDays);
         return expired;
       }
       throw err;
@@ -166,7 +191,8 @@ export function fetchWeatherData(lat: number, lon: number, forecastDays = 5): Pr
     } catch (err) {
       const expired = await getCached<WeatherData>(cacheKey, true);
       if (expired) {
-        console.warn('[SpotWave] Using expired weather cache for', lat, lon);
+        log.warn('Using expired weather cache for', lat, lon);
+        revalidateWeatherInBackground(cacheKey, lat, lon, forecastDays);
         return expired;
       }
       throw err;
@@ -197,7 +223,7 @@ export async function fetchDailyData(lat: number, lon: number, forecastDays = 5)
     } catch (err) {
       const expired = await getCached<DailyData>(cacheKey, true);
       if (expired) {
-        console.warn('[SpotWave] Using expired daily cache for', lat, lon);
+        log.warn('Using expired daily cache for', lat, lon);
         return expired;
       }
       throw err;
@@ -210,7 +236,7 @@ export async function fetchSpotData(lat: number, lon: number) {
     fetchMarineData(lat, lon),
     fetchWeatherData(lat, lon),
     fetchDailyData(lat, lon).catch((e) => {
-      console.warn('[SpotWave] Daily data fetch failed:', e?.message);
+      log.warn('Daily data fetch failed:', e?.message);
       return null;
     }),
   ]);

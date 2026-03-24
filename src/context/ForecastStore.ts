@@ -1,11 +1,11 @@
 import { SpotForecast } from '../types';
 
-let _forecasts: SpotForecast[] = [];
+let _forecasts: ReadonlyArray<SpotForecast> = [];
 
 export function setStoredForecasts(f: SpotForecast[]) {
-  _forecasts = f;
+  _forecasts = Object.freeze([...f]);
 }
 
 export function getStoredForecasts(): SpotForecast[] {
-  return _forecasts;
+  return [..._forecasts];
 }

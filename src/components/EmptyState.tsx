@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme, ThemePalette } from '../context/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 
 interface Props {
   emoji?: string;
