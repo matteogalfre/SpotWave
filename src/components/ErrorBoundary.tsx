@@ -1,12 +1,34 @@
 import React, { Component, ErrorInfo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Appearance } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Appearance, Platform, NativeModules } from 'react-native';
 import { log } from '../utils/logger';
+import { spacing, radius, typography, touchTarget } from '../utils/tokens';
+import { DARK as THEME_DARK, LIGHT as THEME_LIGHT } from '../context/ThemeContext';
 
 interface Props { children: React.ReactNode; }
 interface State { hasError: boolean; error: Error | null; key: number; }
 
-const DARK = { bg: '#0B0F1A', text: '#EAEEF6', textDim: 'rgba(234,238,246,0.5)', accent: '#00D4AA', btnTxt: '#0B0F1A' };
-const LIGHT = { bg: '#F5F5F5', text: '#1A1A2E', textDim: 'rgba(26,26,46,0.5)', accent: '#00B894', btnTxt: '#FFFFFF' };
+// ErrorBoundary sits above ThemeProvider, so it can't read the chosen theme via
+// context. We derive the crash-screen palette from the single source of truth
+// (ThemeContext) using the system appearance to avoid duplicate-palette drift.
+const DARK = { bg: THEME_DARK.bg, text: THEME_DARK.text, textDim: THEME_DARK.textMuted, accent: THEME_DARK.accent, btnTxt: '#0B0F1A' };
+const LIGHT = { bg: THEME_LIGHT.bg, text: THEME_LIGHT.text, textDim: THEME_LIGHT.textMuted, accent: THEME_LIGHT.accent, btnTxt: '#FFFFFF' };
+
+const LABELS = {
+  fr: { title: 'Oups', message: 'Quelque chose s\'est mal passé', retry: 'Réessayer' },
+  en: { title: 'Oops', message: 'Something went wrong', retry: 'Retry' },
+} as const;
+
+function getDeviceLocale(): 'fr' | 'en' {
+  try {
+    const raw =
+      Platform.OS === 'ios'
+        ? NativeModules.SettingsManager?.settings?.AppleLocale ||
+          NativeModules.SettingsManager?.settings?.AppleLanguages?.[0]
+        : NativeModules.I18nManager?.localeIdentifier;
+    if (raw && typeof raw === 'string' && raw.toLowerCase().startsWith('fr')) return 'fr';
+  } catch {}
+  return 'en';
+}
 
 export default class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, error: null, key: 0 };
@@ -24,13 +46,22 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       const c = Appearance.getColorScheme() === 'light' ? LIGHT : DARK;
+      const lang = getDeviceLocale();
+      const lbl = LABELS[lang];
+      const detail = this.state.error?.message ?? lbl.message;
       return (
-        <View style={[s.root, { backgroundColor: c.bg }]}>
-          <Text style={s.emoji}>😵</Text>
-          <Text style={[s.title, { color: c.text }]}>Oops</Text>
-          <Text style={[s.msg, { color: c.textDim }]}>{this.state.error?.message ?? 'Something went wrong'}</Text>
-          <TouchableOpacity style={[s.btn, { backgroundColor: c.accent }]} onPress={this.reset} activeOpacity={0.8} accessibilityRole="button">
-            <Text style={[s.btnTxt, { color: c.btnTxt }]}>Retry</Text>
+        <View style={[s.root, { backgroundColor: c.bg }]} accessibilityRole="alert">
+          <Text style={s.emoji} accessibilityElementsHidden>😵</Text>
+          <Text style={[s.title, { color: c.text }]}>{lbl.title}</Text>
+          <Text style={[s.msg, { color: c.textDim }]}>{detail}</Text>
+          <TouchableOpacity
+            style={[s.btn, { backgroundColor: c.accent }]}
+            onPress={this.reset}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={lbl.retry}
+          >
+            <Text style={[s.btnTxt, { color: c.btnTxt }]}>{lbl.retry}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -40,10 +71,16 @@ export default class ErrorBoundary extends Component<Props, State> {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  emoji: { fontSize: 48, marginBottom: 16 },
-  title: { fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: 8 },
-  msg: { fontSize: 13, textAlign: 'center', marginBottom: 24 },
-  btn: { borderRadius: 14, paddingHorizontal: 32, paddingVertical: 14 },
-  btnTxt: { fontSize: 15, fontWeight: '800' },
+  root: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.xxxl },
+  emoji: { fontSize: 48, marginBottom: spacing.lg },
+  title: { ...typography.h1, textAlign: 'center', marginBottom: spacing.sm },
+  msg: { ...typography.body, textAlign: 'center', marginBottom: spacing.xxl },
+  btn: {
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.md,
+    minHeight: touchTarget.min,
+    justifyContent: 'center',
+  },
+  btnTxt: { ...typography.bodyBold, fontSize: 15 },
 });

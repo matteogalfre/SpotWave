@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
 import { SpotForecast, HourlyCondition } from '../types';
 import { windLabel } from '../theme';
 import { log } from '../utils/logger';
@@ -10,6 +11,22 @@ try {
 
 const ALERTS_KEY = '@spotwave_alerts';
 const GOOD_SCORE_THRESHOLD = 6.5;
+
+/**
+ * Whether the device currently has a usable internet connection.
+ * `isInternetReachable` can be null (unknown) right after boot — in that case
+ * we don't want to block, so only an explicit `false` counts as offline.
+ */
+async function isOnline(): Promise<boolean> {
+  try {
+    const state = await NetInfo.fetch();
+    if (state.isConnected === false) return false;
+    if (state.isInternetReachable === false) return false;
+    return true;
+  } catch {
+    return true;
+  }
+}
 
 if (Notifications) {
   Notifications.setNotificationHandler({
@@ -46,10 +63,21 @@ export async function scheduleGoodConditionAlerts(
   localeFr: boolean,
 ): Promise<number> {
   if (!Notifications) return 0;
-  await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
 
   const enabled = await getAlertsEnabled();
-  if (!enabled) return 0;
+  if (!enabled) {
+    await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+    return 0;
+  }
+
+  // When offline, forecasts come from a possibly-stale cache. Don't reschedule
+  // from outdated data — keep whatever was scheduled during the last online run.
+  if (!(await isOnline())) {
+    log.info('Offline — skipping notification (re)scheduling');
+    return 0;
+  }
+
+  await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
 
   const now = new Date();
   const tomorrowStr = new Date(now.getTime() + 86400000).toISOString().slice(0, 10);

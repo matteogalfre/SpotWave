@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity, ListRenderItemInfo } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { useProfile } from '../context/ProfileContext';
 import { useLocation } from '../context/LocationContext';
 import { getFavorites, toggleFavorite } from '../services/favorites';
 import { fetchSpotData } from '../services/api';
-import { computeSpotForecast } from '../utils/scoring';
+import { computeSpotForecast, RIDABLE_SCORE } from '../utils/scoring';
 import { haversineDistance, formatDistance } from '../services/location';
 import { setStoredForecasts, getStoredForecasts } from '../context/ForecastStore';
 import { useToast } from '../components/Toast';
@@ -17,9 +17,12 @@ import { SpotConfig, SpotForecast } from '../types';
 import { FavoritesScreenProps } from '../navigation/types';
 import { Ionicons } from '@expo/vector-icons';
 import { scoreColor, scoreBg, scoreLabel, scoreEmoji, scoreShort, windLabel, weatherIcon } from '../theme';
-import { LEVEL_BADGE } from '../utils/constants';
+import { getLevelBadge } from '../utils/constants';
 import * as Haptics from 'expo-haptics';
 import { useI18n } from '../i18n';
+import { spacing, radius, typography, touchTarget } from '../utils/tokens';
+
+type SortFav = 'score' | 'distance' | 'name';
 
 export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   const { t, locale } = useI18n();
@@ -33,7 +36,6 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   const [forecasts, setForecasts] = useState<SpotForecast[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  type SortFav = 'score' | 'distance' | 'name';
   const [sortBy, setSortBy] = useState<SortFav>('score');
 
   const distanceMap = useMemo(() => {
@@ -87,7 +89,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
 
     setForecasts(results.sort((a, b) => b.currentScore - a.currentScore));
     setLoading(false);
-  }, [profile, showToast, t]);
+  }, [profile, showToast, t, locale]);
 
   useEffect(() => { loadFavorites(); }, [loadFavorites]);
 
@@ -111,148 +113,228 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   }, [forecasts, sortBy, distanceMap]);
 
   const handleRemoveFav = useCallback(async (spotId: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    const removedForecast = forecasts.find(f => f.spot.id === spotId);
     const next = await toggleFavorite(spotId);
     setFavIds(next);
     setForecasts(prev => prev.filter(f => f.spot.id !== spotId));
-    showToast(t.favRemoved, 'info');
-  }, [showToast, t]);
+    showToast(t.favRemovedUndo, 'info', {
+      action: {
+        label: t.undo,
+        onPress: async () => {
+          const restored = await toggleFavorite(spotId);
+          setFavIds(restored);
+          if (removedForecast) setForecasts(prev => [...prev, removedForecast].sort((a, b) => b.currentScore - a.currentScore));
+        },
+      },
+    });
+  }, [forecasts, showToast, t]);
 
   const navigateToSpot = useCallback((forecast: SpotForecast) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setStoredForecasts(sortedForecasts);
     const idx = sortedForecasts.findIndex(f => f.spot.id === forecast.spot.id);
     navigation.navigate('SpotDetail', { forecast, spotIndex: idx >= 0 ? idx : 0 });
   }, [navigation, sortedForecasts]);
 
-  return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.bg }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
-    >
-      <View style={[s.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={[s.title, { color: colors.white }]}>{t.favTitle}</Text>
-        <Text style={[s.sub, { color: colors.white40 }]}>{t.favCount(favIds.length)}</Text>
-      </View>
-
-      {loading && (
-        <View style={s.loadWrap}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
-      )}
-
-      {!loading && favIds.length === 0 && (
-        <EmptyState
-          emoji="⭐"
-          title={t.favEmpty}
-          subtitle={t.favEmptySub}
-        />
-      )}
-
-      {!loading && favIds.length > 0 && (
-        <View style={[s.sortRow, { borderBottomColor: colors.white08 }]}>
-          <Text style={[s.sortLabel, { color: colors.white40 }]}>{t.favSortBy}</Text>
-          <View style={s.sortBtns}>
-            {(['score', 'distance', 'name'] as const).map((key) => (
-              <TouchableOpacity
-                key={key}
-                style={[s.sortBtn, { backgroundColor: sortBy === key ? colors.accentDim : 'transparent' }]}
-                onPress={() => setSortBy(key)}
-                accessibilityLabel={key === 'score' ? t.favSortScore : key === 'distance' ? t.favSortDistance : t.favSortName}
-                accessibilityRole="button"
-              >
-                <Text style={[s.sortBtnTxt, { color: sortBy === key ? colors.accent : colors.white40 }]}>
-                  {key === 'score' ? t.favSortScore : key === 'distance' ? t.favSortDistance : t.favSortName}
-                </Text>
-              </TouchableOpacity>
-            ))}
+  const renderItem = useCallback(({ item: f }: ListRenderItemInfo<SpotForecast>) => {
+    const cc = f.currentCondition;
+    const wl = cc ? windLabel(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : '';
+    const badge = getLevelBadge(f.spot.recommendedLevel, t);
+    const dist = distanceMap.get(f.spot.id);
+    return (
+      <TouchableOpacity
+        style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+        activeOpacity={0.7}
+        onPress={() => navigateToSpot(f)}
+        accessibilityLabel={`${f.spot.name}, score ${f.currentScore.toFixed(1)}`}
+        accessibilityRole="button"
+      >
+        <View style={s.cardHead}>
+          <ScoreBadge score={f.currentScore} size="lg" />
+          <View style={s.cardInfo}>
+            <Text style={[s.cardName, { color: colors.white }]} numberOfLines={1}>{f.spot.name}</Text>
+            <Text style={[s.cardLabel, { color: scoreColor(f.currentScore) }]}>
+              {scoreEmoji(f.currentScore)} {scoreLabel(f.currentScore, t)}
+            </Text>
+            <View style={s.cardMeta}>
+              {badge && (
+                <View style={[s.levelBadge, { backgroundColor: badge.bg }]}>
+                  <Text style={[s.levelTxt, { color: badge.color }]}>{badge.label}</Text>
+                </View>
+              )}
+              <Text style={[s.cardCountry, { color: colors.textMuted }]}>{f.spot.country}</Text>
+              {dist != null && <Text style={[s.cardDist, { color: colors.accent }]}>📍 {formatDistance(dist)}</Text>}
+            </View>
           </View>
-        </View>
-      )}
-
-      {sortedForecasts.map((f) => {
-        const cc = f.currentCondition;
-        const wl = cc ? windLabel(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : '';
-        const badge = LEVEL_BADGE[f.spot.recommendedLevel];
-        const dist = distanceMap.get(f.spot.id);
-        return (
           <TouchableOpacity
-            key={f.spot.id}
-            style={[s.card, { backgroundColor: colors.card }]}
-            activeOpacity={0.7}
-            onPress={() => navigateToSpot(f)}
-            accessibilityLabel={`${f.spot.name}, score ${f.currentScore.toFixed(1)}`}
+            onPress={() => handleRemoveFav(f.spot.id)}
+            style={s.starBtn}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityLabel={t.spotsRemovedFav}
             accessibilityRole="button"
           >
-            <View style={s.cardHead}>
-              <ScoreBadge score={f.currentScore} size="lg" />
-              <View style={s.cardInfo}>
-                <Text style={[s.cardName, { color: colors.white }]} numberOfLines={1}>{f.spot.name}</Text>
-                <Text style={[s.cardLabel, { color: scoreColor(f.currentScore) }]}>
-                  {scoreEmoji(f.currentScore)} {scoreLabel(f.currentScore)}
-                </Text>
-                <View style={s.cardMeta}>
-                  {badge && (
-                    <View style={[s.levelBadge, { backgroundColor: badge.bg }]}>
-                      <Text style={[s.levelTxt, { color: badge.color }]}>{badge.label}</Text>
-                    </View>
-                  )}
-                  <Text style={[s.cardCountry, { color: colors.white40 }]}>{f.spot.country}</Text>
-                  {dist != null && <Text style={[s.cardDist, { color: colors.accent }]}>📍 {formatDistance(dist)}</Text>}
-                </View>
-              </View>
-              <TouchableOpacity onPress={() => handleRemoveFav(f.spot.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel="Retirer des favoris" accessibilityRole="button">
-                <Ionicons name="star" size={22} color={colors.yellow} />
-              </TouchableOpacity>
-            </View>
-            {cc && (
-              <View style={s.cardBar}>
-                <Text style={[s.stat, { color: colors.white70 }]}>{weatherIcon(cc.weatherCode)}</Text>
-                <Text style={[s.dot, { color: colors.white15 }]}>·</Text>
-                <Text style={[s.stat, { color: colors.white70 }]}>🌊 {cc.swellHeight.toFixed(1)}m</Text>
-                <Text style={[s.dot, { color: colors.white15 }]}>·</Text>
-                <Text style={[s.stat, { color: colors.white70 }]}>{cc.swellPeriod.toFixed(0)}s</Text>
-                <Text style={[s.dot, { color: colors.white15 }]}>·</Text>
-                <Text style={[s.stat, { color: colors.white70 }]}>💨 {wl} {cc.windSpeed.toFixed(0)}</Text>
-              </View>
-            )}
-            <View style={[s.bestRow, { backgroundColor: scoreBg(f.bestTime.score) }]}>
-              <Text style={[s.bestTxt, { color: scoreColor(f.bestTime.score) }]}>
-                ⏰ {f.bestTime.label} — {scoreShort(f.bestTime.score)} ({f.bestTime.score.toFixed(1)})
-              </Text>
-            </View>
+            <Ionicons name="star" size={24} color={colors.yellow} />
           </TouchableOpacity>
-        );
-      })}
+        </View>
+        {cc && (
+          <View style={s.cardBar}>
+            <Text style={[s.stat, { color: colors.textSecondary }]}>{weatherIcon(cc.weatherCode)}</Text>
+            <Text style={[s.dot, { color: colors.border }]}>·</Text>
+            <Text style={[s.stat, { color: colors.textSecondary }]}>🌊 {cc.swellHeight.toFixed(1)}m</Text>
+            <Text style={[s.dot, { color: colors.border }]}>·</Text>
+            <Text style={[s.stat, { color: colors.textSecondary }]}>{cc.swellPeriod.toFixed(0)}s</Text>
+            <Text style={[s.dot, { color: colors.border }]}>·</Text>
+            <Text style={[s.stat, { color: colors.textSecondary }]}>💨 {wl} {cc.windSpeed.toFixed(0)}</Text>
+          </View>
+        )}
+        {f.bestTime.score >= RIDABLE_SCORE ? (
+          <View style={[s.bestRow, { backgroundColor: scoreBg(f.bestTime.score) }]}>
+            <Text style={[s.bestTxt, { color: scoreColor(f.bestTime.score) }]}>
+              ⏰ {f.bestTime.label} — {scoreShort(f.bestTime.score, t)} ({f.bestTime.score.toFixed(1)})
+            </Text>
+          </View>
+        ) : (
+          <View style={[s.bestRow, { backgroundColor: colors.cardLight }]}>
+            <Text style={[s.bestTxt, { color: colors.textMuted }]}>
+              💤 {t.spotsNoGoodWindow}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  }, [colors, distanceMap, handleRemoveFav, navigateToSpot, t]);
 
-      <View style={{ height: 100 }} />
-    </ScrollView>
+  const keyExtractor = useCallback((f: SpotForecast) => f.spot.id, []);
+
+  return (
+    <FlatList
+      style={{ flex: 1, backgroundColor: colors.bg }}
+      data={sortedForecasts}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
+      contentContainerStyle={{ paddingBottom: 100 }}
+      showsVerticalScrollIndicator={false}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
+      ListHeaderComponent={
+        <View>
+          <View style={[s.header, { paddingTop: insets.top + spacing.md }]}>
+            <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.favTitle}</Text>
+            <Text style={[s.sub, { color: colors.textMuted }]}>{t.favCount(favIds.length)}</Text>
+          </View>
+
+          {loading && (
+            <View style={s.loadWrap}>
+              <ActivityIndicator size="large" color={colors.accent} />
+            </View>
+          )}
+
+          {!loading && favIds.length > 0 && (
+            <View style={[s.sortRow, { borderBottomColor: colors.border }]}>
+              <Text style={[s.sortLabel, { color: colors.textMuted }]}>{t.favSortBy}</Text>
+              <View style={s.sortBtns}>
+                {(['score', 'distance', 'name'] as const).map((key) => {
+                  const label = key === 'score' ? t.favSortScore : key === 'distance' ? t.favSortDistance : t.favSortName;
+                  const active = sortBy === key;
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      style={[s.sortBtn, { backgroundColor: active ? colors.accentDim : 'transparent' }]}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                        setSortBy(key);
+                      }}
+                      accessibilityLabel={label}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
+                      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                    >
+                      <Text style={[s.sortBtnTxt, { color: active ? colors.accent : colors.textMuted }]}>
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+        </View>
+      }
+      ListEmptyComponent={
+        !loading && favIds.length === 0 ? (
+          <EmptyState
+            emoji="⭐"
+            title={t.favEmpty}
+            subtitle={t.favEmptySub}
+            actionLabel={t.favEmptyAction}
+            onAction={() => navigation.navigate('MapTab', undefined)}
+          />
+        ) : null
+      }
+    />
   );
 }
 
 const s = StyleSheet.create({
-  header: { paddingHorizontal: 20, paddingBottom: 10 },
-  title: { fontSize: 28, fontWeight: '900' },
-  sub: { fontSize: 12, marginTop: 3 },
-  sortRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1 },
-  sortLabel: { fontSize: 12, fontWeight: '600', marginRight: 12 },
-  sortBtns: { flexDirection: 'row', gap: 8 },
-  sortBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
-  sortBtnTxt: { fontSize: 12, fontWeight: '700' },
+  header: { paddingHorizontal: spacing.xl, paddingBottom: spacing.md },
+  title: { ...typography.display },
+  sub: { ...typography.caption, marginTop: 3 },
+  sortRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    marginBottom: spacing.md,
+  },
+  sortLabel: { ...typography.caption, marginRight: spacing.md },
+  sortBtns: { flexDirection: 'row', gap: spacing.sm },
+  sortBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  sortBtnTxt: { ...typography.caption, fontWeight: '700' },
   loadWrap: { paddingVertical: 60, alignItems: 'center' },
-  card: { marginHorizontal: 16, marginBottom: 10, borderRadius: 16, padding: 16 },
+  card: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   cardHead: { flexDirection: 'row', alignItems: 'center' },
-  cardInfo: { flex: 1, marginLeft: 14 },
-  cardName: { fontSize: 17, fontWeight: '800', flexShrink: 1 },
-  cardLabel: { fontSize: 13, fontWeight: '600', marginTop: 3 },
-  cardMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  levelBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
+  cardInfo: { flex: 1, marginLeft: spacing.md },
+  cardName: { ...typography.h2, fontSize: 17, flexShrink: 1 },
+  cardLabel: { ...typography.caption, fontSize: 13, marginTop: 3 },
+  cardMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs },
+  levelBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.sm },
   levelTxt: { fontSize: 9, fontWeight: '700' },
-  cardCountry: { fontSize: 11, fontWeight: '500' },
-  cardDist: { fontSize: 11, fontWeight: '600' },
-  cardBar: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: 12, paddingLeft: 4, gap: 2 },
-  stat: { fontSize: 12, fontWeight: '500' },
-  dot: { fontSize: 12, marginHorizontal: 4 },
-  bestRow: { marginTop: 10, borderRadius: 10, paddingVertical: 7, paddingHorizontal: 12 },
-  bestTxt: { fontSize: 12, fontWeight: '600' },
+  cardCountry: { ...typography.micro, fontWeight: '500' },
+  cardDist: { ...typography.micro },
+  starBtn: {
+    width: touchTarget.min,
+    height: touchTarget.min,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: spacing.md,
+    paddingLeft: spacing.xs,
+    gap: 2,
+  },
+  stat: { ...typography.caption, fontWeight: '500' },
+  dot: { fontSize: 12, marginHorizontal: spacing.xs },
+  bestRow: {
+    marginTop: spacing.md,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm - 1,
+    paddingHorizontal: spacing.md,
+  },
+  bestTxt: { ...typography.caption, fontWeight: '600' },
 });

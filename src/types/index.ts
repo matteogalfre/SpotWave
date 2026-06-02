@@ -61,6 +61,33 @@ export interface WeatherData {
   weather_code: (number | null)[];
 }
 
+export type ScoreCap =
+  | 'flat'
+  | 'period'
+  | 'onshore'
+  | 'offshoreStorm'
+  | 'gusts'
+  | 'windSwell'
+  | 'beginnerExpert'
+  | 'beginnerBigWaves';
+
+export interface ScoreFactors {
+  swellQuality: number;     // 0..1
+  windQuality: number;       // 0..1
+  tideMatch: number;         // ~0.6..1.15
+  levelFit: number;          // ~0.4..1.05
+  profileMatch: number;      // ~0.78..1.16 (height + break type + wind prefs)
+  cleanFactor: number;       // ~0.25..1.0
+  weatherPenalty: number;    // ~0.7..1.0
+  consistency: number;       // ~0.85..1.05
+  windTrend: number;         // ~0.9..1.08
+  currentPenalty: number;    // ~0.75..1.0
+  windSwellOnly: boolean;
+  rawScore: number;          // before deal-breaker cap (0..10)
+  cappedScore: number;       // after deal-breaker cap (0..10)
+  caps: ScoreCap[];          // list of deal-breakers that capped this hour
+}
+
 export interface HourlyCondition {
   time: string;
   score: number;
@@ -73,9 +100,9 @@ export interface HourlyCondition {
   windGusts: number;
   temperature: number;
   seaTemp: number;
-  tideHeight: number;
   seaLevel: number;
   weatherCode: number;
+  factors?: ScoreFactors;
 }
 
 export interface SpotForecast {

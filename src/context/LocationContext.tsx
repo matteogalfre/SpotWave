@@ -27,19 +27,30 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
 
   const fetchLocation = useCallback(async () => {
     setLoading(true);
+
+    let hasCache = false;
     try {
       const raw = await AsyncStorage.getItem(CACHE_KEY);
       if (raw) {
         const { data, ts } = JSON.parse(raw);
-        if (Date.now() - ts < CACHE_TTL) {
+        // Guard against corrupt cache: only accept valid numeric coordinates.
+        if (
+          data && typeof data.latitude === 'number' && typeof data.longitude === 'number'
+          && Number.isFinite(data.latitude) && Number.isFinite(data.longitude)
+        ) {
           setLocation(data);
-          setLoading(false);
-          return;
+          hasCache = true;
+          if (Date.now() - ts < CACHE_TTL) {
+            setLoading(false);
+            return;
+          }
         }
       }
     } catch (e) {
       log.warn('Location cache read error:', e);
     }
+
+    if (hasCache) setLoading(false);
 
     const loc = await requestLocation();
     if (loc) {
@@ -50,7 +61,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       } catch (e) {
         log.warn('Location cache write error:', e);
       }
-    } else {
+    } else if (!hasCache) {
       setDenied(true);
     }
     setLoading(false);

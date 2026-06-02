@@ -67,6 +67,7 @@ export function getNearbySpotsWithFallback(
   radiusKm = 200,
   minSpots = 5,
   maxRadius = 1000,
+  maxSpots = 20,
 ): (SpotConfig & { distance: number })[] {
   let radius = radiusKm;
   let nearby = getSpotsInRadius(spots, userLat, userLon, radius);
@@ -76,7 +77,7 @@ export function getNearbySpotsWithFallback(
     nearby = getSpotsInRadius(spots, userLat, userLon, radius);
   }
 
-  return nearby;
+  return nearby.slice(0, maxSpots);
 }
 
 export function getGlobalShowcase(spots: SpotConfig[], limit = 30): SpotConfig[] {

@@ -123,6 +123,83 @@ describe('computeHourlyScore', () => {
     expect(result).toHaveProperty('seaLevel');
     expect(result).toHaveProperty('weatherCode');
   });
+
+  it('rewards glassy conditions (no wind) as best wind score', () => {
+    const weather = makeWeatherData({ wind_speed_10m: [1], wind_direction_10m: [0], wind_gusts_10m: [2] });
+    const marine = makeMarineData({ swell_wave_height: [1.5], swell_wave_period: [12], swell_wave_peak_period: [14] });
+    const result = computeHourlyScore(0, marine, weather, SPOT, PROFILE);
+    expect(result.score).toBeGreaterThan(5.5);
+  });
+
+  it('penalizes strong offshore wind (>30 km/h)', () => {
+    const offshoreDir = (SPOT.beachOrientation + 180) % 360;
+    const gentle = computeHourlyScore(0, makeMarineData(), makeWeatherData({ wind_speed_10m: [10], wind_direction_10m: [offshoreDir] }), SPOT, PROFILE);
+    const brutal = computeHourlyScore(0, makeMarineData(), makeWeatherData({ wind_speed_10m: [35], wind_direction_10m: [offshoreDir] }), SPOT, PROFILE);
+    expect(brutal.score).toBeLessThan(gentle.score);
+  });
+
+  it('gives higher score to long-period swell (power synergy)', () => {
+    const shortPeriod = computeHourlyScore(0, makeMarineData({ swell_wave_period: [7], swell_wave_peak_period: [8] }), makeWeatherData(), SPOT, PROFILE);
+    const longPeriod = computeHourlyScore(0, makeMarineData({ swell_wave_period: [14], swell_wave_peak_period: [16] }), makeWeatherData(), SPOT, PROFILE);
+    expect(longPeriod.score).toBeGreaterThan(shortPeriod.score);
+  });
+
+  it('penalizes pure wind swell (no ground swell)', () => {
+    const windSwellOnly = makeMarineData({ swell_wave_height: [0], wave_height: [1.5], wind_wave_height: [1.5] });
+    const groundSwell = makeMarineData({ swell_wave_height: [1.5], wave_height: [1.5], wind_wave_height: [0.2] });
+    const windResult = computeHourlyScore(0, windSwellOnly, makeWeatherData(), SPOT, PROFILE);
+    const swellResult = computeHourlyScore(0, groundSwell, makeWeatherData(), SPOT, PROFILE);
+    expect(windResult.score).toBeLessThan(swellResult.score);
+  });
+
+  it('penalizes crossing swells (wind wave from different direction)', () => {
+    const aligned = makeMarineData({ swell_wave_direction: [290], wind_wave_direction: [280], wind_wave_height: [0.5] });
+    const crossing = makeMarineData({ swell_wave_direction: [290], wind_wave_direction: [100], wind_wave_height: [0.5] });
+    const alignedScore = computeHourlyScore(0, aligned, makeWeatherData(), SPOT, PROFILE);
+    const crossingScore = computeHourlyScore(0, crossing, makeWeatherData(), SPOT, PROFILE);
+    expect(crossingScore.score).toBeLessThan(alignedScore.score);
+  });
+
+  it('penalizes strong ocean currents', () => {
+    const calm = makeMarineData({ ocean_current_velocity: [0.1] });
+    const strong = makeMarineData({ ocean_current_velocity: [1.5] });
+    const calmScore = computeHourlyScore(0, calm, makeWeatherData(), SPOT, PROFILE);
+    const strongScore = computeHourlyScore(0, strong, makeWeatherData(), SPOT, PROFILE);
+    expect(strongScore.score).toBeLessThan(calmScore.score);
+  });
+
+  it('rewards a spot whose break type matches the surfer preference', () => {
+    const match = computeHourlyScore(0, makeMarineData(), makeWeatherData(), SPOT, { ...PROFILE, breakType: ['beach'] });
+    const mismatch = computeHourlyScore(0, makeMarineData(), makeWeatherData(), SPOT, { ...PROFILE, breakType: ['reef'] });
+    expect(match.factors!.profileMatch).toBeGreaterThan(mismatch.factors!.profileMatch);
+  });
+
+  it('factors wind preference into the profile match', () => {
+    // beachOrientation 270 → offshore is 90, so a 270° wind is onshore
+    const weather = makeWeatherData({ wind_speed_10m: [15], wind_direction_10m: [270] });
+    const picky = computeHourlyScore(0, makeMarineData(), weather, SPOT, { ...PROFILE, windPref: 'offshore' });
+    const tolerant = computeHourlyScore(0, makeMarineData(), weather, SPOT, { ...PROFILE, windPref: 'any' });
+    expect(picky.factors!.profileMatch).toBeLessThan(tolerant.factors!.profileMatch);
+  });
+
+  it('exposes score factors for explainability', () => {
+    const result = computeHourlyScore(0, makeMarineData(), makeWeatherData(), SPOT, PROFILE);
+    expect(result.factors).toBeDefined();
+    expect(result.factors).toHaveProperty('swellQuality');
+    expect(result.factors).toHaveProperty('windQuality');
+    expect(result.factors).toHaveProperty('tideMatch');
+    expect(result.factors).toHaveProperty('cleanFactor');
+    expect(result.factors).toHaveProperty('rawScore');
+    expect(result.factors).toHaveProperty('cappedScore');
+    expect(result.factors).toHaveProperty('caps');
+    expect(Array.isArray(result.factors!.caps)).toBe(true);
+  });
+
+  it('reports the deal-breaker caps that hit a poor forecast', () => {
+    const marine = makeMarineData({ wave_height: [0.1], swell_wave_height: [0.1] });
+    const result = computeHourlyScore(0, marine, makeWeatherData(), SPOT, PROFILE);
+    expect(result.factors!.caps).toContain('flat');
+  });
 });
 
 describe('computeSpotForecast', () => {

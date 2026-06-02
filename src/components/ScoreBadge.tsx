@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, memo } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { Text, StyleSheet, Animated, AccessibilityInfo } from 'react-native';
 import { scoreColor as getScoreColor, scoreBg as getScoreBg } from '../theme';
+import { useI18n } from '../i18n';
 
 interface Props {
   score: number;
@@ -16,6 +17,7 @@ const DIM = {
 };
 
 export default memo(function ScoreBadge({ score, size = 'md', animated = false }: Props) {
+  const { t } = useI18n();
   const color = getScoreColor(score);
   const bg = getScoreBg(score);
   const d = DIM[size];
@@ -23,10 +25,18 @@ export default memo(function ScoreBadge({ score, size = 'md', animated = false }
   const scaleAnim = useRef(new Animated.Value(animated ? 0.3 : 1)).current;
   const displayScore = useRef(new Animated.Value(animated ? 0 : score)).current;
   const [displayVal, setDisplayVal] = React.useState(animated ? 0 : score);
+  const reduceMotionRef = useRef(false);
 
   useEffect(() => {
-    if (!animated) {
+    AccessibilityInfo.isReduceMotionEnabled?.()
+      .then(v => { reduceMotionRef.current = !!v; })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!animated || reduceMotionRef.current) {
       setDisplayVal(score);
+      scaleAnim.setValue(1);
       return;
     }
     scaleAnim.setValue(0.3);
@@ -44,7 +54,7 @@ export default memo(function ScoreBadge({ score, size = 'md', animated = false }
   return (
     <Animated.View
       style={[s.box, { width: d.box, height: d.box, borderRadius: d.box / 2, backgroundColor: bg, borderColor: color, transform: [{ scale: scaleAnim }] }]}
-      accessibilityLabel={`Score ${displayVal.toFixed(1)} sur 10`}
+      accessibilityLabel={t.a11yScore(displayVal.toFixed(1))}
       accessibilityRole="text"
     >
       <Text style={[s.txt, { fontSize: d.font, color }]}>{displayVal.toFixed(1)}</Text>

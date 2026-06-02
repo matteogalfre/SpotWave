@@ -5,6 +5,7 @@ import { log } from '../utils/logger';
 const MARINE_BASE = 'https://marine-api.open-meteo.com/v1/marine';
 const WEATHER_BASE = 'https://api.open-meteo.com/v1/forecast';
 const CACHE_TTL_MS = 30 * 60 * 1000;
+const CACHE_PURGE_AGE_MS = 24 * 60 * 60 * 1000;
 const API_TIMEOUT_MS = 10_000;
 const MAX_RETRIES = 1;
 const MIN_REQUEST_INTERVAL_MS = 100;
@@ -148,8 +149,12 @@ function revalidateWeatherInBackground(cacheKey: string, lat: number, lon: numbe
     .catch(() => {});
 }
 
-export function fetchMarineData(lat: number, lon: number, forecastDays = 5): Promise<MarineData> {
-  const cacheKey = `@sw_marine_${lat}_${lon}`;
+export const DEFAULT_FORECAST_DAYS = 10;
+
+export function fetchMarineData(lat: number, lon: number, forecastDays = DEFAULT_FORECAST_DAYS): Promise<MarineData> {
+  const rlat = Math.round(lat * 100) / 100;
+  const rlon = Math.round(lon * 100) / 100;
+  const cacheKey = `@sw_marine_${rlat}_${rlon}`;
   return dedup(cacheKey, async () => {
     const cached = await getCached<MarineData>(cacheKey);
     if (cached && cached.sea_level_height_msl) return cached;
@@ -163,8 +168,11 @@ export function fetchMarineData(lat: number, lon: number, forecastDays = 5): Pro
       setCache(cacheKey, data);
       return data;
     } catch (err) {
+      // Offline fallback: accept any valid expired cache, even one saved before
+      // tide data was added — swell/wind are enough to show a spot. The tide UI
+      // already guards against a missing sea_level_height_msl array.
       const expired = await getCached<MarineData>(cacheKey, true);
-      if (expired && expired.sea_level_height_msl) {
+      if (expired) {
         log.warn('Using expired marine cache for', lat, lon);
         revalidateMarineInBackground(cacheKey, lat, lon, forecastDays);
         return expired;
@@ -174,8 +182,10 @@ export function fetchMarineData(lat: number, lon: number, forecastDays = 5): Pro
   });
 }
 
-export function fetchWeatherData(lat: number, lon: number, forecastDays = 5): Promise<WeatherData> {
-  const cacheKey = `@sw_weather_${lat}_${lon}`;
+export function fetchWeatherData(lat: number, lon: number, forecastDays = DEFAULT_FORECAST_DAYS): Promise<WeatherData> {
+  const rlat = Math.round(lat * 100) / 100;
+  const rlon = Math.round(lon * 100) / 100;
+  const cacheKey = `@sw_weather_${rlat}_${rlon}`;
   return dedup(cacheKey, async () => {
     const cached = await getCached<WeatherData>(cacheKey);
     if (cached) return cached;
@@ -206,8 +216,10 @@ export interface DailyData {
   sunset: string[];
 }
 
-export async function fetchDailyData(lat: number, lon: number, forecastDays = 5): Promise<DailyData> {
-  const cacheKey = `@sw_daily_${lat}_${lon}`;
+export async function fetchDailyData(lat: number, lon: number, forecastDays = DEFAULT_FORECAST_DAYS): Promise<DailyData> {
+  const rlat = Math.round(lat * 100) / 100;
+  const rlon = Math.round(lon * 100) / 100;
+  const cacheKey = `@sw_daily_${rlat}_${rlon}`;
   return dedup(cacheKey, async () => {
     const cached = await getCached<DailyData>(cacheKey);
     if (cached) return cached;
@@ -231,6 +243,42 @@ export async function fetchDailyData(lat: number, lon: number, forecastDays = 5)
   });
 }
 
+export async function purgeOldCache(): Promise<void> {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const cacheKeys = keys.filter(k => k.startsWith('@sw_marine_') || k.startsWith('@sw_weather_') || k.startsWith('@sw_daily_'));
+    const now = Date.now();
+    for (const key of cacheKeys) {
+      try {
+        const raw = await AsyncStorage.getItem(key);
+        if (!raw) continue;
+        const { ts } = JSON.parse(raw);
+        if (now - ts > CACHE_PURGE_AGE_MS) {
+          await AsyncStorage.removeItem(key);
+        }
+      } catch {
+        await AsyncStorage.removeItem(key);
+      }
+    }
+    log.info(`Cache purge: checked ${cacheKeys.length} keys`);
+  } catch (e) {
+    log.warn('Cache purge error:', e);
+  }
+}
+
+export async function getMarineCacheTimestamp(lat: number, lon: number): Promise<number | null> {
+  const rlat = Math.round(lat * 100) / 100;
+  const rlon = Math.round(lon * 100) / 100;
+  try {
+    const raw = await AsyncStorage.getItem(`@sw_marine_${rlat}_${rlon}`);
+    if (!raw) return null;
+    const { ts } = JSON.parse(raw);
+    return typeof ts === 'number' ? ts : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchSpotData(lat: number, lon: number) {
   const [marine, weather, daily] = await Promise.all([
     fetchMarineData(lat, lon),
@@ -240,5 +288,6 @@ export async function fetchSpotData(lat: number, lon: number) {
       return null;
     }),
   ]);
-  return { marine, weather, daily };
+  const cacheTs = await getMarineCacheTimestamp(lat, lon);
+  return { marine, weather, daily, cacheTs };
 }

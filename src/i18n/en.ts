@@ -8,6 +8,11 @@ export default {
   close: 'Close',
   error: 'Error',
   back: 'Back',
+  undo: 'Undo',
+  dismiss: 'Dismiss notification',
+
+  // A11y
+  a11yScore: (score: string) => `Score ${score} out of 10`,
 
   // Tabs
   tabSpots: 'Spots',
@@ -28,17 +33,31 @@ export default {
   spotsNoConditions: 'No good conditions today',
   spotsNextSlot: (day: string, spot: string) => `Next good slot: ${day} at ${spot}`,
   spotsNoSlotWeek: 'No good slot this week',
+  spotsNoGoodWindow: 'No good window ahead',
   spotsBestWeek: 'Best slots this week',
   spotsExplore: 'Explore the world',
   spotsExploreDesc: (total: number, countries: number) => `${total} spots in ${countries} countries · Open the map to see them all`,
   spotsUpdated: (elapsed: string) => `Updated ${elapsed}`,
   spotsUnavailable: (n: number) => `${n} spot${n > 1 ? 's' : ''} unavailable`,
   spotsAll: 'All',
+  spotsFilterLevel: 'Level',
+  spotsFilterType: 'Type',
+  spotsFilterAllLevels: 'All levels',
+  spotsFilterAllTypes: 'All types',
   spotsLoadError: 'Loading error',
   spotsAddedFav: 'Added to favorites ⭐',
   spotsRemovedFav: 'Removed from favorites',
   spotsSearch: 'Search',
   spotsClearSearch: 'Clear search',
+  spotsSearchRecent: 'Recent searches',
+  spotsSearchClearHistory: 'Clear',
+  spotsRegionOther: 'Other',
+  spotsTabToday: 'Today',
+  spotsTabAll: 'All spots',
+  spotsAllLoaded: 'All spots loaded',
+  spotsSwell: 'swell',
+  spotsPeriod: 'period',
+  spotsSeaTemp: 'sea',
 
   // Favorites screen
   favTitle: 'Favorites',
@@ -50,13 +69,20 @@ export default {
   favSortDistance: 'Distance',
   favSortName: 'Name',
   favRemoved: 'Removed from favorites',
+  favRemovedUndo: 'Removed · Undo',
   favLoadFail: (n: number) => `${n} favorite${n > 1 ? 's' : ''} failed to load`,
+  favEmptyAction: 'Explore the map',
 
   // Map screen
   mapTitle: 'World map',
   mapLoaded: (total: number, loaded: number) => `${total} spots · ${loaded} loaded`,
   mapLoadingSpot: 'Loading…',
   mapLoadingMap: 'Loading map…',
+  mapViewDetails: 'View details',
+  mapLoadConditions: 'Load conditions',
+  mapNoData: 'Conditions not loaded',
+  mapLoading: 'Loading...',
+  mapRetry: 'Error - Retry',
 
   // Spot detail
   detailRefreshError: 'Error refreshing data',
@@ -118,6 +144,14 @@ export default {
   profileValidHeight: 'Select at least one preferred height',
   profileSaveError: 'Error saving settings',
   profileSaved: 'Profile saved',
+  profileAutoSaved: '✓ Synced',
+  profileReset: 'Reset',
+  profileResetConfirm: 'Restore default values?',
+  profileEdit: 'Edit',
+  profileEditSave: 'Save',
+  profileNoChanges: 'No changes',
+  profileEditing: 'Editing · adjust then save',
+  profileLockedHint: 'Locked · Tap "Edit" to adjust',
   profileAppearance: 'Appearance',
   profileThemeDark: 'Dark theme',
   profileThemeLight: 'Light theme',
@@ -126,7 +160,7 @@ export default {
   profileAboutSub: 'Credits & Privacy',
   profileAboutDesc: 'Weather data, disclaimer, contact',
   profileGuide: 'How does it work?',
-  profileBreakType: 'Preferred break type',
+  profileGuideSub: 'Scoring, forecasts & tips',
   profilePreferredZone: 'Preferred zone',
   profilePreferredZoneDesc: 'Shown first without GPS',
   profilePreferredZoneNone: 'Automatic (GPS or worldwide)',
@@ -147,6 +181,7 @@ export default {
   aboutContact: 'Contact',
   aboutContactDesc: 'To report a spot error or suggest an improvement, use the contact details on the app store listing.',
   aboutTerms: 'Data terms of use',
+  aboutVersion: (v: string) => `SpotWave · Version ${v}`,
 
   // Scoring / conditions
   scorePerfect: 'Perfect conditions!',
@@ -158,6 +193,15 @@ export default {
   scoreBad: 'Bad',
   scoreVeryBad: 'Very bad',
   scoreImpossible: 'Unsurfable',
+  // Short tags (badges, compact lists)
+  scoreShortPerfect: 'Perfect',
+  scoreShortVeryGood: 'Top',
+  scoreShortOk: 'Good',
+  scoreShortAverage: 'Average',
+  scoreShortMediocre: 'Poor',
+  scoreShortBad: 'Bad',
+  scoreShortVeryBad: 'Weak',
+  scoreShortImpossible: 'Flat',
 
   // Time
   timeNow: 'just now',
@@ -188,6 +232,7 @@ export default {
 
   // Offline
   offlineMsg: '📡  No internet connection',
+  offlineCached: 'Cached data available',
 
   // Onboarding
   onboardWelcome: 'Welcome to SpotWave',
@@ -201,4 +246,97 @@ export default {
   onboardStart: 'Let\'s go! 🏄',
   onboardNext: 'Next',
   onboardSkip: 'Skip',
+  onboardStep: (n: number, total: number) => `Step ${n}/${total}`,
+
+  // Onboarding — extended
+  onboardLocation: 'Location',
+  onboardLocationSub: 'To prioritize spots near you. Your location stays on your device — no data sent.',
+  onboardLocationEnable: 'Enable location',
+  onboardLocationSkip: 'Continue without location',
+  onboardLocationGranted: 'Location enabled',
+  onboardLocationDenied: 'Location denied — you can enable it later',
+
+  onboardPrefs: 'Your preferences',
+  onboardPrefsSub: 'To better score sessions to your liking',
+  onboardPrefsHeight: 'Preferred wave height',
+  onboardPrefsDuration: 'Session duration',
+  onboardPrefsHours: 'Your surf hours',
+
+  onboardDemo: 'How to read a spot',
+  onboardDemoSub: 'Each slot gets a 0–10 score. Color, icon, and label help you decide at a glance.',
+  onboardDemoSpotLabel: 'Let\'s go!',
+  onboardDemoScore: 'Score out of 10',
+  onboardDemoColor: 'Color: red (bad) to green (perfect)',
+  onboardDemoLabel: 'Clear label: "Let\'s go!", "Average", etc.',
+  onboardDemoStats: 'Swell, wind, period below each card',
+
+  // ── Tide HT/LT (P0) ─────────────────────────────────────────────
+  detailTideTimes: '⏱  Tide times',
+  detailTideHigh: 'High tide',
+  detailTideLow: 'Low tide',
+  detailTideNext: 'Upcoming',
+  detailTideToday: 'Today',
+  detailTideTomorrow: 'Tom.',
+
+  // ── Confidence / source (P0) ────────────────────────────────────
+  detailDataSource: 'Data source',
+  detailDataSourceVal: 'Open-Meteo · GFS / ICON-EU models',
+  detailDataUpdated: (elapsed: string) => `Updated ${elapsed}`,
+  detailUpdatedShort: 'Updated',
+  detailDataAccuracy: 'Accuracy',
+  detailConfidenceHigh: 'High',
+  detailConfidenceMedium: 'Medium',
+  detailConfidenceLow: 'Low',
+  detailConfidenceHint: 'Beyond D+5 accuracy drops significantly. Re-check locally 24 h before the session.',
+
+  // ── Why this score (P1) ─────────────────────────────────────────
+  detailWhyScore: '🧮  Why this score?',
+  detailWhyScoreCollapse: 'Hide breakdown',
+  detailWhyScoreExpand: 'Show breakdown',
+  detailWhySwell: 'Swell',
+  detailWhyWind: 'Wind',
+  detailWhyTide: 'Tide',
+  detailWhyClean: 'Cleanness',
+  detailWhyLevel: 'Level',
+  detailWhyPrefs: 'Preferences',
+  detailWhyWeather: 'Weather',
+  detailWhyConsistency: 'Stability',
+  detailWhyTrend: 'Trend',
+  detailWhyCurrent: 'Currents',
+  detailWhyRaw: 'Raw score',
+  detailWhyFinal: 'Final score',
+  detailWhyCapped: 'Capped by',
+  detailWhyWindSwell: 'Pure wind swell (-35%)',
+  capFlat: 'Swell too small',
+  capPeriod: 'Period too short',
+  capOnshore: 'Brutal onshore wind',
+  capOffshoreStorm: 'Storm offshore',
+  capGusts: 'Extreme gusts',
+  capWindSwell: 'Wind swell dominant',
+  capBeginnerExpert: 'Expert spot × beginner',
+  capBeginnerBigWaves: 'Waves too big for your level',
+
+  // ── Filters in SpotsScreen (P1) ─────────────────────────────────
+  spotsFilters: 'Filters',
+  spotsFilterMinScore: 'Min score',
+  spotsFilterReset: 'Reset',
+  spotsFilterApply: 'Show spots',
+  spotsFilterNoResults: 'No spot matches those filters.',
+  spotsFilterResultsCount: (n: number) => `${n} spot${n !== 1 ? 's' : ''} shown`,
+
+  // ── Profile editable break/wind + language (P1) ─────────────────
+  profileBreakType: 'Favorite break type',
+  profileBreakTypeHint: 'Pick one or more',
+  profileWindPref: 'Preferred wind',
+  profileWindOffshore: 'Offshore',
+  profileWindSideShore: 'Side',
+  profileWindAny: 'Any',
+  profileLanguage: 'Language',
+  profileLanguageFr: 'Français',
+  profileLanguageEn: 'English',
+
+  // ── Share (P2) ──────────────────────────────────────────────────
+  detailShare: 'Share',
+  detailShareMessage: (name: string, region: string, score: string, label: string) =>
+    `${name} (${region}) — ${score}/10, ${label}\nSee on SpotWave.`,
 } as const;

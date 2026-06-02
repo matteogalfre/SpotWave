@@ -7,7 +7,7 @@ function lerpColor(r1: number, g1: number, b1: number, r2: number, g2: number, b
 
 export function scoreColor(score: number) {
   const s = Math.max(0, Math.min(10, score));
-  if (s <= 2.5) return lerpColor(255, 90, 90, 255, 138, 80, s / 2.5);
+  if (s <= 2.5) return lerpColor(232, 110, 110, 255, 138, 80, s / 2.5);
   if (s <= 5.0) return lerpColor(255, 138, 80, 255, 210, 80, (s - 2.5) / 2.5);
   if (s <= 7.5) return lerpColor(255, 210, 80, 0, 212, 170, (s - 5.0) / 2.5);
   return lerpColor(0, 212, 170, 0, 230, 140, (s - 7.5) / 2.5);
@@ -15,7 +15,7 @@ export function scoreColor(score: number) {
 
 export function scoreBg(score: number) {
   const s = Math.max(0, Math.min(10, score));
-  if (s <= 2.5) return `rgba(255,90,90,${0.08 + (s / 2.5) * 0.04})`;
+  if (s <= 2.5) return `rgba(232,110,110,${0.07 + (s / 2.5) * 0.03})`;
   if (s <= 5.0) return `rgba(255,180,80,${0.08 + ((s - 2.5) / 2.5) * 0.06})`;
   if (s <= 7.5) return `rgba(0,212,170,${0.08 + ((s - 5.0) / 2.5) * 0.07})`;
   return `rgba(0,230,140,${0.15})`;
@@ -30,7 +30,38 @@ export function scoreEmoji(score: number) {
   return '💤';
 }
 
-export function scoreLabel(score: number) {
+interface ScoreTranslations {
+  scorePerfect: string;
+  scoreVeryGood: string;
+  scoreGo: string;
+  scoreOk: string;
+  scoreAverage: string;
+  scoreMediocre: string;
+  scoreBad: string;
+  scoreVeryBad: string;
+  scoreImpossible: string;
+  scoreShortPerfect: string;
+  scoreShortVeryGood: string;
+  scoreShortOk: string;
+  scoreShortAverage: string;
+  scoreShortMediocre: string;
+  scoreShortBad: string;
+  scoreShortVeryBad: string;
+  scoreShortImpossible: string;
+}
+
+export function scoreLabel(score: number, t?: ScoreTranslations) {
+  if (t) {
+    if (score >= 9.0) return t.scorePerfect;
+    if (score >= 8.0) return t.scoreVeryGood;
+    if (score >= 7.0) return t.scoreGo;
+    if (score >= 5.5) return t.scoreOk;
+    if (score >= 4.5) return t.scoreAverage;
+    if (score >= 3.5) return t.scoreMediocre;
+    if (score >= 2.5) return t.scoreBad;
+    if (score >= 1.5) return t.scoreVeryBad;
+    return t.scoreImpossible;
+  }
   if (score >= 9.0) return 'Conditions parfaites !';
   if (score >= 8.0) return 'Très bonnes conditions !';
   if (score >= 7.0) return 'On fonce !';
@@ -42,7 +73,17 @@ export function scoreLabel(score: number) {
   return 'Impraticable';
 }
 
-export function scoreShort(score: number) {
+export function scoreShort(score: number, t?: ScoreTranslations) {
+  if (t) {
+    if (score >= 9.0) return t.scoreShortPerfect;
+    if (score >= 8.0) return t.scoreShortVeryGood;
+    if (score >= 6.5) return t.scoreShortOk;
+    if (score >= 5.0) return t.scoreShortAverage;
+    if (score >= 3.5) return t.scoreShortMediocre;
+    if (score >= 2.5) return t.scoreShortBad;
+    if (score >= 1.0) return t.scoreShortVeryBad;
+    return t.scoreShortImpossible;
+  }
   if (score >= 9.0) return 'Parfait';
   if (score >= 8.0) return 'Top';
   if (score >= 6.5) return 'Correct';
@@ -91,16 +132,32 @@ export function weatherIcon(code: number): string {
   return '🌤️';
 }
 
-export function weatherLabel(code: number): string {
-  if (code === 0) return 'Dégagé';
-  if (code <= 2) return 'Peu nuageux';
-  if (code === 3) return 'Couvert';
-  if (code <= 49) return 'Brouillard';
-  if (code <= 59) return 'Bruine';
-  if (code <= 69) return 'Pluie';
-  if (code <= 79) return 'Neige';
-  if (code <= 82) return 'Averses';
-  if (code <= 86) return 'Neige';
-  if (code <= 99) return 'Orage';
-  return 'Variable';
+const WEATHER_FR: Record<string, string> = {
+  clear: 'Dégagé', fewClouds: 'Peu nuageux', overcast: 'Couvert',
+  fog: 'Brouillard', drizzle: 'Bruine', rain: 'Pluie',
+  snow: 'Neige', showers: 'Averses', storm: 'Orage', mixed: 'Variable',
+};
+const WEATHER_EN: Record<string, string> = {
+  clear: 'Clear', fewClouds: 'Partly cloudy', overcast: 'Overcast',
+  fog: 'Fog', drizzle: 'Drizzle', rain: 'Rain',
+  snow: 'Snow', showers: 'Showers', storm: 'Storm', mixed: 'Mixed',
+};
+
+function weatherKey(code: number): string {
+  if (code === 0) return 'clear';
+  if (code <= 2) return 'fewClouds';
+  if (code === 3) return 'overcast';
+  if (code <= 49) return 'fog';
+  if (code <= 59) return 'drizzle';
+  if (code <= 69) return 'rain';
+  if (code <= 79) return 'snow';
+  if (code <= 82) return 'showers';
+  if (code <= 86) return 'snow';
+  if (code <= 99) return 'storm';
+  return 'mixed';
+}
+
+export function weatherLabel(code: number, locale: string = 'fr'): string {
+  const dict = locale === 'fr' ? WEATHER_FR : WEATHER_EN;
+  return dict[weatherKey(code)] || dict.mixed;
 }
