@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.matteogalfre.SpotWave",
+      "bundleIdentifier": "com.spotwave.app",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "SpotWave utilise votre position pour afficher les spots de surf les plus proches."
       }
@@ -25,7 +25,7 @@
         "backgroundColor": "#0B0F1A"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.matteogalfre.SpotWave",
+      "package": "com.spotwave.app",
       "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
     },
     "web": {

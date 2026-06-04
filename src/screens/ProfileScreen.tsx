@@ -285,19 +285,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             </Animated.View>
           )}
         </View>
-        {!isEditing ? (
-          <TouchableOpacity
-            style={[s.editBtn, { backgroundColor: colors.accentDim, borderColor: colors.accent }]}
-            onPress={handleStartEdit}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={t.profileEdit}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons name="pencil" size={14} color={colors.accent} />
-            <Text style={[s.editBtnTxt, { color: colors.accent }]}>{t.profileEdit}</Text>
-          </TouchableOpacity>
-        ) : (
+        {isEditing && (
           <View style={s.editActions}>
             <TouchableOpacity
               style={[s.editCancelBtn, { borderColor: colors.border }]}
@@ -628,8 +616,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       <View style={{ height: 120 }} />
     </ScrollView>
 
-      {isEditing && (
-        <View style={s.floatBar} pointerEvents="box-none">
+      <View style={s.floatBar} pointerEvents="box-none">
+        {isEditing ? (
           <TouchableOpacity
             style={[
               s.floatSaveBtn,
@@ -651,8 +639,19 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               {isDirty ? t.profileEditSave : t.profileNoChanges}
             </Text>
           </TouchableOpacity>
-        </View>
-      )}
+        ) : (
+          <TouchableOpacity
+            style={[s.floatSaveBtn, { backgroundColor: colors.accent, shadowColor: colors.accent }]}
+            onPress={handleStartEdit}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={t.profileEdit}
+          >
+            <Ionicons name="pencil" size={18} color={editBtnTextColor} />
+            <Text style={[s.floatSaveTxt, { color: editBtnTextColor }]}>{t.profileEdit}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
@@ -686,18 +685,6 @@ const s = StyleSheet.create({
   },
   syncTxt: { ...typography.micro, fontWeight: '700' },
 
-  editBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs + 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: radius.pill,
-    borderWidth: 1.5,
-    minHeight: touchTarget.min,
-    marginTop: 6,
-  },
-  editBtnTxt: { ...typography.caption, fontWeight: '700' },
   floatBar: {
     position: 'absolute',
     left: 0,
