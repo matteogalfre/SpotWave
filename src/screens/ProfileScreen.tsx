@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { ICONS, MCIName } from '../utils/icons';
 import { useProfile } from '../context/ProfileContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLocation } from '../context/LocationContext';
@@ -17,10 +18,10 @@ import { BreakType, WindPref } from '../types';
 
 const LEVELS_MAP = { beginner: 'levelBeginner', intermediate: 'levelIntermediate', expert: 'levelExpert' } as const;
 
-const BREAK_TYPES: { key: BreakType; labelKey: 'breakBeach' | 'breakReef' | 'breakPoint'; emoji: string }[] = [
-  { key: 'beach', labelKey: 'breakBeach', emoji: '🏖️' },
-  { key: 'reef', labelKey: 'breakReef', emoji: '🪨' },
-  { key: 'point', labelKey: 'breakPoint', emoji: '⛰️' },
+const BREAK_TYPES: { key: BreakType; labelKey: 'breakBeach' | 'breakReef' | 'breakPoint'; icon: MCIName }[] = [
+  { key: 'beach', labelKey: 'breakBeach', icon: ICONS.beach },
+  { key: 'reef', labelKey: 'breakReef', icon: ICONS.reef },
+  { key: 'point', labelKey: 'breakPoint', icon: ICONS.point },
 ];
 
 const WIND_PREFS: { key: WindPref; labelKey: 'profileWindOffshore' | 'profileWindSideShore' | 'profileWindAny' }[] = [
@@ -31,10 +32,10 @@ const WIND_PREFS: { key: WindPref; labelKey: 'profileWindOffshore' | 'profileWin
 
 const ZONE_COUNTRIES = getZoneCountries().map((z) => z.country);
 
-const LEVELS: { key: SurferLevel; emoji: string }[] = [
-  { key: 'beginner', emoji: '🏄' },
-  { key: 'intermediate', emoji: '🌊' },
-  { key: 'expert', emoji: '⚡' },
+const LEVELS: { key: SurferLevel; icon: MCIName }[] = [
+  { key: 'beginner', icon: ICONS.surf },
+  { key: 'intermediate', icon: ICONS.swell },
+  { key: 'expert', icon: ICONS.bolt },
 ];
 
 const HEIGHTS: { key: WaveHeightPref; label: string }[] = [
@@ -264,6 +265,12 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     );
   }, [form, profile]);
 
+  const LANG_LABELS: Record<Locale, string> = {
+    fr: t.profileLanguageFr,
+    en: t.profileLanguageEn,
+    pt: t.profileLanguagePt,
+  };
+
   const locSubtitle = location
     ? t.profileLocCoords(location.latitude.toFixed(2), location.longitude.toFixed(2))
     : locDenied ? t.profileLocDenied : t.profileLocDisabled;
@@ -323,7 +330,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 accessibilityLabel={levelLabel}
                 disabled={!isEditing}
               >
-                <Text style={s.levelEmoji}>{l.emoji}</Text>
+                <MaterialCommunityIcons name={l.icon} size={24} color={active ? colors.accent : colors.textMuted} style={s.levelEmoji} />
                 <Text style={[s.levelLabel, { color: active ? colors.accent : colors.textMuted }]}>{levelLabel}</Text>
               </TouchableOpacity>
             );
@@ -398,7 +405,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 accessibilityLabel={label}
                 disabled={!isEditing}
               >
-                <Text style={{ fontSize: 14 }}>{b.emoji}</Text>
+                <MaterialCommunityIcons name={b.icon} size={15} color={on ? colors.accent : colors.textMuted} />
                 <Text style={[s.chipTxt, { color: on ? colors.accent : colors.textMuted }]}>{label}</Text>
               </TouchableOpacity>
             );
@@ -453,41 +460,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         </Text>
       </Section>
 
-      {/* Preferred zone */}
-      <Section label={t.profilePreferredZone} colors={colors}>
-        <Text style={[s.hoursSummary, { color: colors.textMuted, marginBottom: spacing.md }]}>{t.profilePreferredZoneDesc}</Text>
-        <TouchableOpacity
-          style={[s.chip, { backgroundColor: !form.preferredZone ? colors.accentDim : colors.bgSubtle, borderColor: !form.preferredZone ? colors.accent : 'transparent', marginBottom: spacing.sm }]}
-          onPress={() => { hapticLight(); setForm({ ...form, preferredZone: undefined }); }}
-          activeOpacity={0.7}
-          accessibilityRole="radio"
-          accessibilityState={{ selected: !form.preferredZone, disabled: !isEditing }}
-          accessibilityLabel={t.profilePreferredZoneNone}
-          disabled={!isEditing}
-        >
-          <Text style={[s.chipTxt, { color: !form.preferredZone ? colors.accent : colors.textMuted }]}>{t.profilePreferredZoneNone}</Text>
-        </TouchableOpacity>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
-          {ZONE_COUNTRIES.map(z => {
-            const active = form.preferredZone === z;
-            return (
-              <TouchableOpacity
-                key={z}
-                style={[s.chip, { backgroundColor: active ? colors.accentDim : colors.bgSubtle, borderColor: active ? colors.accent : 'transparent' }]}
-                onPress={() => { hapticLight(); setForm({ ...form, preferredZone: z }); }}
-                activeOpacity={0.7}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: active, disabled: !isEditing }}
-                accessibilityLabel={z}
-                disabled={!isEditing}
-              >
-                <Text style={[s.chipTxt, { color: active ? colors.accent : colors.textMuted }]}>{z}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </Section>
-
       {/* Reset to defaults — only available while editing */}
       {isEditing && (
         <TouchableOpacity
@@ -531,6 +503,42 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         </View>
       </View>
 
+      {/* Preferred zone — saved instantly, no edit mode required */}
+      <View style={s.settingsSection}>
+        <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{t.profilePreferredZone}</Text>
+        <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, padding: spacing.md }]}>
+          <Text style={[s.hoursSummary, { color: colors.textMuted, marginBottom: spacing.md }]}>{t.profilePreferredZoneDesc}</Text>
+          <TouchableOpacity
+            style={[s.chip, { backgroundColor: !form.preferredZone ? colors.accentDim : colors.bgSubtle, borderColor: !form.preferredZone ? colors.accent : 'transparent', marginBottom: spacing.sm }]}
+            onPress={() => { hapticLight(); const next = { ...form, preferredZone: undefined }; setForm(next); updateProfile(next); }}
+            activeOpacity={0.7}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: !form.preferredZone }}
+            accessibilityLabel={t.profilePreferredZoneNone}
+          >
+            <Text style={[s.chipTxt, { color: !form.preferredZone ? colors.accent : colors.textMuted }]}>{t.profilePreferredZoneNone}</Text>
+          </TouchableOpacity>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
+            {ZONE_COUNTRIES.map(z => {
+              const active = form.preferredZone === z;
+              return (
+                <TouchableOpacity
+                  key={z}
+                  style={[s.chip, { backgroundColor: active ? colors.accentDim : colors.bgSubtle, borderColor: active ? colors.accent : 'transparent' }]}
+                  onPress={() => { hapticLight(); const next = { ...form, preferredZone: z }; setForm(next); updateProfile(next); }}
+                  activeOpacity={0.7}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: active }}
+                  accessibilityLabel={z}
+                >
+                  <Text style={[s.chipTxt, { color: active ? colors.accent : colors.textMuted }]}>{z}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </View>
+
       <View style={s.settingsSection}>
         <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{t.profileAppearance}</Text>
         <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
@@ -548,11 +556,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             iconColor={colors.blue}
             iconBg={colors.blueDim}
             title={t.profileLanguage}
-            subtitle={locale === 'fr' ? t.profileLanguageFr : t.profileLanguageEn}
+            subtitle={LANG_LABELS[locale]}
             colors={colors}
             right={
               <View style={s.langSwitcher}>
-                {(['fr', 'en'] as Locale[]).map(l => {
+                {(['fr', 'en', 'pt'] as Locale[]).map(l => {
                   const active = locale === l;
                   return (
                     <TouchableOpacity
@@ -562,10 +570,10 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                       activeOpacity={0.7}
                       accessibilityRole="radio"
                       accessibilityState={{ selected: active }}
-                      accessibilityLabel={l === 'fr' ? t.profileLanguageFr : t.profileLanguageEn}
+                      accessibilityLabel={LANG_LABELS[l]}
                     >
                       <Text style={[s.langChipTxt, { color: active ? colors.accent : colors.textMuted }]}>
-                        {l === 'fr' ? 'FR' : 'EN'}
+                        {l.toUpperCase()}
                       </Text>
                     </TouchableOpacity>
                   );

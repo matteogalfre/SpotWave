@@ -95,8 +95,8 @@ export async function scheduleGoodConditionAlerts(
     const wl = windLabel(best.windSpeed, best.windDirection, f.spot.beachOrientation);
 
     const title = localeFr
-      ? `🏄 ${f.spot.name} : belles conditions demain !`
-      : `🏄 ${f.spot.name}: great conditions tomorrow!`;
+      ? `${f.spot.name} : belles conditions demain !`
+      : `${f.spot.name}: great conditions tomorrow!`;
     const body = localeFr
       ? `Score ${best.score.toFixed(1)}/10 vers ${bestHour}h. Houle ${best.swellHeight.toFixed(1)}m, ${wl}.`
       : `Score ${best.score.toFixed(1)}/10 around ${bestHour}h. Swell ${best.swellHeight.toFixed(1)}m, ${wl}.`;

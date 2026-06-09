@@ -202,6 +202,108 @@ describe('computeHourlyScore', () => {
   });
 });
 
+// ── Regression suite for the v2 audit ────────────────────────────────────────
+// These guard the specific incoherences users reported: sudden score collapses
+// between adjacent hours, and mediocre conditions scoring far too low.
+
+describe('scoring coherence (v2 audit)', () => {
+  it('does NOT collapse when swell_wave_period reads 0 but peak period is healthy', () => {
+    // Open-Meteo glitch: lone bad swell-period sample next to a good peak period.
+    const glitch = makeMarineData({
+      swell_wave_height: [1.5], swell_wave_period: [0], swell_wave_peak_period: [13],
+    });
+    const result = computeHourlyScore(0, glitch, makeWeatherData({ wind_speed_10m: [6] }), SPOT, PROFILE);
+    // Before the fix this capped at ~1.5 ("très bon → 1/10"). It must stay decent.
+    expect(result.score).toBeGreaterThan(5);
+  });
+
+  it('treats a fully missing period as neutral, not catastrophic', () => {
+    const noPeriod = makeMarineData({
+      swell_wave_height: [1.2], swell_wave_period: [0], swell_wave_peak_period: [0],
+    });
+    const result = computeHourlyScore(0, noPeriod, makeWeatherData({ wind_speed_10m: [6] }), SPOT, PROFILE);
+    expect(result.score).toBeGreaterThan(3.5);
+    expect(result.score).toBeLessThanOrEqual(8.5);
+  });
+
+  it('gives mediocre (not terrible) scores to average conditions', () => {
+    // 1m @ 9s, light cross-shore wind: an ordinary, surfable day. Should land in
+    // the mid band, never in the 1-2 "pourri" range.
+    const marine = makeMarineData({
+      swell_wave_height: [1.0], swell_wave_period: [9], swell_wave_peak_period: [10],
+      wind_wave_height: [0.3],
+    });
+    const weather = makeWeatherData({ wind_speed_10m: [12], wind_direction_10m: [180] });
+    const result = computeHourlyScore(0, marine, weather, SPOT, PROFILE);
+    expect(result.score).toBeGreaterThanOrEqual(3.5);
+    expect(result.score).toBeLessThanOrEqual(7);
+  });
+
+  it('produces NO cliffs as wind speed sweeps (adjacent hours stay close)', () => {
+    // Realistic gusts (~1.4× steady wind) so we isolate the speed response.
+    const wx = (s: number) => makeWeatherData({ wind_speed_10m: [s], wind_direction_10m: [270], wind_gusts_10m: [Math.round(s * 1.4)] });
+    let prev = computeHourlyScore(0, makeMarineData(), wx(0), SPOT, PROFILE).score;
+    for (let s = 1; s <= 45; s++) {
+      const cur = computeHourlyScore(0, makeMarineData(), wx(s), SPOT, PROFILE).score;
+      // No single 1 km/h step may move the score by more than ~1.25 points.
+      expect(Math.abs(cur - prev)).toBeLessThanOrEqual(1.25);
+      prev = cur;
+    }
+  });
+
+  it('produces NO cliffs as swell period sweeps', () => {
+    let prev = computeHourlyScore(0, makeMarineData({ swell_wave_period: [3], swell_wave_peak_period: [3] }), makeWeatherData(), SPOT, PROFILE).score;
+    for (let p = 4; p <= 20; p++) {
+      const cur = computeHourlyScore(0, makeMarineData({ swell_wave_period: [p], swell_wave_peak_period: [p] }), makeWeatherData(), SPOT, PROFILE).score;
+      expect(Math.abs(cur - prev)).toBeLessThanOrEqual(1.5);
+      prev = cur;
+    }
+  });
+
+  it('produces NO cliffs as swell direction sweeps around the window', () => {
+    let prev: number | null = null;
+    for (let d = 200; d <= 360; d += 2) {
+      const cur = computeHourlyScore(0, makeMarineData({ swell_wave_direction: [d] }), makeWeatherData(), SPOT, PROFILE).score;
+      if (prev !== null) expect(Math.abs(cur - prev)).toBeLessThanOrEqual(1.0);
+      prev = cur;
+    }
+  });
+
+  it('is monotonic: lighter offshore wind never scores below stronger offshore wind', () => {
+    const offshore = (SPOT.beachOrientation + 180) % 360;
+    // Proportional gusts so the comparison isolates steady wind speed.
+    const calm = computeHourlyScore(0, makeMarineData(), makeWeatherData({ wind_speed_10m: [4], wind_direction_10m: [offshore], wind_gusts_10m: [6] }), SPOT, PROFILE).score;
+    const breezy = computeHourlyScore(0, makeMarineData(), makeWeatherData({ wind_speed_10m: [14], wind_direction_10m: [offshore], wind_gusts_10m: [20] }), SPOT, PROFILE).score;
+    expect(calm).toBeGreaterThanOrEqual(breezy);
+  });
+
+  it('damps an isolated single-hour outlier in a steady series', () => {
+    const hours = Array.from({ length: 6 }, (_, i) => `2025-03-10T${String(8 + i).padStart(2, '0')}:00`);
+    const fill = <T,>(v: T) => hours.map(() => v);
+    // Steady good swell, but hour index 3 has a glitchy 0 swell period.
+    const swellPeriods = [12, 12, 12, 0, 12, 12];
+    const peakPeriods = [14, 14, 14, 0, 14, 14]; // peak also drops → genuine-looking spike
+    const marine: MarineData = {
+      time: hours,
+      wave_height: fill(1.5), wave_direction: fill(280), wave_period: fill(11),
+      swell_wave_height: fill(1.4), swell_wave_direction: fill(290),
+      swell_wave_period: swellPeriods, swell_wave_peak_period: peakPeriods,
+      wind_wave_height: fill(0.2), wind_wave_direction: fill(290), wind_wave_period: fill(5),
+      sea_surface_temperature: fill(16), ocean_current_velocity: fill(0.1),
+      ocean_current_direction: fill(180), sea_level_height_msl: fill(0.3),
+    };
+    const weather: WeatherData = {
+      time: hours, wind_speed_10m: fill(6), wind_direction_10m: fill(90),
+      wind_gusts_10m: fill(9), temperature_2m: fill(18), weather_code: fill(0),
+    };
+    const fc = computeSpotForecast(SPOT, marine, weather, PROFILE);
+    const s = fc.hourlyConditions.map(h => h.score);
+    // The outlier at index 3 must be pulled toward its (equal) neighbours.
+    const neighbourAvg = (s[2] + s[4]) / 2;
+    expect(Math.abs(s[3] - neighbourAvg)).toBeLessThan(2.5);
+  });
+});
+
 describe('computeSpotForecast', () => {
   it('returns forecast with bestTime and currentScore', () => {
     const hours = Array.from({ length: 24 }, (_, i) => `2025-03-10T${String(i).padStart(2, '0')}:00`);

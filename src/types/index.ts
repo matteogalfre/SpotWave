@@ -36,6 +36,8 @@ export interface SpotConfig {
 
 export interface MarineData {
   time: string[];
+  /** Spot-local UTC offset in seconds (from Open-Meteo `timezone=auto`). */
+  utc_offset_seconds?: number;
   wave_height: (number | null)[];
   wave_direction: (number | null)[];
   wave_period: (number | null)[];
@@ -54,6 +56,8 @@ export interface MarineData {
 
 export interface WeatherData {
   time: string[];
+  /** Spot-local UTC offset in seconds (from Open-Meteo `timezone=auto`). */
+  utc_offset_seconds?: number;
   wind_speed_10m: (number | null)[];
   wind_direction_10m: (number | null)[];
   wind_gusts_10m: (number | null)[];
@@ -111,6 +115,10 @@ export interface SpotForecast {
   currentScore: number;
   currentCondition: HourlyCondition | null;
   bestTime: { time: string; score: number; label: string };
+  /** Spot-local UTC offset in seconds (for timezone-correct "today"/night logic). */
+  utcOffsetSeconds?: number;
+  /** True when it is currently night at the spot (local time). */
+  isNightNow: boolean;
 }
 
 export const DEFAULT_PROFILE: SurferProfile = {

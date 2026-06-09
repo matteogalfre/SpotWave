@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { MarineData } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useI18n } from '../i18n';
@@ -56,7 +57,7 @@ export default function TideTimesCard({ marine }: Props) {
                 style={[s.tile, { backgroundColor: colors.white08 }]}
                 accessibilityLabel={`${isHigh ? t.detailTideHigh : t.detailTideLow} ${formatTideTime(ev.time)} ${ev.level} m`}
               >
-                <Text style={[s.icon, { color: accent }]}>{isHigh ? '🔺' : '🔻'}</Text>
+                <MaterialCommunityIcons name={isHigh ? 'arrow-up-bold' : 'arrow-down-bold'} size={14} color={accent} style={s.icon} />
                 <Text style={[s.type, { color: accent }]}>{isHigh ? t.detailTideHigh : t.detailTideLow}</Text>
                 <Text style={[s.time, { color: colors.white }]}>{formatTideTime(ev.time)}</Text>
                 <Text style={[s.day, { color: colors.textMuted ?? colors.white40 }]}>

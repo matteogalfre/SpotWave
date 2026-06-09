@@ -33,6 +33,9 @@ export default {
   spotsNoConditions: 'Pas de bonnes conditions aujourd\'hui',
   spotsNextSlot: (day: string, spot: string) => `Prochain bon créneau : ${day} à ${spot}`,
   spotsNoSlotWeek: 'Aucun bon créneau cette semaine',
+  spotsNightTitle: 'C\'est la nuit sur ces spots',
+  spotsNightSub: (day: string, spot: string) => `Prochain bon créneau : ${day} à ${spot}`,
+  spotsNightNoSlot: 'Reviens au lever du jour pour les conditions',
   spotsNoGoodWindow: 'Pas de bon créneau à venir',
   spotsBestWeek: 'Meilleurs créneaux cette semaine',
   spotsExplore: 'Explorer le monde',
@@ -44,8 +47,9 @@ export default {
   spotsFilterType: 'Type',
   spotsFilterAllLevels: 'Tous niveaux',
   spotsFilterAllTypes: 'Tous types',
-  spotsLoadError: 'Erreur de chargement',
-  spotsAddedFav: 'Ajouté aux favoris ⭐',
+  spotsLoadError: 'Impossible de charger les prévisions',
+  spotsLoadErrorHint: 'Vérifie ta connexion internet et réessaie. Le service météo est peut-être momentanément indisponible.',
+  spotsAddedFav: 'Ajouté aux favoris',
   spotsRemovedFav: 'Retiré des favoris',
   spotsSearch: 'Rechercher',
   spotsClearSearch: 'Effacer la recherche',
@@ -88,7 +92,7 @@ export default {
   detailRefreshError: 'Erreur lors du rafraîchissement',
   detailBestToday: 'Meilleur créneau aujourd\'hui',
   detailBestNext: 'Prochain meilleur créneau',
-  detailDaySummary: '📝 Résumé du jour',
+  detailDaySummary: 'Résumé du jour',
   detailSeaLevel: 'Niveau mer',
   detailTide: 'Marée',
   detailOptimalTide: 'Optimale',
@@ -101,11 +105,11 @@ export default {
   detailMap: 'Voir sur la carte',
   detailMapSub: 'Centrer la carte sur ce spot',
   detailMapBtn: 'CARTE',
-  detailSwellWind: '📊  Houle & Vent',
-  detailTideChart: '🌊  Marée',
-  detailHourly: '📋  Prévisions heure par heure',
-  detailShowMore: (n: number) => `Voir les ${n} heures suivantes ↓`,
-  detailSpotInfo: '📍  Fiche du spot',
+  detailSwellWind: 'Houle & Vent',
+  detailTideChart: 'Marée',
+  detailHourly: 'Prévisions heure par heure',
+  detailShowMore: (n: number) => `Voir les ${n} heures suivantes`,
+  detailSpotInfo: 'Fiche du spot',
   detailIdealCond: 'Conditions idéales',
   detailSwellDir: 'Direction houle',
   detailSwellHeight: 'Hauteur idéale',
@@ -121,6 +125,7 @@ export default {
   detailSwellM: 'Houle (m)',
   detailWindDiv: 'Vent (÷10 km/h)',
   detailNow: 'Maintenant',
+  detailCurrentCond: 'Conditions actuelles',
 
   // Profile screen
   profileTitle: 'Réglages',
@@ -231,7 +236,7 @@ export default {
   errorUnknown: 'Erreur inconnue',
 
   // Offline
-  offlineMsg: '📡  Pas de connexion internet',
+  offlineMsg: 'Pas de connexion internet',
   offlineCached: 'Données en cache disponibles',
 
   // Onboarding
@@ -243,7 +248,7 @@ export default {
   onboardZone: 'Ta zone préférée',
   onboardZoneSub: 'Quel pays surfes-tu le plus ?',
   onboardZoneAuto: 'Automatique (GPS)',
-  onboardStart: 'C\'est parti ! 🏄',
+  onboardStart: 'C\'est parti !',
   onboardNext: 'Suivant',
   onboardSkip: 'Passer',
   onboardStep: (n: number, total: number) => `Étape ${n}/${total}`,
@@ -271,7 +276,7 @@ export default {
   onboardDemoStats: 'Houle, vent, période en bas de chaque card',
 
   // ── Tide PM/BM (P0) ─────────────────────────────────────────────
-  detailTideTimes: '⏱  Heures de marée',
+  detailTideTimes: 'Heures de marée',
   detailTideHigh: 'Pleine mer',
   detailTideLow: 'Basse mer',
   detailTideNext: 'Prochaines',
@@ -290,7 +295,7 @@ export default {
   detailConfidenceHint: 'Au-delà de J+5 la précision diminue fortement. Vérifie en local 24 h avant ta session.',
 
   // ── Why this score (P1) ─────────────────────────────────────────
-  detailWhyScore: '🧮  Pourquoi ce score ?',
+  detailWhyScore: 'Pourquoi ce score ?',
   detailWhyScoreCollapse: 'Masquer le détail',
   detailWhyScoreExpand: 'Voir le détail',
   detailWhySwell: 'Houle',
@@ -334,6 +339,7 @@ export default {
   profileLanguage: 'Langue',
   profileLanguageFr: 'Français',
   profileLanguageEn: 'English',
+  profileLanguagePt: 'Português',
 
   // ── Share (P2) ──────────────────────────────────────────────────
   detailShare: 'Partager',

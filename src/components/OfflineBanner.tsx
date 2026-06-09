@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ICONS } from '../utils/icons';
 import { useI18n } from '../i18n';
 import { useTheme } from '../context/ThemeContext';
 import { useNetwork } from '../context/NetworkContext';
@@ -18,7 +20,10 @@ export default function OfflineBanner() {
 
   return (
     <View style={[s.root, { top: insets.top, backgroundColor: `${colors.red}F0` }]} accessibilityRole="alert" accessibilityLiveRegion="assertive">
-      <Text style={s.txt}>{t.offlineMsg}</Text>
+      <View style={s.txtRow}>
+        <MaterialCommunityIcons name={ICONS.offline} size={14} color="#fff" />
+        <Text style={s.txt}>{t.offlineMsg}</Text>
+      </View>
       <Text style={s.sub}>{t.offlineCached}</Text>
     </View>
   );
@@ -34,6 +39,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  txtRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   txt: { color: '#fff', fontSize: 13, fontWeight: '700' },
   sub: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '500', marginTop: 2 },
 });

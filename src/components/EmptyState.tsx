@@ -1,20 +1,22 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { MCIName } from '../utils/icons';
 
 interface Props {
-  emoji?: string;
+  icon?: MCIName;
   title: string;
   subtitle?: string;
   actionLabel?: string;
   onAction?: () => void;
 }
 
-export default function EmptyState({ emoji = '🏖️', title, subtitle, actionLabel, onAction }: Props) {
+export default function EmptyState({ icon = 'waves', title, subtitle, actionLabel, onAction }: Props) {
   const { colors } = useTheme();
   return (
     <View style={s.root} accessibilityRole="summary" accessibilityLabel={`${title}. ${subtitle ?? ''}`}>
-      <Text style={s.emoji}>{emoji}</Text>
+      <MaterialCommunityIcons name={icon} size={40} color={colors.textMuted} style={s.emoji} />
       <Text style={[s.title, { color: colors.white }]}>{title}</Text>
       {subtitle && <Text style={[s.sub, { color: colors.white40 }]}>{subtitle}</Text>}
       {actionLabel && onAction && (

@@ -445,6 +445,6 @@ const s = StyleSheet.create({
   hCenter: { alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '800' },
   hSub: { fontSize: 11, fontWeight: '500', marginTop: 2 },
-  loaderOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center' },
+  loaderOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' },
   loaderTxt: { marginTop: 12, fontSize: 13, fontWeight: '500' },
 });

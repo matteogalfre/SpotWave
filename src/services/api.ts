@@ -33,6 +33,19 @@ const WEATHER_PARAMS = [
   'wind_speed_10m', 'wind_direction_10m', 'wind_gusts_10m', 'temperature_2m', 'weather_code',
 ].join(',');
 
+/**
+ * Open-Meteo returns the spot-local UTC offset at the top level of the response
+ * (because we request `timezone=auto`). We fold it into the hourly object so it
+ * survives caching and reaches the scoring layer for timezone-correct "now"/night.
+ */
+function withOffset<T extends object>(hourly: T, utcOffsetSeconds: unknown): T {
+  if (!hourly || typeof hourly !== 'object') return hourly;
+  if (typeof utcOffsetSeconds === 'number') {
+    return { ...hourly, utc_offset_seconds: utcOffsetSeconds };
+  }
+  return hourly;
+}
+
 function validateMarineData(data: unknown): data is MarineData {
   if (!data || typeof data !== 'object') return false;
   const d = data as any;
@@ -132,7 +145,7 @@ function revalidateMarineInBackground(cacheKey: string, lat: number, lon: number
   fetchWithRetry(url)
     .then(res => res.json())
     .then(json => {
-      const data = json.hourly;
+      const data = withOffset(json.hourly, json.utc_offset_seconds);
       if (validateMarineData(data)) setCache(cacheKey, data);
     })
     .catch(() => {});
@@ -143,7 +156,7 @@ function revalidateWeatherInBackground(cacheKey: string, lat: number, lon: numbe
   fetchWithRetry(url)
     .then(res => res.json())
     .then(json => {
-      const data = json.hourly;
+      const data = withOffset(json.hourly, json.utc_offset_seconds);
       if (validateWeatherData(data)) setCache(cacheKey, data);
     })
     .catch(() => {});
@@ -163,7 +176,7 @@ export function fetchMarineData(lat: number, lon: number, forecastDays = DEFAULT
       const url = `${MARINE_BASE}?latitude=${lat}&longitude=${lon}&hourly=${MARINE_PARAMS}&forecast_days=${forecastDays}&timezone=auto`;
       const res = await fetchWithRetry(url);
       const json = await res.json();
-      const data = json.hourly;
+      const data = withOffset(json.hourly, json.utc_offset_seconds);
       if (!validateMarineData(data)) throw new Error('Format de données marines invalide');
       setCache(cacheKey, data);
       return data;
@@ -194,7 +207,7 @@ export function fetchWeatherData(lat: number, lon: number, forecastDays = DEFAUL
       const url = `${WEATHER_BASE}?latitude=${lat}&longitude=${lon}&hourly=${WEATHER_PARAMS}&forecast_days=${forecastDays}&timezone=auto`;
       const res = await fetchWithRetry(url);
       const json = await res.json();
-      const data = json.hourly;
+      const data = withOffset(json.hourly, json.utc_offset_seconds);
       if (!validateWeatherData(data)) throw new Error('Format de données météo invalide');
       setCache(cacheKey, data);
       return data;
@@ -248,6 +261,7 @@ export async function purgeOldCache(): Promise<void> {
     const keys = await AsyncStorage.getAllKeys();
     const cacheKeys = keys.filter(k => k.startsWith('@sw_marine_') || k.startsWith('@sw_weather_') || k.startsWith('@sw_daily_'));
     const now = Date.now();
+    let purged = 0;
     for (const key of cacheKeys) {
       try {
         const raw = await AsyncStorage.getItem(key);
@@ -255,12 +269,16 @@ export async function purgeOldCache(): Promise<void> {
         const { ts } = JSON.parse(raw);
         if (now - ts > CACHE_PURGE_AGE_MS) {
           await AsyncStorage.removeItem(key);
+          purged++;
         }
       } catch {
         await AsyncStorage.removeItem(key);
+        purged++;
       }
     }
-    log.info(`Cache purge: checked ${cacheKeys.length} keys`);
+    // Only surface a log when we actually removed something — avoids the noisy
+    // "checked 0 keys" line on every cold start.
+    if (purged > 0) log.info(`Cache purge: removed ${purged}/${cacheKeys.length} entries`);
   } catch (e) {
     log.warn('Cache purge error:', e);
   }

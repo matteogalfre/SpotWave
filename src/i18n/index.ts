@@ -3,14 +3,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform, NativeModules } from 'react-native';
 import fr from './fr';
 import en from './en';
+import pt from './pt';
 
-export type Locale = 'fr' | 'en';
+export type Locale = 'fr' | 'en' | 'pt';
 type DeepString<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => infer R ? (...args: A) => R : string;
 };
 export type Translations = DeepString<typeof fr>;
 
-const translations: Record<Locale, Translations> = { fr, en };
+const translations: Record<Locale, Translations> = { fr, en, pt };
 
 const STORAGE_KEY = '@spotwave_locale';
 
@@ -21,7 +22,11 @@ function getDeviceLocale(): Locale {
         ? NativeModules.SettingsManager?.settings?.AppleLocale ||
           NativeModules.SettingsManager?.settings?.AppleLanguages?.[0]
         : NativeModules.I18nManager?.localeIdentifier;
-    if (raw && typeof raw === 'string' && raw.toLowerCase().startsWith('fr')) return 'fr';
+    if (raw && typeof raw === 'string') {
+      const lower = raw.toLowerCase();
+      if (lower.startsWith('fr')) return 'fr';
+      if (lower.startsWith('pt')) return 'pt';
+    }
   } catch {}
   return 'en';
 }
@@ -47,7 +52,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then(saved => {
-        if (saved === 'fr' || saved === 'en') setLocaleState(saved);
+        if (saved === 'fr' || saved === 'en' || saved === 'pt') setLocaleState(saved);
       })
       .catch(() => {})
       .finally(() => setReady(true));

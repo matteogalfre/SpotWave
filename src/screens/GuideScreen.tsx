@@ -3,69 +3,70 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { useI18n } from '../i18n';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { GuideScreenProps } from '../navigation/types';
+import { MCIName } from '../utils/icons';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
 
-const scoreRows = [
-  { range: '8.0 – 10', labelFr: 'Parfait (rare)', labelEn: 'Perfect (rare)', emoji: '🔥', color: '#00D4AA' },
-  { range: '6.5 – 7.9', labelFr: 'On fonce', labelEn: 'Let\'s go', emoji: '🤙', color: '#00D4AA' },
-  { range: '5.0 – 6.4', labelFr: 'Correct', labelEn: 'Decent', emoji: '👍', color: '#FF8A50' },
-  { range: '3.5 – 4.9', labelFr: 'Moyen', labelEn: 'Average', emoji: '😐', color: '#FF8A50' },
-  { range: '2.0 – 3.4', labelFr: 'Mauvais', labelEn: 'Bad', emoji: '👎', color: '#FF5A5A' },
-  { range: '0 – 1.9', labelFr: 'Flat / nul', labelEn: 'Flat / awful', emoji: '🚫', color: '#FF5A5A' },
+const scoreRows: { range: string; labelFr: string; labelEn: string; icon: MCIName; color: string }[] = [
+  { range: '8.0 – 10', labelFr: 'Parfait (rare)', labelEn: 'Perfect (rare)', icon: 'fire', color: '#00D4AA' },
+  { range: '6.5 – 7.9', labelFr: 'On fonce', labelEn: 'Let\'s go', icon: 'thumb-up', color: '#00D4AA' },
+  { range: '5.0 – 6.4', labelFr: 'Correct', labelEn: 'Decent', icon: 'thumb-up-outline', color: '#FF8A50' },
+  { range: '3.5 – 4.9', labelFr: 'Moyen', labelEn: 'Average', icon: 'emoticon-neutral-outline', color: '#FF8A50' },
+  { range: '2.0 – 3.4', labelFr: 'Mauvais', labelEn: 'Bad', icon: 'thumb-down-outline', color: '#FF5A5A' },
+  { range: '0 – 1.9', labelFr: 'Flat / nul', labelEn: 'Flat / awful', icon: 'cancel', color: '#FF5A5A' },
 ];
 
-const windTerms = [
-  { term: 'Offshore', descFr: 'Vent venant de la terre vers la mer. Lisse les vagues, conditions idéales.', descEn: 'Wind blowing from land to sea. Smooths waves, ideal conditions.', icon: '🌬️', good: true },
-  { term: 'Cross-off', descFr: 'Vent latéral tendance offshore. Bonnes conditions, léger clapot possible.', descEn: 'Side-wind tending offshore. Good conditions, slight chop possible.', icon: '↗️', good: true },
-  { term: 'Cross-on', descFr: 'Vent latéral tendance onshore. Surface perturbée, vagues moins propres.', descEn: 'Side-wind tending onshore. Disrupted surface, messier waves.', icon: '↘️', good: false },
-  { term: 'Onshore', descFr: 'Vent venant de la mer vers la terre. Surface hachée, mauvaises conditions.', descEn: 'Wind blowing from sea to land. Choppy surface, poor conditions.', icon: '💨', good: false },
-  { term: 'Glassy', descFr: 'Quasiment pas de vent (< 3 km/h). Surface vitreuse = score vent parfait (1.0). Les meilleures conditions possibles.', descEn: 'Almost no wind (< 3 km/h). Glassy surface = perfect wind score (1.0). The best possible conditions.', icon: '✨', good: true },
+const windTerms: { term: string; descFr: string; descEn: string; icon: MCIName; good: boolean }[] = [
+  { term: 'Offshore', descFr: 'Vent venant de la terre vers la mer. Lisse les vagues, conditions idéales.', descEn: 'Wind blowing from land to sea. Smooths waves, ideal conditions.', icon: 'weather-windy', good: true },
+  { term: 'Cross-off', descFr: 'Vent latéral tendance offshore. Bonnes conditions, léger clapot possible.', descEn: 'Side-wind tending offshore. Good conditions, slight chop possible.', icon: 'arrow-top-right', good: true },
+  { term: 'Cross-on', descFr: 'Vent latéral tendance onshore. Surface perturbée, vagues moins propres.', descEn: 'Side-wind tending onshore. Disrupted surface, messier waves.', icon: 'arrow-bottom-right', good: false },
+  { term: 'Onshore', descFr: 'Vent venant de la mer vers la terre. Surface hachée, mauvaises conditions.', descEn: 'Wind blowing from sea to land. Choppy surface, poor conditions.', icon: 'weather-windy', good: false },
+  { term: 'Glassy', descFr: 'Quasiment pas de vent (< 3 km/h). Surface vitreuse = score vent parfait (1.0). Les meilleures conditions possibles.', descEn: 'Almost no wind (< 3 km/h). Glassy surface = perfect wind score (1.0). The best possible conditions.', icon: 'water', good: true },
 ];
 
-const factorsFr = [
-  { icon: '🌊', title: 'Houle (hauteur × période × direction)', desc: 'Le pilier #1. La hauteur est comparée à l\'idéal du spot et ton niveau. La période pèse 35% du score houle — c\'est elle qui sépare le vrai surf du clapot. Un bonus "puissance" récompense les combinaisons hauteur × longue période (ex : 1.5m @ 14s >> 2m @ 7s).' },
-  { icon: '💨', title: 'Vent (vitesse, direction, rafales, tendance)', desc: 'Pilier #2. Houle × Vent = la base. Glassy (< 3 km/h) = score parfait (1.0). Offshore léger = quasi parfait. Offshore fort (> 25 km/h) = pénalisé (spray, paddle impossible). Onshore = grosse pénalité. La tendance du vent est aussi prise en compte : un vent qui faiblit = bonus, qui monte = malus.' },
-  { icon: '⚡', title: 'Interaction vent × taille de houle', desc: 'Le même vent cross/onshore est plus pénalisant sur une grosse houle (la face est plus exposée au clapot) que sur du 0.5m.' },
-  { icon: '🔄', title: 'Propreté du swell', desc: 'Ratio wind swell / ground swell. Si le wind swell domine (> 70%), pénalité sévère. Si les houles se croisent (wind wave vs ground swell à > 90°), la surface est chaotique = malus. Swell pur sans ground swell = pénalité -35%.' },
-  { icon: '🌊', title: 'Marée (selon le type de fond)', desc: 'Bonus/malus adapté au type de spot. Beach break : marée descendante expose les bancs de sable (+6%). Point break : montante sculpte la vague (+8%). Reef : montante = plus sûr (+6%), très basse = dangereux.' },
-  { icon: '🌀', title: 'Courants marins', desc: 'Des courants forts (> 0.5 m/s) rendent le paddle plus dur et créent de la dérive. Pénalité progressive jusqu\'à -25%.' },
-  { icon: '🌧️', title: 'Météo', desc: 'Pluie forte et orages réduisent le score (jusqu\'à -30%). Le confort et la visibilité comptent.' },
-  { icon: '📐', title: 'Stabilité de la houle', desc: 'Direction constante = bonus (+5%). Direction chaotique (> 45° de variation) = malus (-15%).' },
-  { icon: '🎯', title: 'Ton niveau', desc: 'Débutant / Intermédiaire / Expert influence le score : spots trop engagés = pénalisés, spots adaptés = boostés.' },
-  { icon: '📏', title: 'Tes préférences', desc: 'Hauteur préférée : +10% si la houle correspond. Seules les heures dans ta plage dispo sont recommandées.' },
+const factorsFr: { icon: MCIName; title: string; desc: string }[] = [
+  { icon: 'waves', title: 'Houle (hauteur × période × direction)', desc: 'Le pilier #1. La hauteur est comparée à l\'idéal du spot et ton niveau. La période pèse 35% du score houle — c\'est elle qui sépare le vrai surf du clapot. Un bonus "puissance" récompense les combinaisons hauteur × longue période (ex : 1.5m @ 14s >> 2m @ 7s).' },
+  { icon: 'weather-windy', title: 'Vent (vitesse, direction, rafales, tendance)', desc: 'Pilier #2. Houle × Vent = la base. Glassy (< 3 km/h) = score parfait (1.0). Offshore léger = quasi parfait. Offshore fort (> 25 km/h) = pénalisé (spray, paddle impossible). Onshore = grosse pénalité. La tendance du vent est aussi prise en compte : un vent qui faiblit = bonus, qui monte = malus.' },
+  { icon: 'flash', title: 'Interaction vent × taille de houle', desc: 'Le même vent cross/onshore est plus pénalisant sur une grosse houle (la face est plus exposée au clapot) que sur du 0.5m.' },
+  { icon: 'sync', title: 'Propreté du swell', desc: 'Ratio wind swell / ground swell. Si le wind swell domine (> 70%), pénalité sévère. Si les houles se croisent (wind wave vs ground swell à > 90°), la surface est chaotique = malus. Swell pur sans ground swell = pénalité -35%.' },
+  { icon: 'anchor', title: 'Marée (selon le type de fond)', desc: 'Bonus/malus adapté au type de spot. Beach break : marée descendante expose les bancs de sable (+6%). Point break : montante sculpte la vague (+8%). Reef : montante = plus sûr (+6%), très basse = dangereux.' },
+  { icon: 'weather-hurricane', title: 'Courants marins', desc: 'Des courants forts (> 0.5 m/s) rendent le paddle plus dur et créent de la dérive. Pénalité progressive jusqu\'à -25%.' },
+  { icon: 'weather-rainy', title: 'Météo', desc: 'Pluie forte et orages réduisent le score (jusqu\'à -30%). Le confort et la visibilité comptent.' },
+  { icon: 'ruler', title: 'Stabilité de la houle', desc: 'Direction constante = bonus (+5%). Direction chaotique (> 45° de variation) = malus (-15%).' },
+  { icon: 'target', title: 'Ton niveau', desc: 'Débutant / Intermédiaire / Expert influence le score : spots trop engagés = pénalisés, spots adaptés = boostés.' },
+  { icon: 'tune', title: 'Tes préférences', desc: 'Hauteur préférée : +10% si la houle correspond. Seules les heures dans ta plage dispo sont recommandées.' },
 ];
 
-const factorsEn = [
-  { icon: '🌊', title: 'Swell (height × period × direction)', desc: 'Pillar #1. Height compared to spot ideal and your level. Period weighs 35% of the swell score — it separates real surf from chop. A "power" bonus rewards height × long period combos (e.g. 1.5m @ 14s >> 2m @ 7s).' },
-  { icon: '💨', title: 'Wind (speed, direction, gusts, trend)', desc: 'Pillar #2. Swell × Wind = the base. Glassy (< 3 km/h) = perfect score (1.0). Light offshore = near-perfect. Strong offshore (> 25 km/h) = penalized (spray, impossible paddle). Onshore = big penalty. Wind trend also matters: dropping wind = bonus, rising = penalty.' },
-  { icon: '⚡', title: 'Wind × swell height interaction', desc: 'The same cross/onshore wind is more damaging on bigger waves (larger face exposed to chop) than on 0.5m surf.' },
-  { icon: '🔄', title: 'Swell cleanness', desc: 'Wind swell / ground swell ratio. If wind swell dominates (> 70%), severe penalty. Crossing swells (wind wave vs ground swell > 90° apart) = chaotic surface = penalty. Pure wind swell with no ground swell = -35% penalty.' },
-  { icon: '🌊', title: 'Tide (by bottom type)', desc: 'Bonus/penalty adapted to spot type. Beach break: falling tide exposes sandbars (+6%). Point break: rising tide shapes the wave (+8%). Reef: rising = safer (+6%), very low = dangerous.' },
-  { icon: '🌀', title: 'Ocean currents', desc: 'Strong currents (> 0.5 m/s) make paddling harder and cause drift. Progressive penalty up to -25%.' },
-  { icon: '🌧️', title: 'Weather', desc: 'Heavy rain and storms reduce score (up to -30%). Comfort and visibility matter.' },
-  { icon: '📐', title: 'Swell stability', desc: 'Constant direction = bonus (+5%). Chaotic direction (> 45° variation) = penalty (-15%).' },
-  { icon: '🎯', title: 'Your level', desc: 'Beginner / Intermediate / Expert affects score: overly challenging spots = penalized, suited spots = boosted.' },
-  { icon: '📏', title: 'Your preferences', desc: 'Preferred height: +10% if swell matches. Only hours within your available range are recommended.' },
+const factorsEn: { icon: MCIName; title: string; desc: string }[] = [
+  { icon: 'waves', title: 'Swell (height × period × direction)', desc: 'Pillar #1. Height compared to spot ideal and your level. Period weighs 35% of the swell score — it separates real surf from chop. A "power" bonus rewards height × long period combos (e.g. 1.5m @ 14s >> 2m @ 7s).' },
+  { icon: 'weather-windy', title: 'Wind (speed, direction, gusts, trend)', desc: 'Pillar #2. Swell × Wind = the base. Glassy (< 3 km/h) = perfect score (1.0). Light offshore = near-perfect. Strong offshore (> 25 km/h) = penalized (spray, impossible paddle). Onshore = big penalty. Wind trend also matters: dropping wind = bonus, rising = penalty.' },
+  { icon: 'flash', title: 'Wind × swell height interaction', desc: 'The same cross/onshore wind is more damaging on bigger waves (larger face exposed to chop) than on 0.5m surf.' },
+  { icon: 'sync', title: 'Swell cleanness', desc: 'Wind swell / ground swell ratio. If wind swell dominates (> 70%), severe penalty. Crossing swells (wind wave vs ground swell > 90° apart) = chaotic surface = penalty. Pure wind swell with no ground swell = -35% penalty.' },
+  { icon: 'anchor', title: 'Tide (by bottom type)', desc: 'Bonus/penalty adapted to spot type. Beach break: falling tide exposes sandbars (+6%). Point break: rising tide shapes the wave (+8%). Reef: rising = safer (+6%), very low = dangerous.' },
+  { icon: 'weather-hurricane', title: 'Ocean currents', desc: 'Strong currents (> 0.5 m/s) make paddling harder and cause drift. Progressive penalty up to -25%.' },
+  { icon: 'weather-rainy', title: 'Weather', desc: 'Heavy rain and storms reduce score (up to -30%). Comfort and visibility matter.' },
+  { icon: 'ruler', title: 'Swell stability', desc: 'Constant direction = bonus (+5%). Chaotic direction (> 45° variation) = penalty (-15%).' },
+  { icon: 'target', title: 'Your level', desc: 'Beginner / Intermediate / Expert affects score: overly challenging spots = penalized, suited spots = boosted.' },
+  { icon: 'tune', title: 'Your preferences', desc: 'Preferred height: +10% if swell matches. Only hours within your available range are recommended.' },
 ];
 
-const capsFr = [
-  { icon: '🚫', label: 'Flat (houle < 0.3m)', desc: 'Score plafonné à 1.5' },
-  { icon: '💨', label: 'Vent onshore > 20 km/h', desc: 'Score plafonné à 3.5' },
-  { icon: '💨', label: 'Offshore violent > 30 km/h', desc: 'Score plafonné à 5.5' },
-  { icon: '💥', label: 'Rafales > 40 km/h', desc: 'Score plafonné à 3.5' },
-  { icon: '⏱', label: 'Période < 5s', desc: 'Score plafonné à 3' },
-  { icon: '🌊', label: 'Wind swell pur (pas de ground swell)', desc: 'Pénalité -35%' },
+const capsFr: { icon: MCIName; label: string; desc: string }[] = [
+  { icon: 'cancel', label: 'Flat (houle < 0.3m)', desc: 'Score plafonné à 1.5' },
+  { icon: 'weather-windy', label: 'Vent onshore > 20 km/h', desc: 'Score plafonné à 3.5' },
+  { icon: 'weather-windy', label: 'Offshore violent > 30 km/h', desc: 'Score plafonné à 5.5' },
+  { icon: 'flash', label: 'Rafales > 40 km/h', desc: 'Score plafonné à 3.5' },
+  { icon: 'timer-sand', label: 'Période < 5s', desc: 'Score plafonné à 3' },
+  { icon: 'waves', label: 'Wind swell pur (pas de ground swell)', desc: 'Pénalité -35%' },
 ];
 
-const capsEn = [
-  { icon: '🚫', label: 'Flat (swell < 0.3m)', desc: 'Score capped at 1.5' },
-  { icon: '💨', label: 'Onshore wind > 20 km/h', desc: 'Score capped at 3.5' },
-  { icon: '💨', label: 'Brutal offshore > 30 km/h', desc: 'Score capped at 5.5' },
-  { icon: '💥', label: 'Gusts > 40 km/h', desc: 'Score capped at 3.5' },
-  { icon: '⏱', label: 'Period < 5s', desc: 'Score capped at 3' },
-  { icon: '🌊', label: 'Pure wind swell (no ground swell)', desc: '-35% penalty' },
+const capsEn: { icon: MCIName; label: string; desc: string }[] = [
+  { icon: 'cancel', label: 'Flat (swell < 0.3m)', desc: 'Score capped at 1.5' },
+  { icon: 'weather-windy', label: 'Onshore wind > 20 km/h', desc: 'Score capped at 3.5' },
+  { icon: 'weather-windy', label: 'Brutal offshore > 30 km/h', desc: 'Score capped at 5.5' },
+  { icon: 'flash', label: 'Gusts > 40 km/h', desc: 'Score capped at 3.5' },
+  { icon: 'timer-sand', label: 'Period < 5s', desc: 'Score capped at 3' },
+  { icon: 'waves', label: 'Pure wind swell (no ground swell)', desc: '-35% penalty' },
 ];
 
 const termsFr = [
@@ -121,7 +122,7 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
 
         {factors.map((f, i) => (
           <View key={i} style={gs.factorRow}>
-            <Text style={gs.factorIcon}>{f.icon}</Text>
+            <MaterialCommunityIcons name={f.icon} size={16} color={colors.accent} style={gs.factorIcon} />
             <View style={gs.factorInfo}>
               <Text style={[gs.factorTitle, { color: colors.white }]}>{f.title}</Text>
               <Text style={[gs.factorDesc, { color: colors.white40 }]}>{f.desc}</Text>
@@ -134,7 +135,7 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
         <Text style={[gs.secTitle, { color: colors.accent }]}>{fr ? 'Plafonds automatiques' : 'Automatic caps'}</Text>
         {caps.map((c, i) => (
           <View key={i} style={[gs.windRow, { backgroundColor: 'rgba(255,90,90,0.06)' }]}>
-            <Text style={gs.windIcon}>{c.icon}</Text>
+            <MaterialCommunityIcons name={c.icon} size={16} color="#FF5A5A" style={gs.windIcon} />
             <View style={gs.windInfo}>
               <Text style={[gs.windTerm, { color: '#FF5A5A' }]}>{c.label}</Text>
               <Text style={[gs.windDesc, { color: colors.white40 }]}>{c.desc}</Text>
@@ -147,7 +148,7 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
         <Text style={[gs.secTitle, { color: colors.accent }]}>{fr ? 'Échelle des scores' : 'Score scale'}</Text>
         {scoreRows.map((r, i) => (
           <View key={i} style={gs.scoreRow}>
-            <Text style={gs.scoreEmoji}>{r.emoji}</Text>
+            <MaterialCommunityIcons name={r.icon} size={16} color={r.color} style={gs.scoreEmoji} />
             <Text style={[gs.scoreRange, { color: colors.white70 }]}>{r.range}</Text>
             <Text style={[gs.scoreLabel, { color: r.color }]}>{fr ? r.labelFr : r.labelEn}</Text>
           </View>
@@ -158,7 +159,7 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
         <Text style={[gs.secTitle, { color: colors.accent }]}>{fr ? 'Lexique du vent' : 'Wind glossary'}</Text>
         {windTerms.map((w, i) => (
           <View key={i} style={[gs.windRow, { backgroundColor: w.good ? 'rgba(0,212,170,0.06)' : 'rgba(255,90,90,0.06)' }]}>
-            <Text style={gs.windIcon}>{w.icon}</Text>
+            <MaterialCommunityIcons name={w.icon} size={16} color={w.good ? '#00D4AA' : '#FF5A5A'} style={gs.windIcon} />
             <View style={gs.windInfo}>
               <Text style={[gs.windTerm, { color: w.good ? '#00D4AA' : '#FF5A5A' }]}>{w.term}</Text>
               <Text style={[gs.windDesc, { color: colors.white40 }]}>{fr ? w.descFr : w.descEn}</Text>

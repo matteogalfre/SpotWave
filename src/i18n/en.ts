@@ -33,6 +33,9 @@ export default {
   spotsNoConditions: 'No good conditions today',
   spotsNextSlot: (day: string, spot: string) => `Next good slot: ${day} at ${spot}`,
   spotsNoSlotWeek: 'No good slot this week',
+  spotsNightTitle: 'It\'s night at these spots',
+  spotsNightSub: (day: string, spot: string) => `Next good slot: ${day} at ${spot}`,
+  spotsNightNoSlot: 'Come back at first light for conditions',
   spotsNoGoodWindow: 'No good window ahead',
   spotsBestWeek: 'Best slots this week',
   spotsExplore: 'Explore the world',
@@ -44,8 +47,9 @@ export default {
   spotsFilterType: 'Type',
   spotsFilterAllLevels: 'All levels',
   spotsFilterAllTypes: 'All types',
-  spotsLoadError: 'Loading error',
-  spotsAddedFav: 'Added to favorites ⭐',
+  spotsLoadError: 'Couldn’t load forecasts',
+  spotsLoadErrorHint: 'Check your internet connection and try again. The weather service may be temporarily unavailable.',
+  spotsAddedFav: 'Added to favorites',
   spotsRemovedFav: 'Removed from favorites',
   spotsSearch: 'Search',
   spotsClearSearch: 'Clear search',
@@ -88,7 +92,7 @@ export default {
   detailRefreshError: 'Error refreshing data',
   detailBestToday: 'Best slot today',
   detailBestNext: 'Next best slot',
-  detailDaySummary: '📝 Day summary',
+  detailDaySummary: 'Day summary',
   detailSeaLevel: 'Sea level',
   detailTide: 'Tide',
   detailOptimalTide: 'Optimal',
@@ -101,11 +105,11 @@ export default {
   detailMap: 'See on map',
   detailMapSub: 'Center the map on this spot',
   detailMapBtn: 'MAP',
-  detailSwellWind: '📊  Swell & Wind',
-  detailTideChart: '🌊  Tide',
-  detailHourly: '📋  Hourly forecast',
-  detailShowMore: (n: number) => `Show ${n} more hours ↓`,
-  detailSpotInfo: '📍  Spot info',
+  detailSwellWind: 'Swell & Wind',
+  detailTideChart: 'Tide',
+  detailHourly: 'Hourly forecast',
+  detailShowMore: (n: number) => `Show ${n} more hours`,
+  detailSpotInfo: 'Spot info',
   detailIdealCond: 'Ideal conditions',
   detailSwellDir: 'Swell direction',
   detailSwellHeight: 'Ideal height',
@@ -121,6 +125,7 @@ export default {
   detailSwellM: 'Swell (m)',
   detailWindDiv: 'Wind (÷10 km/h)',
   detailNow: 'Now',
+  detailCurrentCond: 'Current conditions',
 
   // Profile screen
   profileTitle: 'Settings',
@@ -231,7 +236,7 @@ export default {
   errorUnknown: 'Unknown error',
 
   // Offline
-  offlineMsg: '📡  No internet connection',
+  offlineMsg: 'No internet connection',
   offlineCached: 'Cached data available',
 
   // Onboarding
@@ -243,7 +248,7 @@ export default {
   onboardZone: 'Your preferred zone',
   onboardZoneSub: 'Which country do you surf most?',
   onboardZoneAuto: 'Automatic (GPS)',
-  onboardStart: 'Let\'s go! 🏄',
+  onboardStart: 'Let\'s go!',
   onboardNext: 'Next',
   onboardSkip: 'Skip',
   onboardStep: (n: number, total: number) => `Step ${n}/${total}`,
@@ -271,7 +276,7 @@ export default {
   onboardDemoStats: 'Swell, wind, period below each card',
 
   // ── Tide HT/LT (P0) ─────────────────────────────────────────────
-  detailTideTimes: '⏱  Tide times',
+  detailTideTimes: 'Tide times',
   detailTideHigh: 'High tide',
   detailTideLow: 'Low tide',
   detailTideNext: 'Upcoming',
@@ -290,7 +295,7 @@ export default {
   detailConfidenceHint: 'Beyond D+5 accuracy drops significantly. Re-check locally 24 h before the session.',
 
   // ── Why this score (P1) ─────────────────────────────────────────
-  detailWhyScore: '🧮  Why this score?',
+  detailWhyScore: 'Why this score?',
   detailWhyScoreCollapse: 'Hide breakdown',
   detailWhyScoreExpand: 'Show breakdown',
   detailWhySwell: 'Swell',
@@ -334,6 +339,7 @@ export default {
   profileLanguage: 'Language',
   profileLanguageFr: 'Français',
   profileLanguageEn: 'English',
+  profileLanguagePt: 'Português',
 
   // ── Share (P2) ──────────────────────────────────────────────────
   detailShare: 'Share',

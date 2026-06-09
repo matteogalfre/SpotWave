@@ -21,15 +21,6 @@ export function scoreBg(score: number) {
   return `rgba(0,230,140,${0.15})`;
 }
 
-export function scoreEmoji(score: number) {
-  if (score >= 8.0) return '🔥';
-  if (score >= 6.5) return '🤙';
-  if (score >= 5.0) return '👍';
-  if (score >= 3.5) return '😐';
-  if (score >= 2.0) return '👎';
-  return '💤';
-}
-
 interface ScoreTranslations {
   scorePerfect: string;
   scoreVeryGood: string;
@@ -117,19 +108,6 @@ export function dirLabel(deg: number): string {
 export function isDaytime(isoTime: string, from = 7, to = 20): boolean {
   const h = parseInt(isoTime.slice(11, 13), 10);
   return h >= from && h < to;
-}
-
-export function weatherIcon(code: number): string {
-  if (code === 0) return '☀️';
-  if (code <= 3) return '⛅';
-  if (code <= 49) return '🌫️';
-  if (code <= 59) return '🌦️';
-  if (code <= 69) return '🌧️';
-  if (code <= 79) return '🌨️';
-  if (code <= 82) return '🌧️';
-  if (code <= 86) return '🌨️';
-  if (code <= 99) return '⛈️';
-  return '🌤️';
 }
 
 const WEATHER_FR: Record<string, string> = {

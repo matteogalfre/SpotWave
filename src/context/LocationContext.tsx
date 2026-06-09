@@ -52,19 +52,27 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
 
     if (hasCache) setLoading(false);
 
-    const loc = await requestLocation();
-    if (loc) {
-      setLocation(loc);
-      setDenied(false);
-      try {
-        await AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ data: loc, ts: Date.now() }));
-      } catch (e) {
-        log.warn('Location cache write error:', e);
+    try {
+      const loc = await requestLocation();
+      if (loc) {
+        setLocation(loc);
+        setDenied(false);
+        try {
+          await AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ data: loc, ts: Date.now() }));
+        } catch (e) {
+          log.warn('Location cache write error:', e);
+        }
+      } else if (!hasCache) {
+        setDenied(true);
       }
-    } else if (!hasCache) {
-      setDenied(true);
+    } catch (e) {
+      log.warn('Location fetch error:', e);
+      if (!hasCache) setDenied(true);
+    } finally {
+      // Always release the gate so screens can load data even if the GPS fix
+      // never resolves (otherwise the app stays stuck on an empty screen).
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {

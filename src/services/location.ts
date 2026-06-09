@@ -6,15 +6,30 @@ export interface UserLocation {
   longitude: number;
 }
 
+const LOCATION_TIMEOUT_MS = 8000;
+
 export async function requestLocation(): Promise<UserLocation | null> {
   try {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') return null;
 
-    const loc = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.Balanced,
-    });
+    // Fast path: a cached OS fix returns instantly when available.
+    try {
+      const last = await Location.getLastKnownPositionAsync();
+      if (last) return { latitude: last.coords.latitude, longitude: last.coords.longitude };
+    } catch {
+      // ignore and fall through to a fresh fix
+    }
 
+    // Fresh fix, but never block the app forever: getCurrentPositionAsync can
+    // hang indefinitely on a real device (slow/first GPS fix, indoors...). Cap
+    // it so the UI can fall back to the global showcase and still load data.
+    const loc = await Promise.race([
+      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+      new Promise<null>(resolve => setTimeout(() => resolve(null), LOCATION_TIMEOUT_MS)),
+    ]);
+
+    if (!loc) return null;
     return { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
   } catch {
     return null;

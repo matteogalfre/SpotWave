@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Appearance, Platform, NativeModules } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { log } from '../utils/logger';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
 import { DARK as THEME_DARK, LIGHT as THEME_LIGHT } from '../context/ThemeContext';
@@ -51,7 +52,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       const detail = this.state.error?.message ?? lbl.message;
       return (
         <View style={[s.root, { backgroundColor: c.bg }]} accessibilityRole="alert">
-          <Text style={s.emoji} accessibilityElementsHidden>😵</Text>
+          <MaterialCommunityIcons name="alert-circle-outline" size={48} color={c.textDim} style={s.emoji} accessibilityElementsHidden />
           <Text style={[s.title, { color: c.text }]}>{lbl.title}</Text>
           <Text style={[s.msg, { color: c.textDim }]}>{detail}</Text>
           <TouchableOpacity

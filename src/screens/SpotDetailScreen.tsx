@@ -1,11 +1,9 @@
 import React, { useMemo, useRef, useCallback, useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Linking, RefreshControl, Animated, InteractionManager, ActivityIndicator, NativeSyntheticEvent, NativeScrollEvent, Share } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Linking, RefreshControl, Animated, ActivityIndicator, NativeSyntheticEvent, NativeScrollEvent, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LineChart } from 'react-native-chart-kit';
 import ScoreBadge from '../components/ScoreBadge';
 import ScoreBreakdown from '../components/ScoreBreakdown';
-import TideTimesCard from '../components/TideTimesCard';
-import ForecastSourceCard from '../components/ForecastSourceCard';
 import { useTheme } from '../context/ThemeContext';
 import { useProfile } from '../context/ProfileContext';
 import { useLocation } from '../context/LocationContext';
@@ -15,9 +13,10 @@ import { haversineDistance, formatDistance } from '../services/location';
 import { getStoredForecasts } from '../context/ForecastStore';
 import { getFavorites, toggleFavorite } from '../services/favorites';
 import { useToast } from '../components/Toast';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SpotForecast, HourlyCondition, MarineData } from '../types';
-import { scoreColor, scoreBg, scoreLabel, scoreEmoji, dirLabel, windLabel, isDaytime, weatherIcon } from '../theme';
+import { scoreColor, scoreBg, scoreLabel, dirLabel, windLabel, isDaytime } from '../theme';
+import { scoreIcon, weatherMCIcon, ICONS, MCIName } from '../utils/icons';
 import { SpotDetailScreenProps } from '../navigation/types';
 import { getLevelLabel, getBreakLabel, getTideLabel, fmtDayLabelShort, fmtRange, fmtH } from '../utils/constants';
 import * as Haptics from 'expo-haptics';
@@ -215,8 +214,19 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
   }, [location, spot.latitude, spot.longitude]);
 
   useEffect(() => {
-    const task = InteractionManager.runAfterInteractions(() => setReady(true));
-    return () => task.cancel();
+    // Defer heavy content until the screen is idle. RN 0.85 deprecates
+    // InteractionManager in favour of requestIdleCallback; we use it when
+    // available and fall back to a microtask-ish timeout otherwise.
+    const ric = (globalThis as any).requestIdleCallback as
+      | undefined
+      | ((cb: () => void, opts?: { timeout: number }) => number);
+    const cic = (globalThis as any).cancelIdleCallback as undefined | ((handle: number) => void);
+    if (ric) {
+      const handle = ric(() => setReady(true), { timeout: 500 });
+      return () => cic?.(handle);
+    }
+    const timer = setTimeout(() => setReady(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -383,18 +393,18 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     const wl = windLabel(c.windSpeed, c.windDirection, spot.beachOrientation);
     const isGust = c.windGusts > 25;
     return (
-      <View key={c.time} style={[s.row, { backgroundColor: rowBg(c.score) }]} accessibilityLabel={`${fmtH(c.time)} · ${t.a11yScore(c.score.toFixed(1))} · 🌊 ${c.swellHeight.toFixed(1)}m · 💨 ${wl} ${c.windSpeed.toFixed(0)} km/h`}>
+      <View key={c.time} style={[s.row, { backgroundColor: rowBg(c.score) }]} accessibilityLabel={`${fmtH(c.time)} · ${t.a11yScore(c.score.toFixed(1))} · ${t.spotsSwell} ${c.swellHeight.toFixed(1)}m · ${wl} ${c.windSpeed.toFixed(0)} km/h`}>
         <Text style={[s.rTime, { color: colors.white70 }]}>{fmtH(c.time)}</Text>
-        <Text style={s.rWeather}>{weatherIcon(c.weatherCode)}</Text>
+        <MaterialCommunityIcons name={weatherMCIcon(c.weatherCode)} size={14} color={colors.white70} style={s.rWeather} />
         <View style={[s.rBadge, { backgroundColor: scoreBg(c.score) }]}>
           <Text style={[s.rScore, { color: scoreColor(c.score) }]}>{c.score.toFixed(1)}</Text>
         </View>
         <Text style={[s.rMain, { color: colors.white }]}>
-          {c.swellHeight.toFixed(1)}m · {c.swellPeriod.toFixed(0)}s
+          {c.swellHeight.toFixed(1)}m · {c.swellPeriod.toFixed(0)}s · {dirLabel(c.swellDirection)}
         </Text>
         <View style={s.rWindCol}>
           <Text style={[s.rWind, { color: colors.white40 }, isGust && { color: colors.orange }]}>{wl} {c.windSpeed.toFixed(0)}</Text>
-          {isGust && <Text style={[s.rGust, { color: colors.orange }]}>💥{c.windGusts.toFixed(0)}</Text>}
+          {isGust && <Text style={[s.rGust, { color: colors.orange }]}><MaterialCommunityIcons name={ICONS.gust} size={9} color={colors.orange} />{c.windGusts.toFixed(0)}</Text>}
         </View>
       </View>
     );
@@ -421,17 +431,19 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
           <Text style={[s.hName, { color: colors.white }]} numberOfLines={1}>{spot.name}</Text>
           <Text style={[s.hRegion, { color: colors.accent }]}>
             {spot.region} · {spot.country}
-            {spotDistance != null ? `  📍 ${formatDistance(spotDistance)}` : ''}
+            {spotDistance != null ? (
+              <Text>{'  '}<MaterialCommunityIcons name={ICONS.location} size={11} color={colors.accent} /> {formatDistance(spotDistance)}</Text>
+            ) : ''}
           </Text>
           <View style={s.hMetaRow}>
             {currentCondition && (
               <Text style={[s.hTemp, { color: colors.white40 }]}>
-                {weatherIcon(currentCondition.weatherCode)} {currentCondition.temperature.toFixed(0)}° · {currentCondition.seaTemp.toFixed(0)}° {t.spotsSeaTemp}
+                <MaterialCommunityIcons name={weatherMCIcon(currentCondition.weatherCode)} size={12} color={colors.white40} /> {currentCondition.temperature.toFixed(0)}° · {currentCondition.seaTemp.toFixed(0)}° {t.spotsSeaTemp}
               </Text>
             )}
             {sunTimes && (
               <Text style={[s.hTemp, { color: colors.white40 }]}>
-                🌅 {sunTimes.sunrise} · 🌇 {sunTimes.sunset}
+                <MaterialCommunityIcons name={ICONS.sunrise} size={12} color={colors.white40} /> {sunTimes.sunrise} · <MaterialCommunityIcons name={ICONS.sunset} size={12} color={colors.white40} /> {sunTimes.sunset}
               </Text>
             )}
           </View>
@@ -482,7 +494,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
           <View style={s.bestCardLeft}>
             <Text style={[s.bestCardLabel, { color: colors.white40 }]}>{t.detailBestToday}</Text>
             <Text style={[s.bestCardTime, { color: scoreColor(spotBests.today.cond.score) }]}>
-              {scoreEmoji(spotBests.today.cond.score)}  {spotBests.today.timeRange}
+              <MaterialCommunityIcons name={scoreIcon(spotBests.today.cond.score)} size={16} color={scoreColor(spotBests.today.cond.score)} />  {spotBests.today.timeRange}
             </Text>
             <Text style={[s.bestCardDesc, { color: colors.white70 }]}>{scoreLabel(spotBests.today.cond.score, t)}</Text>
           </View>
@@ -497,7 +509,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
             <View style={s.bestCardLeft}>
               <Text style={[s.bestCardLabel, { color: colors.white40 }]}>{t.detailBestNext}</Text>
               <Text style={[s.bestCardTime, { color: colors.white }]}>
-                {scoreEmoji(spotBests.next.cond.score)}  {spotBests.next.dayLabel} · {spotBests.next.timeRange}
+                <MaterialCommunityIcons name={scoreIcon(spotBests.next.cond.score)} size={16} color={scoreColor(spotBests.next.cond.score)} />  {spotBests.next.dayLabel} · {spotBests.next.timeRange}
               </Text>
               <Text style={[s.bestCardDesc, { color: colors.white70 }]}>{scoreLabel(spotBests.next.cond.score, t)}</Text>
               <View style={s.confidenceRow}>
@@ -522,6 +534,37 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
         </View>
       </FadeInView>
 
+      {/* Conditions actuelles (temps réel) — la direction de houle est ce que les
+          surfeurs regardent en premier, on l'affiche donc explicitement ici. */}
+      {currentCondition && (
+        <FadeInView delay={120}>
+          <View style={[s.tideRow, { backgroundColor: colors.card }]}>
+            <View style={s.tideItem}>
+              <MaterialCommunityIcons name={ICONS.swell} size={16} color={colors.white70} style={s.tideIcon} />
+              <Text style={[s.tideLabel, { color: colors.white40 }]}>{t.spotsSwell}</Text>
+              <Text style={[s.tideVal, { color: colors.white }]}>{currentCondition.swellHeight.toFixed(1)} m</Text>
+            </View>
+            <View style={[s.tideSep, { backgroundColor: colors.white15 }]} />
+            <View style={s.tideItem}>
+              <MaterialCommunityIcons name={ICONS.period} size={16} color={colors.white70} style={s.tideIcon} />
+              <Text style={[s.tideLabel, { color: colors.white40 }]}>{t.spotsPeriod}</Text>
+              <Text style={[s.tideVal, { color: colors.white }]}>{currentCondition.swellPeriod.toFixed(0)} s</Text>
+            </View>
+            <View style={[s.tideSep, { backgroundColor: colors.white15 }]} />
+            <View style={s.tideItem}>
+              <MaterialCommunityIcons
+                name={ICONS.swellArrow}
+                size={16}
+                color={colors.accent}
+                style={[s.tideIcon, { transform: [{ rotate: `${(currentCondition.swellDirection + 180) % 360}deg` }] }]}
+              />
+              <Text style={[s.tideLabel, { color: colors.white40 }]}>{t.detailSwellDir}</Text>
+              <Text style={[s.tideVal, { color: colors.white }]}>{dirLabel(currentCondition.swellDirection)} · {currentCondition.swellDirection.toFixed(0)}°</Text>
+            </View>
+          </View>
+        </FadeInView>
+      )}
+
       {/* Score breakdown (P1 — Why this score) */}
       {currentCondition?.factors && (
         <FadeInView delay={150}>
@@ -534,30 +577,28 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
         <FadeInView delay={200}>
           <View style={[s.tideRow, { backgroundColor: colors.card }]}>
             <View style={s.tideItem}>
-              <Text style={s.tideIcon}>📐</Text>
+              <MaterialCommunityIcons name={ICONS.seaLevel} size={16} color={colors.white70} style={s.tideIcon} />
               <Text style={[s.tideLabel, { color: colors.white40 }]}>{t.detailSeaLevel}</Text>
               <Text style={[s.tideVal, { color: colors.white }]}>{currentCondition.seaLevel >= 0 ? '+' : ''}{currentCondition.seaLevel.toFixed(2)} m</Text>
             </View>
             <View style={[s.tideSep, { backgroundColor: colors.white15 }]} />
             <View style={s.tideItem}>
-              <Text style={s.tideIcon}>{tideTrend.arrow === '↑' ? '🔺' : tideTrend.arrow === '↓' ? '🔻' : '➡️'}</Text>
+              <MaterialCommunityIcons
+                name={tideTrend.arrow === '↑' ? 'arrow-up-bold' : tideTrend.arrow === '↓' ? 'arrow-down-bold' : 'arrow-right-bold'}
+                size={16}
+                color={tideTrend.arrow === '↑' ? colors.accent : tideTrend.arrow === '↓' ? colors.orange : colors.white70}
+                style={s.tideIcon}
+              />
               <Text style={[s.tideLabel, { color: colors.white40 }]}>{t.detailTide}</Text>
-              <Text style={[s.tideVal, { color: tideTrend.arrow === '↑' ? colors.accent : tideTrend.arrow === '↓' ? colors.orange : colors.white }]}>{tideTrend.arrow} {tideTrend.label}</Text>
+              <Text style={[s.tideVal, { color: tideTrend.arrow === '↑' ? colors.accent : tideTrend.arrow === '↓' ? colors.orange : colors.white }]}>{tideTrend.label}</Text>
             </View>
             <View style={[s.tideSep, { backgroundColor: colors.white15 }]} />
             <View style={s.tideItem}>
-              <Text style={s.tideIcon}>⚓</Text>
+              <MaterialCommunityIcons name={ICONS.anchor} size={16} color={colors.white70} style={s.tideIcon} />
               <Text style={[s.tideLabel, { color: colors.white40 }]}>{t.detailOptimalTide}</Text>
               <Text style={[s.tideVal, { color: colors.white }]}>{getTideLabel(spot.optimalTide, t)}</Text>
             </View>
           </View>
-        </FadeInView>
-      )}
-
-      {/* Tide times (PM/BM) */}
-      {marineData && (
-        <FadeInView delay={250}>
-          <TideTimesCard marine={marineData} />
         </FadeInView>
       )}
 
@@ -570,9 +611,9 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
           accessibilityLabel={t.detailWebcam}
           accessibilityRole="link"
         >
-          <Text style={s.webcamIcon}>📹</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={[s.webcamTxt, { color: colors.blue }]}>{t.detailWebcam}</Text>
+        <MaterialCommunityIcons name={ICONS.webcam} size={24} color={colors.blue} style={s.webcamIcon} />
+        <View style={{ flex: 1 }}>
+          <Text style={[s.webcamTxt, { color: colors.blue }]}>{t.detailWebcam}</Text>
             <Text style={[s.webcamSub, { color: colors.white40 }]}>{t.detailWebcamSub}</Text>
           </View>
           <View style={[s.webcamGo, { backgroundColor: colors.blue }]}>
@@ -589,7 +630,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
         accessibilityLabel={t.detailMap}
         accessibilityRole="button"
       >
-        <Text style={s.webcamIcon}>🗺️</Text>
+        <MaterialCommunityIcons name={ICONS.map} size={24} color={colors.accent} style={s.webcamIcon} />
         <View style={{ flex: 1 }}>
           <Text style={[s.webcamTxt, { color: colors.accent }]}>{t.detailMap}</Text>
           <Text style={[s.webcamSub, { color: colors.white40 }]}>{t.detailMapSub}</Text>
@@ -687,34 +728,34 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
                 <Text style={[s.infoGroupTitle, { color: colors.accent }]}>{t.detailIdealCond}</Text>
                 <View style={s.idealGrid}>
                   <IdealCard
-                    icon="🧭" title={t.detailSwellDir}
+                    icon={ICONS.swellDir} title={t.detailSwellDir}
                     value={`${dirLabel(spot.optimalSwellDirMin)} → ${dirLabel(spot.optimalSwellDirMax)}`}
                     sub={`${spot.optimalSwellDirMin}° – ${spot.optimalSwellDirMax}°`}
                     colors={colors}
                   />
                   <IdealCard
-                    icon="🌊" title={t.detailSwellHeight}
+                    icon={ICONS.swell} title={t.detailSwellHeight}
                     value={`${spot.optimalSwellHeightMin} – ${spot.optimalSwellHeightMax}m`}
                     colors={colors}
                   />
                   <IdealCard
-                    icon="💨" title={t.detailIdealWind}
+                    icon={ICONS.wind} title={t.detailIdealWind}
                     value={t.detailOffshore}
                     sub={t.detailWindDir(dirLabel(offshoreDir), offshoreDir)}
                     colors={colors}
                   />
                   <IdealCard
-                    icon="⚓" title={t.detailTideLabel}
+                    icon={ICONS.anchor} title={t.detailTideLabel}
                     value={getTideLabel(spot.optimalTide, t)}
                     colors={colors}
                   />
                   <IdealCard
-                    icon="🏖" title={t.detailBottom}
+                    icon={ICONS.bottom} title={t.detailBottom}
                     value={getBreakLabel(spot.bottomType, t)}
                     colors={colors}
                   />
                   <IdealCard
-                    icon="🎯" title={t.detailLevel}
+                    icon={ICONS.target} title={t.detailLevel}
                     value={getLevelLabel(spot.recommendedLevel, t)}
                     colors={colors}
                   />
@@ -725,18 +766,13 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
                     <Text style={[s.infoGroupTitle, { color: colors.red, marginTop: 16 }]}>{t.detailDangers}</Text>
                     <View style={[s.dangerBox, { backgroundColor: colors.redDim }]}>
                       {spot.dangers.map((d: string, i: number) => (
-                        <Text key={i} style={[s.dangerTxt, { color: colors.red }]}>⚠️  {d}</Text>
+                        <Text key={i} style={[s.dangerTxt, { color: colors.red }]}><MaterialCommunityIcons name={ICONS.danger} size={13} color={colors.red} />  {d}</Text>
                       ))}
                     </View>
                   </>
                 )}
               </View>
             </View>
-          </FadeInView>
-
-          {/* Data source + last update */}
-          <FadeInView delay={400}>
-            <ForecastSourceCard cacheTs={cacheTs} />
           </FadeInView>
         </>
       )}
@@ -747,7 +783,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
   );
 }
 
-const INITIAL_ROWS = 12;
+const INITIAL_ROWS = 8;
 
 function HourlySection({ slice, renderRow, colors, t }: { slice: HourlyCondition[]; renderRow: (c: HourlyCondition, i: number) => React.ReactNode; colors: import('../context/ThemeContext').ThemePalette; t: any }) {
   const [expanded, setExpanded] = useState(false);
@@ -775,10 +811,11 @@ function HourlySection({ slice, renderRow, colors, t }: { slice: HourlyCondition
   );
 }
 
-function IdealCard({ icon, title, value, sub, colors }: { icon: string; title: string; value: string; sub?: string; colors: import('../context/ThemeContext').ThemePalette }) {
+function IdealCard({ icon, title, value, sub, colors }: { icon: MCIName; title: string; value: string; sub?: string; colors: import('../context/ThemeContext').ThemePalette }) {
   return (
     <View style={[s.idealCard, { backgroundColor: colors.white08 }]} accessibilityLabel={`${title}: ${value}${sub ? `, ${sub}` : ''}`}>
-      <Text style={s.idealIcon}>{icon}</Text>
+      <MaterialCommunityIcons name={icon} size={18} color={colors.accent} style={s.idealIcon} />
+
       <Text style={[s.idealTitle, { color: colors.white40 }]}>{title}</Text>
       <Text style={[s.idealValue, { color: colors.white }]}>{value}</Text>
       {sub && <Text style={[s.idealSub, { color: colors.white40 }]}>{sub}</Text>}

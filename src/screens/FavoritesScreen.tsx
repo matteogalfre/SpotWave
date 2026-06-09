@@ -15,9 +15,9 @@ import ScoreBadge from '../components/ScoreBadge';
 import SPOTS from '../data/spots';
 import { SpotConfig, SpotForecast } from '../types';
 import { FavoritesScreenProps } from '../navigation/types';
-import { Ionicons } from '@expo/vector-icons';
-import { scoreColor, scoreBg, scoreLabel, scoreEmoji, scoreShort, windLabel, weatherIcon } from '../theme';
-import { getLevelBadge } from '../utils/constants';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { scoreColor, scoreBg, scoreLabel, scoreShort, windLabel } from '../theme';
+import { scoreIcon, weatherMCIcon, ICONS } from '../utils/icons';
 import * as Haptics from 'expo-haptics';
 import { useI18n } from '../i18n';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
@@ -140,7 +140,6 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   const renderItem = useCallback(({ item: f }: ListRenderItemInfo<SpotForecast>) => {
     const cc = f.currentCondition;
     const wl = cc ? windLabel(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : '';
-    const badge = getLevelBadge(f.spot.recommendedLevel, t);
     const dist = distanceMap.get(f.spot.id);
     return (
       <TouchableOpacity
@@ -155,16 +154,11 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
           <View style={s.cardInfo}>
             <Text style={[s.cardName, { color: colors.white }]} numberOfLines={1}>{f.spot.name}</Text>
             <Text style={[s.cardLabel, { color: scoreColor(f.currentScore) }]}>
-              {scoreEmoji(f.currentScore)} {scoreLabel(f.currentScore, t)}
+              <MaterialCommunityIcons name={scoreIcon(f.currentScore)} size={13} color={scoreColor(f.currentScore)} /> {scoreLabel(f.currentScore, t)}
             </Text>
             <View style={s.cardMeta}>
-              {badge && (
-                <View style={[s.levelBadge, { backgroundColor: badge.bg }]}>
-                  <Text style={[s.levelTxt, { color: badge.color }]}>{badge.label}</Text>
-                </View>
-              )}
               <Text style={[s.cardCountry, { color: colors.textMuted }]}>{f.spot.country}</Text>
-              {dist != null && <Text style={[s.cardDist, { color: colors.accent }]}>📍 {formatDistance(dist)}</Text>}
+              {dist != null && <Text style={[s.cardDist, { color: colors.accent }]}><MaterialCommunityIcons name={ICONS.location} size={11} color={colors.accent} /> {formatDistance(dist)}</Text>}
             </View>
           </View>
           <TouchableOpacity
@@ -179,25 +173,25 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
         </View>
         {cc && (
           <View style={s.cardBar}>
-            <Text style={[s.stat, { color: colors.textSecondary }]}>{weatherIcon(cc.weatherCode)}</Text>
+            <MaterialCommunityIcons name={weatherMCIcon(cc.weatherCode)} size={13} color={colors.textSecondary} />
             <Text style={[s.dot, { color: colors.border }]}>·</Text>
-            <Text style={[s.stat, { color: colors.textSecondary }]}>🌊 {cc.swellHeight.toFixed(1)}m</Text>
+            <Text style={[s.stat, { color: colors.textSecondary }]}><MaterialCommunityIcons name={ICONS.swell} size={12} color={colors.textSecondary} /> {cc.swellHeight.toFixed(1)}m</Text>
             <Text style={[s.dot, { color: colors.border }]}>·</Text>
             <Text style={[s.stat, { color: colors.textSecondary }]}>{cc.swellPeriod.toFixed(0)}s</Text>
             <Text style={[s.dot, { color: colors.border }]}>·</Text>
-            <Text style={[s.stat, { color: colors.textSecondary }]}>💨 {wl} {cc.windSpeed.toFixed(0)}</Text>
+            <Text style={[s.stat, { color: colors.textSecondary }]}><MaterialCommunityIcons name={ICONS.wind} size={12} color={colors.textSecondary} /> {wl} {cc.windSpeed.toFixed(0)}</Text>
           </View>
         )}
         {f.bestTime.score >= RIDABLE_SCORE ? (
           <View style={[s.bestRow, { backgroundColor: scoreBg(f.bestTime.score) }]}>
             <Text style={[s.bestTxt, { color: scoreColor(f.bestTime.score) }]}>
-              ⏰ {f.bestTime.label} — {scoreShort(f.bestTime.score, t)} ({f.bestTime.score.toFixed(1)})
+              <MaterialCommunityIcons name={ICONS.bestTime} size={12} color={scoreColor(f.bestTime.score)} /> {f.bestTime.label} — {scoreShort(f.bestTime.score, t)} ({f.bestTime.score.toFixed(1)})
             </Text>
           </View>
         ) : (
           <View style={[s.bestRow, { backgroundColor: colors.cardLight }]}>
             <Text style={[s.bestTxt, { color: colors.textMuted }]}>
-              💤 {t.spotsNoGoodWindow}
+              <MaterialCommunityIcons name={ICONS.flat} size={12} color={colors.textMuted} /> {t.spotsNoGoodWindow}
             </Text>
           </View>
         )}
@@ -263,7 +257,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
       ListEmptyComponent={
         !loading && favIds.length === 0 ? (
           <EmptyState
-            emoji="⭐"
+            icon="star"
             title={t.favEmpty}
             subtitle={t.favEmptySub}
             actionLabel={t.favEmptyAction}

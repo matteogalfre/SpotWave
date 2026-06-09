@@ -27,11 +27,11 @@ import ScoreBadge from '../components/ScoreBadge';
 import SkeletonCard from '../components/SkeletonCard';
 import Logo from '../components/Logo';
 import { SpotConfig, SpotForecast, HourlyCondition, SurferLevel, BreakType } from '../types';
-import { Ionicons } from '@expo/vector-icons';
-import { scoreColor, scoreBg, scoreLabel, scoreEmoji, scoreShort, windLabel, isDaytime, weatherIcon } from '../theme';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { scoreColor, scoreBg, scoreLabel, scoreShort, windLabel, isDaytime } from '../theme';
+import { scoreIcon, weatherMCIcon, ICONS, MCIName } from '../utils/icons';
 import { SurferProfile } from '../types';
 import { SpotsScreenProps } from '../navigation/types';
-import { CONTINENTS, COUNTRY_TO_CONTINENT } from '../data/continents';
 import * as Haptics from 'expo-haptics';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,37 +41,6 @@ import { scheduleGoodConditionAlerts, getAlertsEnabled } from '../services/notif
 import { getLevelBadge, getLevelLabel, fmtDayLabel, fmtRange, fmtElapsed } from '../utils/constants';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
 import { getConfidenceForDate, confidenceColor } from '../utils/confidence';
-
-const COUNTRY_EMOJI: Record<string, string> = {
-  'Portugal': '🇵🇹', 'France': '🇫🇷', 'Espagne': '🇪🇸', 'Indonésie': '🇮🇩',
-  'Australie': '🇦🇺', 'USA - Californie': '🌴', 'USA - Hawaii': '🌺',
-  'USA - Floride': '🇺🇸', 'USA - Est': '🇺🇸', 'USA - Oregon': '🇺🇸',
-  'USA - Washington': '🇺🇸', 'USA - New York': '🇺🇸',
-  'Maroc': '🇲🇦', 'Afrique du Sud': '🇿🇦', 'Costa Rica': '🇨🇷',
-  'Mexique': '🇲🇽', 'Brésil': '🇧🇷', 'Pérou': '🇵🇪', 'Royaume-Uni': '🇬🇧',
-  'Irlande': '🇮🇪', 'Fidji': '🇫🇯', 'Maldives': '🇲🇻', 'Sri Lanka': '🇱🇰',
-  'Nouvelle-Zélande': '🇳🇿', 'Philippines': '🇵🇭', 'Chili': '🇨🇱',
-  'Japon': '🇯🇵', 'Nicaragua': '🇳🇮', 'Panama': '🇵🇦', 'Taïwan': '🇹🇼',
-  'Canada': '🇨🇦', 'Italie': '🇮🇹', 'Polynésie française': '🇵🇫',
-  'Sénégal': '🇸🇳', 'Namibie': '🇳🇦', 'El Salvador': '🇸🇻',
-  'Équateur': '🇪🇨', 'La Réunion': '🇷🇪', 'Colombie': '🇨🇴',
-  'Uruguay': '🇺🇾', 'Samoa': '🇼🇸', 'Porto Rico': '🇵🇷',
-  'Inde': '🇮🇳', 'Argentine': '🇦🇷', 'Grèce': '🇬🇷', 'Turquie': '🇹🇷',
-  'Thaïlande': '🇹🇭', 'Corée du Sud': '🇰🇷', 'Madagascar': '🇲🇬',
-};
-
-const DESTINATIONS = (() => {
-  const counts: Record<string, number> = {};
-  SPOTS.forEach(s => { counts[s.country] = (counts[s.country] || 0) + 1; });
-  return Object.entries(counts)
-    .filter(([, n]) => n >= 3)
-    .sort((a, b) => b[1] - a[1])
-    .map(([country, spots]) => ({
-      country,
-      emoji: COUNTRY_EMOJI[country] || '🏄',
-      spots,
-    }));
-})();
 
 interface BestPick {
   spotName: string;
@@ -83,18 +52,35 @@ interface BestPick {
   timeRange: string;
 }
 
-function findBestPicks(forecasts: SpotForecast[], profile: SurferProfile, locale: string = 'fr'): { bestToday: BestPick | null; bestWeek: BestPick[] } {
+// Spot-local "now"/"today" keys derived from the forecast's UTC offset, so that
+// "today's recommendation" follows the SPOT's calendar — not the device's. For a
+// surfer in France looking at Hawaii this is the difference between "rien
+// aujourd'hui" and the right answer.
+function localKeys(f: SpotForecast): { nowKey: string; todayStr: string } {
+  const offset = f.utcOffsetSeconds;
+  const d = typeof offset === 'number' ? new Date(Date.now() + offset * 1000) : new Date();
+  const get = typeof offset === 'number'
+    ? { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, day: d.getUTCDate(), h: d.getUTCHours() }
+    : { y: d.getFullYear(), m: d.getMonth() + 1, day: d.getDate(), h: d.getHours() };
+  const dateStr = `${get.y}-${String(get.m).padStart(2, '0')}-${String(get.day).padStart(2, '0')}`;
+  return { nowKey: `${dateStr}T${String(get.h).padStart(2, '0')}`, todayStr: dateStr };
+}
+
+function findBestPicks(
+  forecasts: SpotForecast[],
+  profile: SurferProfile,
+  locale: string = 'fr',
+): { bestToday: BestPick | null; bestWeek: BestPick[]; nightNow: boolean } {
   const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
-  const nowStr = now.toISOString().slice(0, 13);
   const { sessionDuration, availableFrom, availableTo } = profile;
 
   let bestToday: BestPick | null = null;
   const dayBest: Record<string, BestPick> = {};
 
   for (const f of forecasts) {
+    const { nowKey, todayStr } = localKeys(f);
     for (const c of f.hourlyConditions) {
-      if (c.time.slice(0, 13) < nowStr) continue;
+      if (c.time.slice(0, 13) < nowKey) continue;
       if (!isDaytime(c.time, availableFrom, availableTo)) continue;
       const dateKey = c.time.slice(0, 10);
       const isToday = dateKey === todayStr;
@@ -109,7 +95,16 @@ function findBestPicks(forecasts: SpotForecast[], profile: SurferProfile, locale
     }
   }
 
-  return { bestToday, bestWeek: Object.values(dayBest).sort((a, b) => a.cond.time.localeCompare(b.cond.time)).slice(0, 5) };
+  // "Night now" if every loaded spot is currently in its local night. With
+  // nearby spots (same timezone) this is unanimous; for the global showcase we
+  // require all of them so we don't wrongly claim night.
+  const nightNow = forecasts.length > 0 && forecasts.every(f => f.isNightNow);
+
+  return {
+    bestToday,
+    bestWeek: Object.values(dayBest).sort((a, b) => a.cond.time.localeCompare(b.cond.time)).slice(0, 5),
+    nightNow,
+  };
 }
 
 type Mode = 'today' | 'all';
@@ -126,7 +121,6 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   const insets = useSafeAreaInsets();
 
   const [mode, setMode] = useState<Mode>('today');
-  const [exploreOpen, setExploreOpen] = useState(false);
   const [forecasts, setForecasts] = useState<SpotForecast[]>([]);
   const [favs, setFavs] = useState<string[]>([]);
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('all');
@@ -252,6 +246,11 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
         setLoadedCount(count);
         setFailedCount(failed);
       }
+      // Every spot failed (e.g. the weather API is down): surface a real error
+      // + retry instead of spinning on skeletons forever.
+      if (count === 0 && failed > 0) {
+        setError(t.spotsLoadError);
+      }
       setLastUpdate(new Date());
       getAlertsEnabled().then(on => {
         if (on) scheduleGoodConditionAlerts(results, locale === 'fr').catch(() => {});
@@ -317,7 +316,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     setSearchHistory([]);
   }, []);
 
-  const { bestToday, bestWeek } = useMemo(() => findBestPicks(forecasts, profile, locale), [forecasts, profile, locale]);
+  const { bestToday, bestWeek, nightNow } = useMemo(() => findBestPicks(forecasts, profile, locale), [forecasts, profile, locale]);
   const levelTxt = getLevelLabel(profile.level, t);
 
   const locationLabel = useMemo(() => {
@@ -410,7 +409,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
           <Text style={[ss.logo, { color: colors.white }]} accessibilityRole="header">SpotWave</Text>
         </View>
         <Text style={[ss.subtitle, { color: colors.textMuted }]}>
-          {location ? '📍 ' : ''}{locationLabel} · {levelTxt}
+          {location ? <><MaterialCommunityIcons name={ICONS.location} size={11} color={colors.textMuted} />{' '}</> : null}{locationLabel} · {levelTxt}
         </Text>
       </View>
       <View style={ss.headerRight}>
@@ -591,7 +590,9 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                 <Text style={[ss.searchName, { color: colors.white }]}>{spot.name}</Text>
                 <Text style={[ss.searchMeta, { color: colors.textMuted }]}>
                   {spot.region} · {spot.country}
-                  {dist != null ? `  ·  📍 ${formatDistance(dist)}` : ''}
+                  {dist != null ? (
+                    <Text>{'  ·  '}<MaterialCommunityIcons name={ICONS.location} size={11} color={colors.textMuted} /> {formatDistance(dist)}</Text>
+                  ) : ''}
                 </Text>
                 {isLoadingThis && (
                   <Text style={[ss.searchLoading, { color: colors.accent }]}>{t.spotsSearchLoading}</Text>
@@ -609,23 +610,18 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     );
   };
 
-  // ─── Loading state ───
-  if (isLoading || !hasEnoughData) {
-    return (
-      <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} showsVerticalScrollIndicator={false}>
-        {renderHeader()}
-        <View style={{ marginTop: spacing.xl }}>
-          {[0, 1, 2, 3, 4].map(i => <SkeletonCard key={i} />)}
-        </View>
-      </ScrollView>
-    );
-  }
-
-  // ─── Error state ───
+  // ─── Error state (checked before loading so a total failure shows a retry,
+  //     not an endless skeleton) ───
   if (error && forecasts.length === 0) {
     return (
       <View style={[ss.loadWrap, { backgroundColor: colors.bg, paddingTop: insets.top + 40 }]}>
-        <Text style={[ss.errTxt, { color: colors.red }]}>{error}</Text>
+        <MaterialCommunityIcons name="cloud-off-outline" size={44} color={colors.textMuted} style={{ marginBottom: spacing.md }} />
+        <Text style={{ fontSize: 18, fontWeight: '700', color: colors.white, textAlign: 'center', marginBottom: spacing.xs }}>
+          {t.spotsLoadError}
+        </Text>
+        <Text style={{ fontSize: 14, color: colors.textMuted, textAlign: 'center', marginBottom: spacing.lg, paddingHorizontal: spacing.xl }}>
+          {t.spotsLoadErrorHint}
+        </Text>
         <TouchableOpacity
           onPress={onRefresh}
           style={[ss.retryBtn, { backgroundColor: colors.cardLight }]}
@@ -635,6 +631,22 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
           <Text style={[ss.retryTxt, { color: colors.accent }]}>{t.retry}</Text>
         </TouchableOpacity>
       </View>
+    );
+  }
+
+  // ─── Loading state ───
+  if (isLoading || !hasEnoughData) {
+    return (
+      <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} showsVerticalScrollIndicator={false}>
+        {renderHeader()}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: spacing.lg }}>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <Text style={[ss.metaTxt, { color: colors.textMuted, marginLeft: spacing.sm }]}>{t.spotsLoading}</Text>
+        </View>
+        <View style={{ marginTop: spacing.md }}>
+          {[0, 1, 2, 3, 4].map(i => <SkeletonCard key={i} />)}
+        </View>
+      </ScrollView>
     );
   }
 
@@ -684,23 +696,32 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                     <Text style={[ss.heroSpot, { color: colors.white }]} numberOfLines={1}>{bestToday.spotName}</Text>
                     <Text style={[ss.heroRange, { color: colors.textSecondary }]}>{bestToday.timeRange}</Text>
                     <Text style={[ss.heroLabel, { color: scoreColor(bestToday.cond.score) }]}>
-                      {scoreEmoji(bestToday.cond.score)} {scoreLabel(bestToday.cond.score, t)}
+                      <MaterialCommunityIcons name={scoreIcon(bestToday.cond.score)} size={12} color={scoreColor(bestToday.cond.score)} /> {scoreLabel(bestToday.cond.score, t)}
                     </Text>
                   </View>
                 </View>
                 <View style={[ss.heroBar, { borderTopColor: colors.border }]}>
-                  <MiniStat icon="🌊" value={`${bestToday.cond.swellHeight.toFixed(1)}m`} sub={t.spotsSwell} colors={colors} />
-                  <MiniStat icon="⏱" value={`${bestToday.cond.swellPeriod.toFixed(0)}s`} sub={t.spotsPeriod} colors={colors} />
-                  <MiniStat icon="💨" value={windLabel(bestToday.cond.windSpeed, bestToday.cond.windDirection, bestToday.beachOrientation)} sub={`${bestToday.cond.windSpeed.toFixed(0)} km/h`} colors={colors} />
-                  <MiniStat icon="🌡" value={`${bestToday.cond.seaTemp.toFixed(0)}°`} sub={t.spotsSeaTemp} colors={colors} />
+                  <MiniStat icon={ICONS.swell} value={`${bestToday.cond.swellHeight.toFixed(1)}m`} sub={t.spotsSwell} colors={colors} />
+                  <MiniStat icon={ICONS.period} value={`${bestToday.cond.swellPeriod.toFixed(0)}s`} sub={t.spotsPeriod} colors={colors} />
+                  <MiniStat icon={ICONS.wind} value={windLabel(bestToday.cond.windSpeed, bestToday.cond.windDirection, bestToday.beachOrientation)} sub={`${bestToday.cond.windSpeed.toFixed(0)} km/h`} colors={colors} />
+                  <MiniStat icon={ICONS.seaTemp} value={`${bestToday.cond.seaTemp.toFixed(0)}°`} sub={t.spotsSeaTemp} colors={colors} />
                 </View>
               </TouchableOpacity>
             ) : (
               <View style={[ss.emptyHero, { backgroundColor: colors.card }]}>
-                <Text style={ss.emptyEmoji}>🏖️</Text>
-                <Text style={[ss.emptyTitle, { color: colors.white }]}>{t.spotsNoConditions}</Text>
+                <MaterialCommunityIcons
+                  name={nightNow ? 'weather-night' : ICONS.swell}
+                  size={32}
+                  color={colors.textMuted}
+                  style={ss.emptyEmoji}
+                />
+                <Text style={[ss.emptyTitle, { color: colors.white }]}>
+                  {nightNow ? t.spotsNightTitle : t.spotsNoConditions}
+                </Text>
                 <Text style={[ss.emptySubtitle, { color: colors.textMuted }]}>
-                  {bestWeek.length > 0 ? t.spotsNextSlot(bestWeek[0].dayLabel, bestWeek[0].spotName) : t.spotsNoSlotWeek}
+                  {nightNow
+                    ? (bestWeek.length > 0 ? t.spotsNightSub(bestWeek[0].dayLabel, bestWeek[0].spotName) : t.spotsNightNoSlot)
+                    : (bestWeek.length > 0 ? t.spotsNextSlot(bestWeek[0].dayLabel, bestWeek[0].spotName) : t.spotsNoSlotWeek)}
                 </Text>
               </View>
             )}
@@ -734,9 +755,9 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                           </View>
                           <Text style={[ss.weekSpot, { color: colors.textSecondary }]}>{pick.spotName} · {pick.timeRange}</Text>
                           <View style={ss.weekStats}>
-                            <Text style={[ss.weekStat, { color: colors.textMuted }]}>🌊 {pick.cond.swellHeight.toFixed(1)}m</Text>
-                            <Text style={[ss.weekStat, { color: colors.textMuted }]}>⏱ {pick.cond.swellPeriod.toFixed(0)}s</Text>
-                            <Text style={[ss.weekStat, { color: colors.textMuted }]}>💨 {pick.cond.windSpeed.toFixed(0)} km/h</Text>
+                            <Text style={[ss.weekStat, { color: colors.textMuted }]}><MaterialCommunityIcons name={ICONS.swell} size={11} color={colors.textMuted} /> {pick.cond.swellHeight.toFixed(1)}m</Text>
+                            <Text style={[ss.weekStat, { color: colors.textMuted }]}><MaterialCommunityIcons name={ICONS.period} size={11} color={colors.textMuted} /> {pick.cond.swellPeriod.toFixed(0)}s</Text>
+                            <Text style={[ss.weekStat, { color: colors.textMuted }]}><MaterialCommunityIcons name={ICONS.wind} size={11} color={colors.textMuted} /> {pick.cond.windSpeed.toFixed(0)} km/h</Text>
                           </View>
                         </View>
                       </View>
@@ -750,61 +771,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
               </View>
             )}
 
-            {/* Explorer par continent (collapsible) */}
-            <View style={ss.destSection}>
-              <TouchableOpacity
-                style={ss.destHeader}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                  setExploreOpen(o => !o);
-                }}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={t.spotsExplore}
-                accessibilityState={{ expanded: exploreOpen }}
-              >
-                <View style={ss.destHeaderLeft}>
-                  <Text style={[ss.destTitle, { color: colors.white }]} accessibilityRole="header">{t.spotsExplore}</Text>
-                  <Text style={[ss.destSub, { color: colors.textMuted }]}>
-                    {SPOTS.length} spots · {Array.from(new Set(SPOTS.map(s => s.country))).length} {locale === 'fr' ? 'pays' : 'countries'}
-                  </Text>
-                </View>
-                <Ionicons
-                  name={exploreOpen ? 'chevron-up' : 'chevron-down'}
-                  size={22}
-                  color={colors.textMuted}
-                  style={ss.destChevron}
-                />
-              </TouchableOpacity>
-
-              {exploreOpen && CONTINENTS.map((cont) => {
-                const countriesInContinent = DESTINATIONS.filter(d => COUNTRY_TO_CONTINENT[d.country] === cont.key);
-                if (countriesInContinent.length === 0) return null;
-                return (
-                  <View key={cont.key} style={ss.continentBlock}>
-                    <Text style={[ss.continentLabel, { color: colors.textSecondary }]}>{cont.emoji} {locale === 'fr' ? cont.labelFr : cont.labelEn}</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={ss.destRow}>
-                      {countriesInContinent.map((d) => (
-                        <TouchableOpacity
-                          key={d.country}
-                          style={[ss.destCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-                          activeOpacity={0.7}
-                          onPress={() => navigation.navigate('MapTab', { focusCountry: d.country })}
-                          accessibilityRole="button"
-                          accessibilityLabel={`${d.country}, ${d.spots} spots`}
-                        >
-                          <Text style={ss.destEmoji}>{d.emoji}</Text>
-                          <Text style={[ss.destName, { color: colors.white }]} numberOfLines={1}>{d.country}</Text>
-                          <Text style={[ss.destCount, { color: colors.textMuted }]}>{d.spots} spots</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                );
-              })}
-            </View>
-
-            <View style={{ height: 100 }} />
+            <View style={{ height: 24 }} />
           </>
         )}
       </ScrollView>
@@ -888,7 +855,6 @@ const SpotCard = memo(function SpotCard({
   const cc = f.currentCondition;
   const wl = cc ? windLabel(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : '';
   const isOnshore = wl === 'Onshore' || wl === 'Cross-on';
-  const badge = getLevelBadge(f.spot.recommendedLevel, t);
   return (
     <TouchableOpacity
       style={[ss.spot, { backgroundColor: colors.card, borderColor: colors.border }]}
@@ -905,15 +871,13 @@ const SpotCard = memo(function SpotCard({
             {isFav && <Ionicons name="star" size={14} color={colors.yellow} />}
           </View>
           <Text style={[ss.spotLabel, { color: scoreColor(f.currentScore) }]}>
-            {scoreEmoji(f.currentScore)} {scoreLabel(f.currentScore, t)}
+            <MaterialCommunityIcons name={scoreIcon(f.currentScore)} size={13} color={scoreColor(f.currentScore)} /> {scoreLabel(f.currentScore, t)}
           </Text>
           <View style={ss.spotMeta}>
-            <View style={[ss.levelBadgeSm, { backgroundColor: badge.bg }]}>
-              <Text style={[ss.levelBadgeSmTxt, { color: badge.color }]}>{badge.label}</Text>
-            </View>
-            {f.spot.webcamUrl && <Text style={ss.webcamIndicator} accessibilityLabel={t.detailWebcam}>📹</Text>}
+            <Text style={[ss.spotDistance, { color: colors.textMuted }]} numberOfLines={1}>{f.spot.country}</Text>
+            {f.spot.webcamUrl && <MaterialCommunityIcons name={ICONS.webcam} size={13} color={colors.textMuted} accessibilityLabel={t.detailWebcam} />}
             {distance != null && (
-              <Text style={[ss.spotDistance, { color: colors.accent }]}>📍 {formatDistance(distance)}</Text>
+              <Text style={[ss.spotDistance, { color: colors.accent }]}><MaterialCommunityIcons name={ICONS.location} size={11} color={colors.accent} /> {formatDistance(distance)}</Text>
             )}
           </View>
         </View>
@@ -929,30 +893,30 @@ const SpotCard = memo(function SpotCard({
       </View>
       {cc && (
         <View style={ss.spotBar}>
-          <Text style={[ss.spotStat, { color: colors.textSecondary }]}>{weatherIcon(cc.weatherCode)} {cc.temperature.toFixed(0)}°</Text>
+          <Text style={[ss.spotStat, { color: colors.textSecondary }]}><MaterialCommunityIcons name={weatherMCIcon(cc.weatherCode)} size={12} color={colors.textSecondary} /> {cc.temperature.toFixed(0)}°</Text>
           <Text style={[ss.spotDot, { color: colors.border }]}>·</Text>
-          <Text style={[ss.spotStat, { color: colors.textSecondary }]}>🌊 {cc.swellHeight.toFixed(1)}m</Text>
+          <Text style={[ss.spotStat, { color: colors.textSecondary }]}><MaterialCommunityIcons name={ICONS.swell} size={12} color={colors.textSecondary} /> {cc.swellHeight.toFixed(1)}m</Text>
           <Text style={[ss.spotDot, { color: colors.border }]}>·</Text>
           <Text style={[ss.spotStat, { color: colors.textSecondary }]}>{cc.swellPeriod.toFixed(0)}s</Text>
           <Text style={[ss.spotDot, { color: colors.border }]}>·</Text>
-          <Text style={[ss.spotStat, { color: isOnshore ? colors.red : colors.textSecondary }]}>💨 {wl} {cc.windSpeed.toFixed(0)}</Text>
+          <Text style={[ss.spotStat, { color: isOnshore ? colors.red : colors.textSecondary }]}><MaterialCommunityIcons name={ICONS.wind} size={12} color={isOnshore ? colors.red : colors.textSecondary} /> {wl} {cc.windSpeed.toFixed(0)}</Text>
           {cc.windGusts > 20 && (
-            <><Text style={[ss.spotDot, { color: colors.border }]}>·</Text><Text style={[ss.spotStat, { color: colors.orange }]}>💥 {cc.windGusts.toFixed(0)}</Text></>
+            <><Text style={[ss.spotDot, { color: colors.border }]}>·</Text><Text style={[ss.spotStat, { color: colors.orange }]}><MaterialCommunityIcons name={ICONS.gust} size={12} color={colors.orange} /> {cc.windGusts.toFixed(0)}</Text></>
           )}
           <Text style={[ss.spotDot, { color: colors.border }]}>·</Text>
-          <Text style={[ss.spotStat, { color: colors.blue }]}>🌡 {cc.seaTemp.toFixed(0)}°</Text>
+          <Text style={[ss.spotStat, { color: colors.blue }]}><MaterialCommunityIcons name={ICONS.seaTemp} size={12} color={colors.blue} /> {cc.seaTemp.toFixed(0)}°</Text>
         </View>
       )}
       {f.bestTime.score >= RIDABLE_SCORE ? (
         <View style={[ss.spotBest, { backgroundColor: scoreBg(f.bestTime.score) }]}>
           <Text style={[ss.spotBestTxt, { color: scoreColor(f.bestTime.score) }]}>
-            ⏰ {f.bestTime.label} — {scoreShort(f.bestTime.score, t)} ({f.bestTime.score.toFixed(1)})
+            <MaterialCommunityIcons name={ICONS.bestTime} size={12} color={scoreColor(f.bestTime.score)} /> {f.bestTime.label} — {scoreShort(f.bestTime.score, t)} ({f.bestTime.score.toFixed(1)})
           </Text>
         </View>
       ) : (
         <View style={[ss.spotBest, { backgroundColor: colors.cardLight }]}>
           <Text style={[ss.spotBestTxt, { color: colors.textMuted }]}>
-            💤 {t.spotsNoGoodWindow}
+            <MaterialCommunityIcons name={ICONS.flat} size={12} color={colors.textMuted} /> {t.spotsNoGoodWindow}
           </Text>
         </View>
       )}
@@ -982,10 +946,10 @@ function FilterChip({ label, active, onPress, colors }: { label: string; active:
   );
 }
 
-function MiniStat({ icon, value, sub, colors }: { icon: string; value: string; sub: string; colors: any }) {
+function MiniStat({ icon, value, sub, colors }: { icon: MCIName; value: string; sub: string; colors: any }) {
   return (
     <View style={ss.ms} accessibilityLabel={`${sub} ${value}`}>
-      <Text style={ss.msIcon}>{icon}</Text>
+      <MaterialCommunityIcons name={icon} size={15} color={colors.textSecondary} style={ss.msIcon} />
       <Text style={[ss.msVal, { color: colors.white }]}>{value}</Text>
       <Text style={[ss.msSub, { color: colors.textMuted }]}>{sub}</Text>
     </View>

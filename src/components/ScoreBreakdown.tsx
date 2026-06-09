@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScoreFactors, ScoreCap } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useI18n } from '../i18n';
@@ -102,14 +102,14 @@ export default function ScoreBreakdown({ factors, finalScore }: Props) {
         {factors.caps.length > 0 && (
           <View style={[s.capsBox, { backgroundColor: colors.redDim ?? 'rgba(255,90,90,0.12)' }]}>
             {factors.caps.map(c => (
-              <Text key={c} style={[s.capTxt, { color: colors.red }]}>⚠️  {capLabels[c]}</Text>
+              <Text key={c} style={[s.capTxt, { color: colors.red }]}><MaterialCommunityIcons name="alert" size={13} color={colors.red} />  {capLabels[c]}</Text>
             ))}
           </View>
         )}
 
         {factors.windSwellOnly && (
           <View style={[s.capsBox, { backgroundColor: colors.orangeDim ?? 'rgba(255,138,80,0.12)' }]}>
-            <Text style={[s.capTxt, { color: colors.orange }]}>⚠️  {t.detailWhyWindSwell}</Text>
+            <Text style={[s.capTxt, { color: colors.orange }]}><MaterialCommunityIcons name="alert" size={13} color={colors.orange} />  {t.detailWhyWindSwell}</Text>
           </View>
         )}
 

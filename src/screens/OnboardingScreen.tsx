@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { ICONS, MCIName } from '../utils/icons';
 import { useTheme } from '../context/ThemeContext';
 import { useProfile } from '../context/ProfileContext';
 import { useLocation } from '../context/LocationContext';
@@ -15,15 +16,16 @@ import { spacing, radius, typography, touchTarget } from '../utils/tokens';
 
 const hapticLight = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 
-const LANG_OPTIONS: { locale: Locale; label: string; flag: string }[] = [
-  { locale: 'fr', label: 'Français', flag: '🇫🇷' },
-  { locale: 'en', label: 'English', flag: '🇬🇧' },
+const LANG_OPTIONS: { locale: Locale; label: string }[] = [
+  { locale: 'fr', label: 'Français' },
+  { locale: 'en', label: 'English' },
+  { locale: 'pt', label: 'Português' },
 ];
 
-const LEVEL_OPTIONS: { key: SurferLevel; emoji: string; labelFr: string; labelEn: string }[] = [
-  { key: 'beginner', emoji: '🏄', labelFr: 'Débutant', labelEn: 'Beginner' },
-  { key: 'intermediate', emoji: '🌊', labelFr: 'Intermédiaire', labelEn: 'Intermediate' },
-  { key: 'expert', emoji: '⚡', labelFr: 'Expert', labelEn: 'Expert' },
+const LEVEL_OPTIONS: { key: SurferLevel; icon: MCIName; labelFr: string; labelEn: string }[] = [
+  { key: 'beginner', icon: ICONS.surf, labelFr: 'Débutant', labelEn: 'Beginner' },
+  { key: 'intermediate', icon: ICONS.swell, labelFr: 'Intermédiaire', labelEn: 'Intermediate' },
+  { key: 'expert', icon: ICONS.bolt, labelFr: 'Expert', labelEn: 'Expert' },
 ];
 
 const HEIGHT_OPTIONS: { key: WaveHeightPref; label: string }[] = [
@@ -126,7 +128,6 @@ export default function OnboardingScreen({ onComplete }: Props) {
                   accessibilityRole="radio"
                   accessibilityState={{ selected: active }}
                 >
-                  <Text style={s.optionEmoji}>{opt.flag}</Text>
                   <Text style={[s.optionLabel, { color: active ? colors.accent : colors.white }]}>{opt.label}</Text>
                 </TouchableOpacity>
               );
@@ -138,7 +139,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
       {/* ─── Step 1 : Location permission ─── */}
       {step === 1 && (
         <View style={s.slide}>
-          <Text style={s.stepEmoji} accessibilityElementsHidden>📍</Text>
+          <MaterialCommunityIcons name={ICONS.location} size={48} color={colors.accent} style={s.stepEmoji} accessibilityElementsHidden />
           <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.onboardLocation}</Text>
           <Text style={[s.sub, { color: colors.textMuted }]}>{t.onboardLocationSub}</Text>
 
@@ -177,7 +178,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
       {/* ─── Step 2 : Level ─── */}
       {step === 2 && (
         <View style={s.slide}>
-          <Text style={s.stepEmoji} accessibilityElementsHidden>🏄‍♂️</Text>
+          <MaterialCommunityIcons name={ICONS.surf} size={48} color={colors.accent} style={s.stepEmoji} accessibilityElementsHidden />
           <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.onboardProfile}</Text>
           <Text style={[s.sub, { color: colors.textMuted }]}>{t.onboardProfileSub}</Text>
           <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>{t.profileLevel}</Text>
@@ -195,7 +196,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
                   accessibilityRole="radio"
                   accessibilityState={{ selected: active }}
                 >
-                  <Text style={s.levelEmoji}>{opt.emoji}</Text>
+                  <MaterialCommunityIcons name={opt.icon} size={28} color={active ? colors.accent : colors.textMuted} style={s.levelEmoji} />
                   <Text style={[s.levelLabel, { color: active ? colors.accent : colors.textMuted }]}>{label}</Text>
                 </TouchableOpacity>
               );
@@ -206,8 +207,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
 
       {/* ─── Step 3 : Preferences (height + duration) ─── */}
       {step === 3 && (
-        <ScrollView style={s.slide} contentContainerStyle={{ paddingBottom: spacing.xl }} showsVerticalScrollIndicator={false}>
-          <Text style={s.stepEmoji} accessibilityElementsHidden>🌊</Text>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={s.slideScrollContent} showsVerticalScrollIndicator={false}>
+          <MaterialCommunityIcons name={ICONS.swell} size={48} color={colors.accent} style={s.stepEmoji} accessibilityElementsHidden />
           <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.onboardPrefs}</Text>
           <Text style={[s.sub, { color: colors.textMuted }]}>{t.onboardPrefsSub}</Text>
 
@@ -262,7 +263,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
               accessibilityState={{ selected: !selectedZone }}
               accessibilityLabel={t.onboardZoneAuto}
             >
-              <Text style={[s.chipTxt, { color: !selectedZone ? colors.accent : colors.white }]}>📍 {t.onboardZoneAuto}</Text>
+              <Text style={[s.chipTxt, { color: !selectedZone ? colors.accent : colors.white }]}><MaterialCommunityIcons name={ICONS.location} size={14} color={!selectedZone ? colors.accent : colors.white} /> {t.onboardZoneAuto}</Text>
             </TouchableOpacity>
             {ZONE_COUNTRIES.map(z => {
               const active = selectedZone === z.country;
@@ -295,8 +296,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
               <ScoreBadge score={7.4} size="lg" animated />
               <View style={s.demoInfo}>
                 <Text style={[s.demoSpotName, { color: colors.white }]}>Hossegor — La Gravière</Text>
-                <Text style={[s.demoSpotLabel, { color: colors.accent }]}>🤙 {t.onboardDemoSpotLabel}</Text>
-                <Text style={[s.demoSpotMeta, { color: colors.textMuted }]}>🌊 1.6m · ⏱ 12s · 💨 Offshore 8</Text>
+                <Text style={[s.demoSpotLabel, { color: colors.accent }]}><MaterialCommunityIcons name="thumb-up" size={13} color={colors.accent} /> {t.onboardDemoSpotLabel}</Text>
+                <Text style={[s.demoSpotMeta, { color: colors.textMuted }]}><MaterialCommunityIcons name={ICONS.swell} size={11} color={colors.textMuted} /> 1.6m · <MaterialCommunityIcons name={ICONS.period} size={11} color={colors.textMuted} /> 12s · <MaterialCommunityIcons name={ICONS.wind} size={11} color={colors.textMuted} /> Offshore 8</Text>
               </View>
             </View>
           </View>
@@ -372,6 +373,7 @@ function DemoBullet({ color, icon, text, colors }: { color: string; icon: string
 const s = StyleSheet.create({
   root: { flex: 1 },
   slide: { flex: 1, paddingHorizontal: spacing.xxl, justifyContent: 'center' },
+  slideScrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xxl, paddingBottom: spacing.xl },
   logoWrap: { alignItems: 'center', marginBottom: spacing.xxl },
   stepEmoji: { fontSize: 48, textAlign: 'center', marginBottom: spacing.lg },
   title: { ...typography.display, textAlign: 'center', marginBottom: spacing.sm },

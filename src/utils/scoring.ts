@@ -10,13 +10,35 @@ import {
 import { isDaytime } from '../theme';
 
 /**
+ * SpotWave scoring — v2 (audited rewrite).
+ *
+ * Design goals after the v1 audit:
+ *  1. NO discontinuities. v1 was riddled with step functions (period, direction,
+ *     wind, tide) and hard caps. Crossing a threshold between two consecutive
+ *     hours produced large jumps ("très bon → 1/10 en 1h"). Every sub-factor and
+ *     every cap is now a continuous (piecewise-linear / smooth) function, so the
+ *     final score moves smoothly when the inputs move smoothly.
+ *  2. ROBUST period. v1 fed `swell_wave_period` (which Open-Meteo sometimes
+ *     reports as 0/low for an hour) straight into the deal-breakers, while the
+ *     quality used `max(period, peakPeriod)`. A single bad period reading then
+ *     capped an otherwise great swell at 1.5. We now derive ONE robust effective
+ *     period and use it everywhere, and treat genuinely-missing period as
+ *     "unknown" (neutral) instead of "terrible".
+ *  3. NO double penalties. Wind-swell, crossing swell and short period used to be
+ *     penalised in two or three places at once, cratering mediocre conditions.
+ *     Each phenomenon is now penalised once, with sane floors.
+ *  4. ANTI-SPIKE. A final pass damps isolated single-hour outliers that survive
+ *     from noisy source data, without flattening genuine trends.
+ */
+
+/**
  * Minimum score for a slot to be worth showing as a "good window".
  * Below this the conditions are mediocre/unsurfable, so the UI shows a neutral
  * "no good window" message instead of an enthusiastic time label.
  */
 export const RIDABLE_SCORE = 3.5;
 
-// ── helpers ──────────────────────────────────────────────────────────────
+// ── generic helpers ────────────────────────────────────────────────────────
 
 function angleDiff(a: number, b: number): number {
   let diff = Math.abs(a - b) % 360;
@@ -36,6 +58,10 @@ function clamp01(v: number): number {
   return Math.max(0, Math.min(1, v));
 }
 
+function clamp(v: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, v));
+}
+
 function gaussian(x: number, center: number, sigma: number): number {
   return Math.exp(-0.5 * ((x - center) / sigma) ** 2);
 }
@@ -44,22 +70,54 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * clamp01(t);
 }
 
-// ── level-dependent ideal ranges ─────────────────────────────────────────
+/**
+ * Continuous piecewise-linear interpolation across a set of (x, y) anchor
+ * points sorted by x. This is the workhorse that replaces every v1 step
+ * function: the output is C0-continuous, so neighbouring hours can never jump.
+ */
+function piecewise(x: number, points: [number, number][]): number {
+  if (x <= points[0][0]) return points[0][1];
+  const last = points[points.length - 1];
+  if (x >= last[0]) return last[1];
+  for (let i = 1; i < points.length; i++) {
+    const [x0, y0] = points[i - 1];
+    const [x1, y1] = points[i];
+    if (x <= x1) {
+      const t = (x - x0) / (x1 - x0);
+      return y0 + (y1 - y0) * t;
+    }
+  }
+  return last[1];
+}
+
+// ── effective period (robust) ──────────────────────────────────────────────
+// Open-Meteo occasionally returns swell_wave_period = 0 for an isolated hour
+// even when there is a real long-period swell (peak period stays sane). Using
+// the larger of the two avoids those single-hour collapses. If BOTH are absent
+// we return null = "unknown" so callers stay neutral instead of punishing.
+
+function effectivePeriod(swellPeriod: number, peakPeriod: number): number | null {
+  const p = Math.max(swellPeriod || 0, peakPeriod || 0);
+  return p > 0.5 ? p : null;
+}
+
+// ── level-dependent ideal ranges ────────────────────────────────────────────
 
 function levelHeightRange(profile: SurferProfile): { ideal: [number, number]; max: number } {
   switch (profile.level) {
     case 'beginner':
-      return { ideal: [0.4, 1.0], max: 1.5 };
+      return { ideal: [0.4, 1.1], max: 1.7 };
     case 'intermediate':
-      return { ideal: [0.7, 1.8], max: 2.5 };
+      // Intermediates comfortably surf chest-to-slightly-overhead; 2m is squarely
+      // in their wheelhouse, so the ideal band extends to 2.0m.
+      return { ideal: [0.7, 2.0], max: 2.8 };
     case 'expert':
       return { ideal: [1.2, 3.5], max: 6.0 };
   }
 }
 
-// ── SWELL QUALITY (0-1) ─────────────────────────────────────────────────
-// Combines height, direction, period, and height×period synergy.
-// Period is weighted 35% because it's what separates real surf from chop.
+// ── SWELL QUALITY (0-1) ──────────────────────────────────────────────────────
+// Continuous combination of height, direction, period and height×period power.
 
 function heightFactor(height: number, spot: SpotConfig, profile: SurferProfile): number {
   if (height < 0.15) return 0;
@@ -72,90 +130,109 @@ function heightFactor(height: number, spot: SpotConfig, profile: SurferProfile):
   const center = (min + max) / 2;
   const sigma = Math.max((max - min) / 2, 0.3);
 
+  // Plateau across the ideal band: 0.82 at the edges, up to ~0.95 at the centre.
   if (height >= min && height <= max) {
-    return 0.70 + 0.15 * gaussian(height, center, sigma);
+    return 0.82 + 0.13 * gaussian(height, center, sigma);
   }
 
+  // Below the ideal band: smooth ramp from ~0 (knee-high) up to 0.82 at `min`.
+  // Continuous at `min` (reaches 0.82) — no cliff.
   if (height < min) {
-    if (height < 0.3) return clamp01(height / 0.3 * 0.1);
-    return clamp01(0.10 + 0.55 * ((height - 0.3) / Math.max(min - 0.3, 0.1)));
+    return clamp01(piecewise(height, [
+      [0.15, 0.0],
+      [0.3, 0.12],
+      [Math.max(0.31, min * 0.6), 0.5],
+      [min, 0.82],
+    ]));
   }
 
-  if (height > lvl.max) {
-    if (profile.level === 'beginner') return 0;
-    return clamp01(0.15 - (height - lvl.max) * 0.1);
+  // Above the ideal band: smooth decay. Beginners can't handle overhead+, so the
+  // curve drops faster for them; experts keep more credit on big days.
+  const over = height - max;
+  const room = Math.max(lvl.max - max, 0.5);
+  const ratio = over / room; // 0 at `max`, 1 at the level's hard ceiling
+  let v: number;
+  if (profile.level === 'beginner') {
+    v = piecewise(ratio, [[0, 0.82], [0.4, 0.62], [1, 0.18], [2, 0.02]]);
+  } else if (profile.level === 'intermediate') {
+    v = piecewise(ratio, [[0, 0.82], [0.5, 0.68], [1, 0.4], [2, 0.08]]);
+  } else {
+    v = piecewise(ratio, [[0, 0.82], [0.6, 0.72], [1, 0.5], [2.5, 0.12]]);
   }
-
-  const overRatio = (height - max) / Math.max(lvl.max - max, 0.5);
-  return clamp01(0.65 - overRatio * 0.45);
+  return clamp01(v);
 }
 
 function directionFactor(direction: number, spot: SpotConfig): number {
   const center = ((spot.optimalSwellDirMin + spot.optimalSwellDirMax) / 2) % 360;
+  const halfRange = Math.max(angleDiff(spot.optimalSwellDirMin, center), 1);
 
   if (isAngleInRange(direction, spot.optimalSwellDirMin, spot.optimalSwellDirMax)) {
-    const diff = angleDiff(direction, center);
-    const halfRange = angleDiff(spot.optimalSwellDirMin, center);
-    const ratio = halfRange > 0 ? diff / halfRange : 0;
-    return 0.90 - ratio * 0.20;
+    // Inside the window: 0.92 at centre → 0.66 at the edge.
+    const ratio = clamp01(angleDiff(direction, center) / halfRange);
+    return 0.92 - 0.26 * ratio;
   }
 
-  const diffToMin = angleDiff(direction, spot.optimalSwellDirMin);
-  const diffToMax = angleDiff(direction, spot.optimalSwellDirMax);
-  const minDiff = Math.min(diffToMin, diffToMax);
-
-  if (minDiff < 15) return 0.55;
-  if (minDiff < 30) return 0.35;
-  if (minDiff < 60) return 0.15;
-  return 0.05;
+  // Outside the window: continuous decay starting from 0.66 at the edge, so the
+  // function is continuous across the boundary (no jump).
+  const beyond = Math.min(
+    angleDiff(direction, spot.optimalSwellDirMin),
+    angleDiff(direction, spot.optimalSwellDirMax),
+  );
+  return clamp(0.66 * Math.exp(-beyond / 32), 0.04, 0.66);
 }
 
-function periodFactor(period: number, peakPeriod: number, profile: SurferProfile): number {
-  const effectivePeriod = peakPeriod > 0 ? Math.max(period, peakPeriod) : period;
-  if (effectivePeriod < 4) return 0.05;
-  if (effectivePeriod < 6) return 0.12;
-  if (effectivePeriod < 8) return 0.30;
-  if (effectivePeriod < 10) return 0.50;
-  if (effectivePeriod < 12) return 0.70;
-  if (effectivePeriod < 14) return 0.85;
-  if (effectivePeriod < 18) return 0.95;
-  return profile.level === 'expert' ? 0.95 : 0.80;
+function periodFactor(period: number | null, profile: SurferProfile): number {
+  // Unknown period → neutral (don't reward, don't punish).
+  if (period == null) return 0.55;
+  const base = piecewise(period, [
+    [3, 0.05],
+    [5, 0.18],
+    [7, 0.38],
+    [9, 0.56],
+    [11, 0.70],
+    [13, 0.82],
+    [15, 0.90],
+    [18, 0.96],
+    [22, 0.98],
+  ]);
+  // Very long period adds little for beginners (waves break harder/faster).
+  if (profile.level === 'beginner' && period > 16) return Math.min(base, 0.86);
+  return base;
 }
 
-// Height × period synergy: 1.5m @ 14s is far better than 2m @ 7s.
-// A long-period swell packs more energy per metre of face.
-// Returns 0.6-1.15 multiplier on the height component.
-function powerSynergy(height: number, period: number, peakPeriod: number): number {
-  if (height < 0.2) return 1.0;
-  const effP = peakPeriod > 0 ? Math.max(period, peakPeriod) : period;
-  const energy = height * Math.pow(effP / 10, 1.3);
-  if (energy > 2.5) return 1.15;
-  if (energy > 1.5) return lerp(1.05, 1.15, (energy - 1.5) / 1.0);
-  if (energy > 0.8) return lerp(1.0, 1.05, (energy - 0.8) / 0.7);
-  if (energy > 0.3) return lerp(0.75, 1.0, (energy - 0.3) / 0.5);
-  return 0.6;
+// Height × period synergy: 1.5m @ 14s carries far more punch than 2m @ 7s.
+// Continuous multiplier on the height component, 0.7 .. 1.15.
+function powerSynergy(height: number, period: number | null): number {
+  if (height < 0.2 || period == null) return 1.0;
+  const energy = height * Math.pow(period / 10, 1.3);
+  return piecewise(energy, [
+    [0.3, 0.72],
+    [0.8, 1.0],
+    [1.5, 1.08],
+    [2.5, 1.15],
+  ]);
 }
 
 function swellQuality(
   height: number,
   direction: number,
-  period: number,
-  peakPeriod: number,
+  period: number | null,
   spot: SpotConfig,
   profile: SurferProfile,
 ): number {
   const h = heightFactor(height, spot, profile);
   const d = directionFactor(direction, spot);
-  const p = periodFactor(period, peakPeriod, profile);
-  const syn = powerSynergy(height, period, peakPeriod);
+  const p = periodFactor(period, profile);
+  const syn = powerSynergy(height, period);
 
-  // Period at 35%, direction at 25%, height at 40% (boosted by synergy)
-  return (h * syn) * 0.40 + d * 0.25 + p * 0.35;
+  // height 40% (boosted by synergy), period 35%, direction 25%.
+  return clamp01(h * syn) * 0.40 + d * 0.25 + p * 0.35;
 }
 
-// ── WIND QUALITY (0-1) ──────────────────────────────────────────────────
-// Glassy = 1.0 (best possible). Light offshore = 0.98. Strong offshore = penalised.
-// Onshore is devastating. Wind impact scales with swell height.
+// ── WIND QUALITY (0-1) ───────────────────────────────────────────────────────
+// Continuous in both direction and speed. Glassy = best. Offshore tolerated up
+// to moderate speeds; onshore degrades fast. The offshore/onshore speed curves
+// are *blended* by the direction so there is no branch-edge cliff.
 
 function windQuality(
   speed: number,
@@ -164,117 +241,102 @@ function windQuality(
   spot: SpotConfig,
   swellHeight: number,
 ): number {
-  // Glassy conditions: absolutely perfect surface
-  if (speed < 3) return 1.0;
-  if (speed < 5) return 0.97;
-
   const offshoreDir = (spot.beachOrientation + 180) % 360;
   const diff = angleDiff(direction, offshoreDir);
 
-  // Direction quality: offshore is great, onshore is terrible
-  let dirMult: number;
-  if (diff <= 30) dirMult = 1.0;       // offshore
-  else if (diff <= 60) dirMult = 0.82;  // cross-off
-  else if (diff <= 90) dirMult = 0.55;  // cross-shore
-  else if (diff <= 120) dirMult = 0.28; // cross-on
-  else if (diff <= 150) dirMult = 0.10; // onshore-ish
-  else dirMult = 0.05;                  // direct onshore
+  // Direction multiplier: continuous falloff from offshore (0°) to onshore (180°).
+  const dirMult = piecewise(diff, [
+    [0, 1.0],
+    [30, 0.96],
+    [60, 0.80],
+    [90, 0.55],
+    [120, 0.30],
+    [150, 0.13],
+    [180, 0.06],
+  ]);
 
-  // Speed impact depends on direction:
-  // - Offshore: sweet spot 5-15 km/h, then degrades (spray, hard take-offs)
-  // - Onshore: any speed is bad, more = worse
-  let speedMult: number;
-  const isOffshore = diff <= 60;
+  // Two continuous speed curves, blended by how onshore the wind is.
+  const offshoreSpeed = piecewise(speed, [
+    [0, 1.0],
+    [5, 0.99],
+    [12, 0.95],
+    [18, 0.88],
+    [25, 0.73],
+    [35, 0.55],
+    [50, 0.35],
+  ]);
+  const onshoreSpeed = piecewise(speed, [
+    [0, 1.0],
+    [5, 0.95],
+    [10, 0.85],
+    [16, 0.66],
+    [22, 0.46],
+    [30, 0.26],
+    [45, 0.10],
+  ]);
+  // onshoreMix: 0 when clearly offshore (<=30°), 1 when clearly onshore (>=120°).
+  const onshoreMix = clamp01((diff - 30) / 90);
+  const speedMult = lerp(offshoreSpeed, onshoreSpeed, onshoreMix);
 
-  if (isOffshore) {
-    // Offshore: light is perfect, strong is problematic
-    if (speed < 8) speedMult = 0.98;
-    else if (speed < 12) speedMult = 0.95;
-    else if (speed < 18) speedMult = 0.88;
-    else if (speed < 25) speedMult = 0.72;  // lip spray, hard take-offs
-    else if (speed < 35) speedMult = 0.55;  // brutal offshore, can't paddle into waves
-    else speedMult = 0.35;                   // storm offshore, unsurfable for most
-  } else {
-    if (speed < 8) speedMult = 0.92;
-    else if (speed < 12) speedMult = 0.80;
-    else if (speed < 16) speedMult = 0.65;
-    else if (speed < 22) speedMult = 0.45;
-    else if (speed < 30) speedMult = 0.25;
-    else speedMult = 0.10;
+  // Wind direction only matters once there's actual wind: at 0 km/h the surface
+  // is glassy regardless of nominal direction, and the directional penalty fades
+  // in smoothly up to ~8 km/h. This both reflects reality AND removes the cliff
+  // that a hard "glassy below 3 km/h" override used to create.
+  const windStrength = clamp01(speed / 8);
+  const effDir = lerp(1.0, dirMult, windStrength);
+  let base = effDir * speedMult;
+
+  // Gust instability (continuous): irregular wind ruins the surface — but a big
+  // gust ratio at LIGHT wind (e.g. gusting 12 over a 4 km/h breeze) barely
+  // matters, the surface is still clean. So we fade the ratio penalty in with
+  // the absolute steady wind, and there is no hard speed threshold (no cliff).
+  if (gusts > speed && speed > 0.5) {
+    const ratio = gusts / speed;
+    const ratioPen = piecewise(ratio, [[1.3, 1.0], [1.6, 0.93], [2.2, 0.82], [3.5, 0.7]]);
+    const wind = clamp01(speed / 14); // ratio only bites once there's real wind
+    base *= lerp(1.0, ratioPen, wind);
   }
+  // Absolute gust ceiling (continuous): strong gusts are bad regardless.
+  base *= piecewise(gusts, [[25, 1.0], [30, 0.82], [40, 0.62], [55, 0.4]]);
 
-  let base = dirMult * speedMult;
-
-  // Onshore double penalty for cross-on and worse
-  if (diff > 90) {
-    base *= 0.70;
-  }
-
-  // Gust instability: irregular wind = inconsistent surface
-  if (gusts > 0 && speed > 0) {
-    const gustRatio = gusts / speed;
-    if (gustRatio > 2.0) base *= 0.50;
-    else if (gustRatio > 1.5) base *= 0.70;
-    else if (gustRatio > 1.3) base *= 0.85;
-  }
-
-  // Absolute gust caps
-  if (gusts > 40) base *= 0.40;
-  else if (gusts > 30) base *= 0.60;
-  else if (gusts > 25) base *= 0.78;
-
-  // Wind × swell height interaction: same wind is worse on bigger waves
-  // because the face is larger and more exposed to chop.
-  // On tiny waves (<0.5m), wind matters less (you're barely riding).
+  // Wind × wave-size interaction: the same onshore wind is worse on a bigger,
+  // more exposed face. Negligible on knee-high days.
   if (swellHeight > 0.5 && diff > 60) {
-    const heightPenalty = clamp01((swellHeight - 0.5) / 2.0) * 0.15;
-    base *= (1.0 - heightPenalty);
+    const penalty = clamp01((swellHeight - 0.5) / 2.0) * 0.15;
+    base *= 1.0 - penalty;
   }
 
   return clamp01(base);
 }
 
-// ── WIND TREND ──────────────────────────────────────────────────────────
-// Detects improving/degrading wind windows.
-// Dropping onshore wind = surface still clean for ~1-2h after.
-// Rising wind = conditions degrading faster than the number shows.
+// ── WIND TREND ───────────────────────────────────────────────────────────────
+// Detects improving/degrading wind windows (continuous bonus/malus).
 
-function windTrendFactor(
-  index: number,
-  weather: WeatherData,
-  spot: SpotConfig,
-): number {
-  if (index < 2 || index >= weather.wind_speed_10m.length - 1) return 1.0;
+function windTrendFactor(index: number, weather: WeatherData, spot: SpotConfig): number {
+  const n = weather.wind_speed_10m.length;
+  if (index < 2 || index >= n - 1) return 1.0;
 
   const prev2 = weather.wind_speed_10m[index - 2] ?? 0;
   const prev1 = weather.wind_speed_10m[index - 1] ?? 0;
   const curr = weather.wind_speed_10m[index] ?? 0;
-  const next1 = weather.wind_speed_10m[Math.min(index + 1, weather.wind_speed_10m.length - 1)] ?? 0;
+  const next1 = weather.wind_speed_10m[Math.min(index + 1, n - 1)] ?? 0;
 
   const offshoreDir = (spot.beachOrientation + 180) % 360;
   const windDir = weather.wind_direction_10m[index] ?? 0;
-  const diff = angleDiff(windDir, offshoreDir);
-  const isOnshoreIsh = diff > 90;
+  const isOnshoreIsh = angleDiff(windDir, offshoreDir) > 90;
 
-  const recentTrend = curr - ((prev2 + prev1) / 2);
-  const futureTrend = next1 - curr;
+  const recentTrend = curr - (prev2 + prev1) / 2; // <0 = dropping
+  const futureTrend = next1 - curr;               // >0 = rising
 
-  // Wind dropping = improving. Bonus if onshore is decreasing.
-  if (recentTrend < -4 && isOnshoreIsh) return 1.08;
-  if (recentTrend < -2) return 1.04;
-
-  // Wind rising = degrading. Penalty if getting worse.
-  if (futureTrend > 5 && isOnshoreIsh) return 0.90;
-  if (futureTrend > 3) return 0.95;
-
-  return 1.0;
+  // Continuous: dropping onshore wind = cleaning up (bonus), rising = degrading.
+  const dropBonus = piecewise(-recentTrend, [[2, 1.0], [4, 1.04], [8, isOnshoreIsh ? 1.08 : 1.05]]);
+  const riseMalus = piecewise(futureTrend, [[3, 1.0], [5, isOnshoreIsh ? 0.93 : 0.96], [9, isOnshoreIsh ? 0.88 : 0.93]]);
+  return clamp(dropBonus * riseMalus, 0.85, 1.08);
 }
 
-// ── TIDE MATCH ──────────────────────────────────────────────────────────
-// Trend bonus/malus depends on bottom type (not universal).
-// Beach breaks: falling tide often reveals better banks.
-// Point breaks: rising tide usually improves the wave shape.
-// Reef breaks: depends on depth; very low = dangerous.
+// ── TIDE MATCH ─────────────────────────────────────────────────────────────--
+// Continuous, bottom-type aware. Bounded to a gentle 0.78..1.12 band so tide
+// alone can never crater an otherwise good forecast.
 
 function tideMatch(
   seaLevel: number,
@@ -283,86 +345,68 @@ function tideMatch(
   profile: SurferProfile,
 ): number {
   const trend = seaLevel - prevSeaLevel;
-  const isRising = trend > 0.03;
-  const isFalling = trend < -0.03;
+  // Smooth trend signal in [-1, 1] (saturates around ±8cm/h).
+  const t = clamp(trend / 0.08, -1, 1);
 
-  // Trend multiplier now depends on bottom type
   let trendMult = 1.0;
   switch (spot.bottomType) {
     case 'beach':
-      // Beach breaks: falling tide exposes better sandbars
-      if (isFalling) trendMult = 1.06;
-      else if (isRising) trendMult = 0.97;
+      // Falling tide tends to expose better sandbars.
+      trendMult = 1.0 - t * 0.05;
       break;
     case 'point':
-      // Point breaks: rising tide shapes the wave along the point
-      if (isRising) trendMult = 1.08;
-      else if (isFalling) trendMult = 0.94;
+      // Rising tide shapes the point.
+      trendMult = 1.0 + t * 0.06;
       break;
     case 'reef':
-      // Reef breaks: rising tide = safer + cleaner; falling = shallower risk
-      if (isRising) trendMult = 1.06;
-      else if (isFalling) trendMult = 0.92;
+      // Rising tide = safer + cleaner over the reef.
+      trendMult = 1.0 + t * 0.05;
       break;
   }
 
-  let levelMult = 1.0;
+  let levelMult: number;
   switch (spot.optimalTide) {
     case 'low':
-      if (seaLevel < -1.0) levelMult = 1.1;
-      else if (seaLevel < -0.3) levelMult = 1.05;
-      else if (seaLevel < 0.3) levelMult = 0.95;
-      else levelMult = 0.80;
+      levelMult = piecewise(seaLevel, [[-1.5, 1.1], [-0.3, 1.05], [0.3, 0.95], [1.0, 0.82], [1.8, 0.78]]);
       break;
     case 'mid':
-      if (seaLevel >= -0.5 && seaLevel <= 0.5) levelMult = 1.1;
-      else if (seaLevel >= -1.0 && seaLevel <= 1.0) levelMult = 0.95;
-      else levelMult = 0.80;
+      levelMult = 1.1 - 0.3 * clamp01(Math.abs(seaLevel) / 1.2);
       break;
     case 'high':
-      if (seaLevel > 0.5) levelMult = 1.1;
-      else if (seaLevel > 0.0) levelMult = 1.0;
-      else if (seaLevel > -0.5) levelMult = 0.90;
-      else levelMult = 0.75;
+      levelMult = piecewise(seaLevel, [[-1.0, 0.78], [-0.5, 0.88], [0.0, 1.0], [0.6, 1.1], [1.8, 1.1]]);
       break;
     case 'all':
     default:
-      if (Math.abs(seaLevel) > 1.8) levelMult = 0.90;
+      levelMult = 1.0 - 0.12 * clamp01((Math.abs(seaLevel) - 1.4) / 0.8);
       break;
   }
 
-  if (spot.bottomType === 'beach') {
-    if (seaLevel > 1.0) levelMult *= 0.90;
-    if (seaLevel < -1.5) levelMult *= 0.85;
-  }
+  // Safety: very shallow reef on a low tide is hazardous, esp. for beginners.
   if (spot.bottomType === 'reef' && seaLevel < -1.2) {
-    levelMult *= profile.level === 'beginner' ? 0.50 : 0.75;
+    levelMult *= profile.level === 'beginner' ? 0.7 : 0.85;
   }
 
-  const raw = levelMult * trendMult;
-  return Math.max(0.6, Math.min(1.15, raw));
+  return clamp(levelMult * trendMult, 0.78, 1.12);
 }
 
-// ── LEVEL FIT ───────────────────────────────────────────────────────────
+// ── LEVEL FIT ─────────────────────────────────────────────────────────────--
 
 function levelFit(spot: SpotConfig, profile: SurferProfile): number {
-  if (spot.recommendedLevel === profile.level) return 1.05;
-
+  if (spot.recommendedLevel === profile.level) return 1.04;
   if (profile.level === 'intermediate') {
-    return spot.recommendedLevel === 'beginner' ? 0.95 : 0.80;
+    return spot.recommendedLevel === 'beginner' ? 0.97 : 0.88;
   }
   if (profile.level === 'expert') {
-    return spot.recommendedLevel === 'intermediate' ? 0.95 : 0.85;
+    return spot.recommendedLevel === 'intermediate' ? 0.97 : 0.92;
   }
-  if (spot.recommendedLevel === 'intermediate') return 0.70;
-  return 0.40;
+  // beginner at harder spots — gentle nudge only; real safety handled by caps.
+  if (spot.recommendedLevel === 'intermediate') return 0.85;
+  return 0.7;
 }
 
-// ── PROFILE MATCH ───────────────────────────────────────────────────────
-// Combines the surfer's stated preferences: wave height, break type and wind.
-// windQuality already scores wind objectively; here we only add a gentle nudge
-// so that, e.g., a picky "offshore-only" surfer rates onshore days a bit lower
-// and a spot whose bottom type matches the preferred break gets a small bonus.
+// ── PROFILE MATCH ────────────────────────────────────────────────────────────
+// Gentle nudge from the surfer's stated preferences (height band, break type,
+// wind). Kept close to 1 so taste never dominates objective quality.
 
 function profileMatch(
   swellHeight: number,
@@ -374,42 +418,36 @@ function profileMatch(
 ): number {
   const h = swellHeight || waveHeight;
 
-  let heightM = 0.90;
+  let heightM = 0.95;
   for (const pref of profile.preferredHeight) {
-    if (pref === '0.5-1' && h >= 0.4 && h <= 1.1) { heightM = 1.1; break; }
-    if (pref === '1-2' && h >= 0.9 && h <= 2.1) { heightM = 1.1; break; }
-    if (pref === '2+' && h >= 1.8) { heightM = 1.1; break; }
+    if (pref === '0.5-1' && h >= 0.4 && h <= 1.1) { heightM = 1.06; break; }
+    if (pref === '1-2' && h >= 0.9 && h <= 2.1) { heightM = 1.06; break; }
+    if (pref === '2+' && h >= 1.8) { heightM = 1.06; break; }
   }
 
-  // Break type preference: bonus when the spot matches one of the preferred
-  // bottom types, slight malus otherwise.
   let breakM = 1.0;
   if (profile.breakType && profile.breakType.length > 0) {
-    breakM = profile.breakType.includes(spot.bottomType) ? 1.05 : 0.92;
+    breakM = profile.breakType.includes(spot.bottomType) ? 1.04 : 0.96;
   }
 
-  // Wind preference: gentle modifier, only when there's actual wind.
   let windM = 1.0;
   if (profile.windPref && profile.windPref !== 'any' && windSpeed >= 8) {
     const offshoreDir = (spot.beachOrientation + 180) % 360;
     const diff = angleDiff(windDir, offshoreDir);
     if (profile.windPref === 'offshore') {
-      if (diff <= 45) windM = 1.0;
-      else if (diff <= 90) windM = 0.96;
-      else windM = 0.93;
+      windM = piecewise(diff, [[45, 1.0], [90, 0.97], [180, 0.94]]);
     } else {
-      // 'side-shore': tolerant of cross winds, only dislikes pure onshore
-      windM = diff <= 120 ? 1.0 : 0.96;
+      windM = diff <= 120 ? 1.0 : 0.97;
     }
   }
 
   return heightM * breakM * windM;
 }
 
-// ── CLEAN FACTOR ────────────────────────────────────────────────────────
-// Penalizes messy swell. No longer penalizes short period here
-// (that's already handled by periodFactor — avoids double penalty).
-// Now also detects crossing swells via wind wave direction.
+// ── CLEAN FACTOR ─────────────────────────────────────────────────────────────
+// Penalises messy / wind-dominated / crossing seas. Continuous, single source
+// of truth for "chop" (the old code also penalised this via separate caps and a
+// windSwell multiplier → triple penalty; now consolidated here + one soft cap).
 
 function cleanFactor(
   swellHeight: number,
@@ -421,68 +459,49 @@ function cleanFactor(
 ): number {
   let f = 1.0;
 
-  // Ground swell vs total wave ratio
-  if (waveHeight > 0 && swellHeight > 0) {
-    const ratio = swellHeight / waveHeight;
-    if (ratio < 0.5) f *= 0.70;
-    else if (ratio < 0.65) f *= 0.85;
-  }
-
-  // Wind swell dominance
+  // Wind-swell dominance (the dominant cleanliness signal).
   if (windWaveHeight > 0 && swellHeight > 0) {
     const windDominance = windWaveHeight / (swellHeight + windWaveHeight);
-    if (windDominance > 0.7) f *= 0.55;
-    else if (windDominance > 0.5) f *= 0.72;
-    else if (windDominance > 0.35) f *= 0.88;
+    f *= piecewise(windDominance, [[0.3, 1.0], [0.5, 0.85], [0.7, 0.7], [0.9, 0.55]]);
+  } else if (waveHeight > 0 && swellHeight > 0) {
+    // Fallback when wind_wave is unavailable: ground-swell vs total ratio.
+    const ratio = swellHeight / waveHeight;
+    f *= piecewise(ratio, [[0.4, 0.7], [0.65, 0.88], [0.85, 1.0]]);
   }
 
-  // Short-period wind chop on top of swell
-  if (windWavePeriod > 0 && windWavePeriod < 5 && windWaveHeight > 0.5) {
-    f *= 0.80;
+  // Short-period chop riding on top of the swell.
+  if (windWavePeriod > 0 && windWaveHeight > 0.5) {
+    f *= piecewise(windWavePeriod, [[3, 0.8], [5, 0.92], [7, 1.0]]);
   }
 
-  // Crossing swells: wind wave from a very different direction than ground swell
-  // creates a chaotic, bumpy surface even in light wind.
+  // Crossing seas: wind wave from a very different bearing = bumpy even in light
+  // wind. Continuous in the crossing angle.
   if (windWaveHeight > 0.3 && swellHeight > 0.3) {
-    const crossAngle = angleDiff(swellDir, windWaveDir);
-    if (crossAngle > 90) f *= 0.70;
-    else if (crossAngle > 60) f *= 0.82;
-    else if (crossAngle > 40) f *= 0.92;
+    const cross = angleDiff(swellDir, windWaveDir);
+    f *= piecewise(cross, [[40, 1.0], [60, 0.92], [90, 0.82], [135, 0.72]]);
   }
 
-  return Math.max(0.25, f);
+  return clamp(f, 0.4, 1.0);
 }
 
-// ── CURRENT PENALTY ─────────────────────────────────────────────────────
-// Strong ocean currents degrade conditions: harder paddle, drift, rips.
+// ── CURRENT / WEATHER / CONSISTENCY ──────────────────────────────────────────
 
 function currentPenalty(velocity: number): number {
-  if (velocity < 0.3) return 1.0;
-  if (velocity < 0.5) return 0.97;
-  if (velocity < 0.8) return 0.93;
-  if (velocity < 1.2) return 0.85;
-  return 0.75;
+  return piecewise(velocity, [[0.3, 1.0], [0.5, 0.97], [0.8, 0.93], [1.2, 0.85], [2.0, 0.78]]);
 }
-
-// ── WEATHER PENALTY ─────────────────────────────────────────────────────
 
 function weatherPenalty(weatherCode: number): number {
   if (weatherCode <= 3) return 1.0;
-  if (weatherCode <= 49) return 0.97;
-  if (weatherCode <= 55) return 0.93;
-  if (weatherCode <= 65) return 0.88;
-  if (weatherCode <= 79) return 0.85;
-  if (weatherCode <= 82) return 0.85;
-  if (weatherCode <= 86) return 0.80;
-  return 0.70;
+  if (weatherCode <= 49) return 0.98;
+  if (weatherCode <= 55) return 0.95;
+  if (weatherCode <= 65) return 0.9;
+  if (weatherCode <= 79) return 0.88;
+  if (weatherCode <= 82) return 0.88;
+  if (weatherCode <= 86) return 0.83;
+  return 0.74;
 }
 
-// ── CONSISTENCY BONUS ───────────────────────────────────────────────────
-
-function consistencyFactor(
-  index: number,
-  marine: MarineData,
-): number {
+function consistencyFactor(index: number, marine: MarineData): number {
   if (index < 2) return 1.0;
   const dirs: number[] = [];
   for (let i = Math.max(0, index - 2); i <= index; i++) {
@@ -490,23 +509,14 @@ function consistencyFactor(
     if (d != null) dirs.push(d);
   }
   if (dirs.length < 2) return 1.0;
-
   let maxDiff = 0;
   for (let i = 1; i < dirs.length; i++) {
-    let diff = Math.abs(dirs[i] - dirs[i - 1]) % 360;
-    if (diff > 180) diff = 360 - diff;
-    maxDiff = Math.max(maxDiff, diff);
+    maxDiff = Math.max(maxDiff, angleDiff(dirs[i], dirs[i - 1]));
   }
-
-  if (maxDiff < 10) return 1.05;
-  if (maxDiff < 25) return 1.0;
-  if (maxDiff < 45) return 0.92;
-  return 0.85;
+  return piecewise(maxDiff, [[10, 1.04], [25, 1.0], [45, 0.94], [70, 0.9]]);
 }
 
-// ── EFFECTIVE HEIGHT ────────────────────────────────────────────────────
-// If swell_wave_height is 0 but wave_height exists, it's pure wind swell.
-// We still use the height but flag it for a penalty via the clean factor.
+// ── EFFECTIVE HEIGHT ─────────────────────────────────────────────────────────
 
 function effectiveSwellHeight(swellHeight: number, waveHeight: number): { height: number; isWindSwellOnly: boolean } {
   if (swellHeight > 0.15) return { height: swellHeight, isWindSwellOnly: false };
@@ -514,13 +524,16 @@ function effectiveSwellHeight(swellHeight: number, waveHeight: number): { height
   return { height: 0, isWindSwellOnly: false };
 }
 
-// ── DEAL-BREAKERS ────────────────────────────────────────────────────────
+// ── DEAL-BREAKERS (continuous ceilings) ──────────────────────────────────────
+// Each deal-breaker is now a CONTINUOUS ceiling (max achievable score) instead
+// of a hard step. The final cap is the lowest ceiling. Because every ceiling is
+// piecewise-linear in its driving variable, the cap moves smoothly hour to hour.
 
 function applyDealBreakers(
   rawScore: number,
   swellHeight: number,
   waveHeight: number,
-  period: number,
+  period: number | null,
   windSpeed: number,
   windDir: number,
   gusts: number,
@@ -529,73 +542,71 @@ function applyDealBreakers(
 ): { capped: number; caps: ScoreCap[] } {
   let cap = 10;
   const caps: ScoreCap[] = [];
-  const addCap = (newCap: number, label: ScoreCap) => {
-    if (newCap < cap) {
-      cap = newCap;
-      if (!caps.includes(label)) caps.push(label);
-    } else if (newCap === cap && rawScore > newCap && !caps.includes(label)) {
-      caps.push(label);
-    }
+  // Record a cap label only when it is actually binding (clearly below rawScore).
+  const consider = (ceiling: number, label: ScoreCap) => {
+    if (ceiling < cap) cap = ceiling;
+    if (ceiling < rawScore - 0.2 && !caps.includes(label)) caps.push(label);
   };
 
-  if (swellHeight < 0.15) addCap(0.5, 'flat');
-  else if (swellHeight < 0.3) addCap(1.5, 'flat');
-  else if (swellHeight < 0.4) addCap(2.5, 'flat');
+  // Flat / tiny surf — continuous ramp.
+  if (swellHeight < 0.6) {
+    consider(piecewise(swellHeight, [[0.1, 0.5], [0.3, 2.0], [0.4, 3.5], [0.6, 7.5]]), 'flat');
+  }
 
-  if (period < 4) addCap(1.5, 'period');
-  else if (period < 5) addCap(3.0, 'period');
-  else if (period < 7) addCap(5.0, 'period');
+  // Short period — gentle continuous ceiling. Missing period (null) = no cap.
+  // Note: `period` is the ROBUST max(swell, peak), so a lone bad swell-period
+  // reading next to a healthy peak period will NOT trigger this.
+  if (period != null && period < 9) {
+    consider(piecewise(period, [[3.5, 2.0], [5, 3.7], [9, 9.0]]), 'period');
+  }
 
+  // Wind direction/speed ceilings, blended by onshore-ness (continuous).
   const offshoreDir = (spot.beachOrientation + 180) % 360;
   const windAngle = angleDiff(windDir, offshoreDir);
-  const isOnshore = windAngle > 120;
-  const isCrossOn = windAngle > 90 && windAngle <= 120;
+  const onshoreMix = clamp01((windAngle - 60) / 60); // 0 at 60°, 1 at 120°+
+  if (onshoreMix > 0 && windSpeed > 12) {
+    const onshoreCeil = piecewise(windSpeed, [[12, 9.0], [18, 6.0], [25, 4.0], [35, 2.5]]);
+    // Blend toward "no cap" (10) when only cross-shore.
+    consider(lerp(10, onshoreCeil, onshoreMix), 'onshore');
+  }
 
-  if (isOnshore && windSpeed > 30) addCap(2.0, 'onshore');
-  else if (isOnshore && windSpeed > 25) addCap(3.0, 'onshore');
-  else if (isOnshore && windSpeed > 20) addCap(3.5, 'onshore');
-  else if (isOnshore && windSpeed > 15) addCap(5.0, 'onshore');
+  // Storm offshore (continuous) — spray, impossible take-offs.
+  if (windAngle <= 45 && windSpeed > 28) {
+    consider(piecewise(windSpeed, [[28, 8.0], [35, 5.5], [50, 4.0]]), 'offshoreStorm');
+  }
 
-  if (isCrossOn && windSpeed > 20) addCap(5.5, 'onshore');
-  else if (isCrossOn && windSpeed > 15) addCap(6.5, 'onshore');
+  // Gust ceiling (continuous).
+  if (gusts > 28) {
+    consider(piecewise(gusts, [[28, 8.5], [35, 6.5], [45, 4.5], [60, 2.5]]), 'gusts');
+  }
 
-  const isOffshore = windAngle <= 45;
-  if (isOffshore && windSpeed > 40) addCap(4.0, 'offshoreStorm');
-  else if (isOffshore && windSpeed > 30) addCap(5.5, 'offshoreStorm');
-
-  if (gusts > 50) addCap(2.5, 'gusts');
-  else if (gusts > 40) addCap(3.5, 'gusts');
-  else if (gusts > 30) addCap(6.5, 'gusts');
-  else if (gusts > 25) addCap(7.5, 'gusts');
-
+  // Wind-swell domination (already softened in cleanFactor → light ceiling only).
   if (waveHeight > 0 && swellHeight > 0) {
     const ratio = swellHeight / waveHeight;
-    if (ratio < 0.5) addCap(5.5, 'windSwell');
+    if (ratio < 0.5) consider(piecewise(ratio, [[0.2, 5.0], [0.5, 7.5]]), 'windSwell');
   }
 
-  if (
-    profile.level === 'beginner' &&
-    spot.recommendedLevel === 'expert' &&
-    swellHeight > 2.0
-  ) {
-    addCap(1.5, 'beginnerExpert');
+  // Safety caps for beginners on dangerous days.
+  const lvlMax = levelHeightRange(profile).max;
+  if (profile.level === 'beginner' && spot.recommendedLevel === 'expert' && swellHeight > 1.8) {
+    consider(piecewise(swellHeight, [[1.8, 4.0], [2.5, 2.0], [3.5, 1.5]]), 'beginnerExpert');
   }
-
-  if (profile.level === 'beginner' && swellHeight > levelHeightRange(profile).max) {
-    addCap(2.0, 'beginnerBigWaves');
+  if (profile.level === 'beginner' && swellHeight > lvlMax) {
+    consider(piecewise(swellHeight, [[lvlMax, 4.5], [lvlMax + 1, 2.5], [lvlMax + 2, 2.0]]), 'beginnerBigWaves');
   }
 
   return { capped: Math.min(rawScore, cap), caps };
 }
 
-// ── HIGH-END COMPRESSION ────────────────────────────────────────────────
+// ── HIGH-END COMPRESSION ─────────────────────────────────────────────────────
+// Perfect 10s should be rare; compress the top so "epic" stands out.
 
 function compressHighEnd(score: number): number {
-  if (score <= 7.0) return score;
-  return 7.0 + (score - 7.0) * 0.6;
+  if (score <= 7.5) return score;
+  return 7.5 + (score - 7.5) * 0.6;
 }
 
-// ── MAIN SCORING ────────────────────────────────────────────────────────
+// ── MAIN HOURLY SCORING ──────────────────────────────────────────────────────
 
 export function computeHourlyScore(
   index: number,
@@ -607,7 +618,7 @@ export function computeHourlyScore(
   const waveHeight = marine.wave_height[index] ?? 0;
   const rawSwellHeight = marine.swell_wave_height[index] ?? 0;
   const swellDir = marine.swell_wave_direction[index] ?? 0;
-  const swellPeriod = marine.swell_wave_period[index] ?? 0;
+  const swellPeriodRaw = marine.swell_wave_period[index] ?? 0;
   const peakPeriod = marine.swell_wave_peak_period[index] ?? 0;
   const windWaveHeight = marine.wind_wave_height[index] ?? 0;
   const windWavePeriod = marine.wind_wave_period[index] ?? 0;
@@ -622,16 +633,16 @@ export function computeHourlyScore(
   const tideVelocity = marine.ocean_current_velocity[index] ?? 0;
   const weatherCode = weather.weather_code[index] ?? 0;
 
-  // Effective height: if no ground swell, fallback to wave_height with penalty
+  // ONE robust effective period, used by quality AND deal-breakers (the v1 bug
+  // was using a different period in each place).
+  const period = effectivePeriod(swellPeriodRaw, peakPeriod);
+
   const { height: effectiveHeight, isWindSwellOnly } = effectiveSwellHeight(rawSwellHeight, waveHeight);
 
-  const swell = swellQuality(effectiveHeight, swellDir, swellPeriod, peakPeriod, spot, profile);
-
-  // Wind quality now receives swell height for interaction
+  const swell = swellQuality(effectiveHeight, swellDir, period, spot, profile);
   const wind = windQuality(windSpeed, windDir, windGusts, spot, effectiveHeight);
 
-  // Base: multiplicative — if either is zero, score is zero.
-  // But glassy (wind=1.0) + good swell = full marks, not penalised.
+  // Base is multiplicative: zero swell or pure onshore storm → near-zero.
   const base = swell * wind;
 
   const tide = tideMatch(seaLevel, prevSeaLevel, spot, profile);
@@ -643,17 +654,17 @@ export function computeHourlyScore(
   const windTrend = windTrendFactor(index, weather, spot);
   const current = currentPenalty(tideVelocity);
 
-  // Pure wind swell penalty: no ground swell at all means messy conditions
-  const windSwellPenalty = isWindSwellOnly ? 0.65 : 1.0;
+  // Pure wind-swell (no ground swell at all): single, modest penalty. cleanFactor
+  // can't see it (swellHeight≈0) so we apply it here once, not three times.
+  const windSwellPenalty = isWindSwellOnly ? 0.78 : 1.0;
 
   const adjusted = base * tide * level * pMatch * clean * weather_
     * consistency * windTrend * current * windSwellPenalty;
   const rawScore = adjusted * 10;
 
   const { capped, caps } = applyDealBreakers(
-    rawScore, effectiveHeight, waveHeight, swellPeriod,
-    windSpeed, windDir, windGusts,
-    spot, profile,
+    rawScore, effectiveHeight, waveHeight, period,
+    windSpeed, windDir, windGusts, spot, profile,
   );
 
   const finalScore = compressHighEnd(capped);
@@ -664,7 +675,7 @@ export function computeHourlyScore(
     waveHeight,
     swellHeight: rawSwellHeight,
     swellDirection: swellDir,
-    swellPeriod,
+    swellPeriod: swellPeriodRaw,
     windSpeed,
     windDirection: windDir,
     windGusts,
@@ -691,32 +702,118 @@ export function computeHourlyScore(
   };
 }
 
-// ── BEST TIME LABEL ─────────────────────────────────────────────────────
+// ── ANTI-SPIKE SMOOTHING ─────────────────────────────────────────────────────
+// Even with continuous factors, raw source data can contain isolated single-hour
+// glitches (e.g. a lone bad period/height sample). This pass pulls a hard outlier
+// toward its neighbours ONLY when both neighbours agree and the middle hour
+// disagrees sharply — so genuine ramps and fronts are preserved.
 
-function formatBestTimeLabel(bestTime: string, now: Date, locale: string = 'fr'): string {
-  const best = new Date(bestTime);
-  const diffMs = best.getTime() - now.getTime();
-  const diffHours = Math.round(diffMs / (1000 * 60 * 60));
-  const hour = best.getHours().toString().padStart(2, '0');
-  const isFr = locale === 'fr';
-
-  if (diffHours <= 0) return isFr ? 'Maintenant !' : 'Now!';
-  if (diffHours <= 6) return isFr ? `Dans ${diffHours}h` : `In ${diffHours}h`;
-
-  const isToday = best.getDate() === now.getDate();
-  if (isToday) return isFr ? `Aujourd'hui ${hour}h` : `Today ${hour}h`;
-
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  if (best.getDate() === tomorrow.getDate()) return isFr ? `Demain ${hour}h` : `Tomorrow ${hour}h`;
-
-  const dayNames = isFr
-    ? ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
-    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  return `${dayNames[best.getDay()]} ${hour}h`;
+function dampOutliers(scores: number[]): number[] {
+  if (scores.length < 3) return scores;
+  const out = scores.slice();
+  for (let i = 1; i < scores.length - 1; i++) {
+    const a = scores[i - 1];
+    const s = scores[i];
+    const b = scores[i + 1];
+    const neighbourAvg = (a + b) / 2;
+    const neighboursAgree = Math.abs(a - b) < 2.0;
+    const middleDisagrees = Math.abs(s - neighbourAvg) > 2.5;
+    if (neighboursAgree && middleDisagrees) {
+      // Pull halfway toward the neighbour consensus.
+      out[i] = Math.round(((s + neighbourAvg) / 2) * 10) / 10;
+    }
+  }
+  return out;
 }
 
-// ── SPOT FORECAST ───────────────────────────────────────────────────────
+// ── TIMEZONE HELPERS ─────────────────────────────────────────────────────────
+// Open-Meteo (timezone=auto) returns hourly timestamps in the SPOT's local time
+// and the offset separately. We use the offset to know "what time/day is it AT
+// the spot right now", which is what the user actually cares about.
+
+/** Spot-local "now" as a Date whose UTC fields equal the spot wall-clock time. */
+function spotLocalNow(utcOffsetSeconds?: number): Date {
+  if (typeof utcOffsetSeconds === 'number') {
+    return new Date(Date.now() + utcOffsetSeconds * 1000);
+  }
+  return new Date();
+}
+
+/** "YYYY-MM-DDTHH" key for the spot's current local hour. */
+function spotLocalNowKey(utcOffsetSeconds?: number): string {
+  const d = spotLocalNow(utcOffsetSeconds);
+  if (typeof utcOffsetSeconds === 'number') {
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    const h = String(d.getUTCHours()).padStart(2, '0');
+    return `${y}-${m}-${day}T${h}`;
+  }
+  // Fallback (offset unknown): build a local-time key.
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  return `${y}-${m}-${day}T${h}`;
+}
+
+/** Spot-local current hour (0-23). */
+export function spotLocalHour(utcOffsetSeconds?: number): number {
+  const d = spotLocalNow(utcOffsetSeconds);
+  return typeof utcOffsetSeconds === 'number' ? d.getUTCHours() : d.getHours();
+}
+
+/** Rough civil-night test at the spot: before dawn or after dusk. */
+export function isNightAtSpot(utcOffsetSeconds?: number): boolean {
+  const h = spotLocalHour(utcOffsetSeconds);
+  return h < 6 || h >= 21;
+}
+
+// ── BEST TIME LABEL ──────────────────────────────────────────────────────────
+
+function formatBestTimeLabel(
+  bestTime: string,
+  nowKey: string,
+  locale: string = 'fr',
+): string {
+  const isFr = locale === 'fr';
+  const isPt = locale === 'pt';
+  // Compare on the spot-local hour keys (strings sort chronologically).
+  const bestKey = bestTime.slice(0, 13);
+  const bestDate = bestTime.slice(0, 10);
+  const bestHour = bestTime.slice(11, 13);
+  const nowDate = nowKey.slice(0, 10);
+  const nowHour = parseInt(nowKey.slice(11, 13), 10);
+  const bestHourNum = parseInt(bestHour, 10);
+
+  if (bestKey <= nowKey) return isFr ? 'Maintenant !' : isPt ? 'Agora !' : 'Now!';
+
+  // Hours difference within the same/next day.
+  if (bestDate === nowDate) {
+    const diff = bestHourNum - nowHour;
+    if (diff <= 6) return isFr ? `Dans ${diff}h` : isPt ? `Em ${diff}h` : `In ${diff}h`;
+    return isFr ? `Aujourd'hui ${bestHour}h` : isPt ? `Hoje ${bestHour}h` : `Today ${bestHour}h`;
+  }
+
+  // Day-of-week label in the spot's local calendar.
+  const tomorrow = new Date(`${nowDate}T00:00:00Z`);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  const tomorrowStr = `${tomorrow.getUTCFullYear()}-${String(tomorrow.getUTCMonth() + 1).padStart(2, '0')}-${String(tomorrow.getUTCDate()).padStart(2, '0')}`;
+  if (bestDate === tomorrowStr) {
+    return isFr ? `Demain ${bestHour}h` : isPt ? `Amanhã ${bestHour}h` : `Tomorrow ${bestHour}h`;
+  }
+
+  const dayDate = new Date(`${bestDate}T00:00:00Z`);
+  const dayIdx = dayDate.getUTCDay();
+  const dayNames = isFr
+    ? ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+    : isPt
+      ? ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return `${dayNames[dayIdx]} ${bestHour}h`;
+}
+
+// ── SPOT FORECAST ────────────────────────────────────────────────────────────
 
 export function computeSpotForecast(
   spot: SpotConfig,
@@ -732,16 +829,27 @@ export function computeSpotForecast(
     hourlyConditions.push(computeHourlyScore(i, marine, weather, spot, profile));
   }
 
-  const now = new Date();
-  const nowStr = now.toISOString().slice(0, 13);
+  // Anti-spike pass on the final scores.
+  const damped = dampOutliers(hourlyConditions.map(h => h.score));
+  for (let i = 0; i < hourlyConditions.length; i++) {
+    if (damped[i] !== hourlyConditions[i].score) hourlyConditions[i].score = damped[i];
+  }
+
+  // Timezone: prefer the marine offset, fall back to weather offset.
+  const utcOffsetSeconds = marine.utc_offset_seconds ?? weather.utc_offset_seconds;
+  const nowKey = spotLocalNowKey(utcOffsetSeconds);
 
   let currentIdx = 0;
+  let found = false;
   for (let i = 0; i < hourlyConditions.length; i++) {
-    if (hourlyConditions[i].time.slice(0, 13) >= nowStr) {
+    if (hourlyConditions[i].time.slice(0, 13) >= nowKey) {
       currentIdx = i;
+      found = true;
       break;
     }
   }
+  // If "now" is past the end of the series, clamp to the last hour.
+  if (!found && hourlyConditions.length > 0) currentIdx = hourlyConditions.length - 1;
 
   const hFrom = profile.availableFrom ?? 7;
   const hTo = profile.availableTo ?? 20;
@@ -753,7 +861,6 @@ export function computeSpotForecast(
       bestIdx = i;
     }
   }
-
   if (!isDaytime(hourlyConditions[bestIdx]?.time ?? '', hFrom, hTo)) {
     for (let i = currentIdx; i < hourlyConditions.length; i++) {
       if (isDaytime(hourlyConditions[i].time, hFrom, hTo)) { bestIdx = i; break; }
@@ -761,7 +868,9 @@ export function computeSpotForecast(
   }
 
   const bestCondition = hourlyConditions[bestIdx];
-  const bestTimeLabel = bestCondition ? formatBestTimeLabel(bestCondition.time, now, locale) : '';
+  const bestTimeLabel = bestCondition
+    ? formatBestTimeLabel(bestCondition.time, nowKey, locale)
+    : '';
 
   return {
     spot,
@@ -773,5 +882,7 @@ export function computeSpotForecast(
       score: bestCondition?.score ?? 0,
       label: bestTimeLabel,
     },
+    utcOffsetSeconds,
+    isNightNow: isNightAtSpot(utcOffsetSeconds),
   };
 }

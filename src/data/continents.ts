@@ -4,16 +4,15 @@ export interface ContinentInfo {
   key: ContinentKey;
   labelFr: string;
   labelEn: string;
-  emoji: string;
 }
 
 export const CONTINENTS: ContinentInfo[] = [
-  { key: 'europe', labelFr: 'Europe', labelEn: 'Europe', emoji: '🌍' },
-  { key: 'africa', labelFr: 'Afrique', labelEn: 'Africa', emoji: '🌍' },
-  { key: 'north-america', labelFr: 'Amérique du Nord', labelEn: 'North America', emoji: '🌎' },
-  { key: 'south-america', labelFr: 'Amérique du Sud', labelEn: 'South America', emoji: '🌎' },
-  { key: 'asia', labelFr: 'Asie', labelEn: 'Asia', emoji: '🌏' },
-  { key: 'oceania', labelFr: 'Océanie', labelEn: 'Oceania', emoji: '🌏' },
+  { key: 'europe', labelFr: 'Europe', labelEn: 'Europe' },
+  { key: 'africa', labelFr: 'Afrique', labelEn: 'Africa' },
+  { key: 'north-america', labelFr: 'Amérique du Nord', labelEn: 'North America' },
+  { key: 'south-america', labelFr: 'Amérique du Sud', labelEn: 'South America' },
+  { key: 'asia', labelFr: 'Asie', labelEn: 'Asia' },
+  { key: 'oceania', labelFr: 'Océanie', labelEn: 'Oceania' },
 ];
 
 export const COUNTRY_TO_CONTINENT: Record<string, ContinentKey> = {
