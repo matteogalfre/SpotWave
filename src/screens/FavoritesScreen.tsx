@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { View, Text, FlatList, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity, ListRenderItemInfo } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
@@ -91,7 +91,14 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
     setLoading(false);
   }, [profile, showToast, t, locale]);
 
-  useEffect(() => { loadFavorites(); }, [loadFavorites]);
+  // First mount uses the cached forecasts (fast); afterwards loadFavorites'
+  // identity only changes when profile/locale change, so we force a recompute
+  // to refresh scores & localized labels instead of serving stale cache.
+  const firstFavLoad = useRef(true);
+  useEffect(() => {
+    loadFavorites(!firstFavLoad.current);
+    firstFavLoad.current = false;
+  }, [loadFavorites]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -304,8 +311,6 @@ const s = StyleSheet.create({
   cardName: { ...typography.h2, fontSize: 17, flexShrink: 1 },
   cardLabel: { ...typography.caption, fontSize: 13, marginTop: 3 },
   cardMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs },
-  levelBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.sm },
-  levelTxt: { fontSize: 9, fontWeight: '700' },
   cardCountry: { ...typography.micro, fontWeight: '500' },
   cardDist: { ...typography.micro },
   starBtn: {

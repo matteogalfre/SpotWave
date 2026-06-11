@@ -7,20 +7,16 @@ import { ICONS, MCIName } from '../utils/icons';
 import { useTheme } from '../context/ThemeContext';
 import { useProfile } from '../context/ProfileContext';
 import { useLocation } from '../context/LocationContext';
-import { useI18n, Locale } from '../i18n';
+import { useI18n } from '../i18n';
 import { getZoneCountries } from '../data/spots';
 import { SurferLevel, WaveHeightPref } from '../types';
 import Logo from '../components/Logo';
+import LanguageSelect from '../components/LanguageSelect';
+import { countryLabel } from '../utils/countries';
 import ScoreBadge from '../components/ScoreBadge';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
 
 const hapticLight = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-
-const LANG_OPTIONS: { locale: Locale; label: string }[] = [
-  { locale: 'fr', label: 'Français' },
-  { locale: 'en', label: 'English' },
-  { locale: 'pt', label: 'Português' },
-];
 
 const LEVEL_OPTIONS: { key: SurferLevel; icon: MCIName; labelFr: string; labelEn: string }[] = [
   { key: 'beginner', icon: ICONS.surf, labelFr: 'Débutant', labelEn: 'Beginner' },
@@ -47,7 +43,7 @@ interface Props {
 
 export default function OnboardingScreen({ onComplete }: Props) {
   const { colors } = useTheme();
-  const { t, locale, setLocale } = useI18n();
+  const { t, locale } = useI18n();
   const { profile, updateProfile } = useProfile();
   const { location, loading: locLoading, denied: locDenied, refresh: refreshLoc } = useLocation();
   const insets = useSafeAreaInsets();
@@ -106,7 +102,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg, paddingTop: insets.top + spacing.xl }]}>
-      {/* ─── Step 0 : Language ─── */}
+      {/* ─── Step 0 : Welcome (language auto-detected, overridable) ─── */}
       {step === 0 && (
         <View style={s.slide}>
           <View style={s.logoWrap}>
@@ -114,24 +110,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
           </View>
           <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.onboardWelcome}</Text>
           <Text style={[s.sub, { color: colors.textMuted }]}>{t.onboardWelcomeSub}</Text>
-          <Text style={[s.sectionLabel, { color: colors.textSecondary }]}>{t.onboardLang}</Text>
-          <View style={s.options}>
-            {LANG_OPTIONS.map(opt => {
-              const active = locale === opt.locale;
-              return (
-                <TouchableOpacity
-                  key={opt.locale}
-                  style={[s.optionBtn, { backgroundColor: active ? colors.accentDim : colors.card, borderColor: active ? colors.accent : colors.border }]}
-                  onPress={() => { hapticLight(); setLocale(opt.locale); }}
-                  activeOpacity={0.7}
-                  accessibilityLabel={opt.label}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: active }}
-                >
-                  <Text style={[s.optionLabel, { color: active ? colors.accent : colors.white }]}>{opt.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
+          <View style={s.langWrap}>
+            <LanguageSelect />
           </View>
         </View>
       )}
@@ -275,9 +255,9 @@ export default function OnboardingScreen({ onComplete }: Props) {
                   activeOpacity={0.7}
                   accessibilityRole="radio"
                   accessibilityState={{ selected: active }}
-                  accessibilityLabel={`${z.country}, ${z.spots} spots`}
+                  accessibilityLabel={`${countryLabel(z.country, locale)}, ${z.spots} spots`}
                 >
-                  <Text style={[s.chipTxt, { color: active ? colors.accent : colors.white }]}>{z.country}</Text>
+                  <Text style={[s.chipTxt, { color: active ? colors.accent : colors.white }]}>{countryLabel(z.country, locale)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -375,6 +355,7 @@ const s = StyleSheet.create({
   slide: { flex: 1, paddingHorizontal: spacing.xxl, justifyContent: 'center' },
   slideScrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xxl, paddingBottom: spacing.xl },
   logoWrap: { alignItems: 'center', marginBottom: spacing.xxl },
+  langWrap: { alignItems: 'center', marginTop: spacing.xl },
   stepEmoji: { fontSize: 48, textAlign: 'center', marginBottom: spacing.lg },
   title: { ...typography.display, textAlign: 'center', marginBottom: spacing.sm },
   sub: { ...typography.body, fontSize: 15, textAlign: 'center', marginBottom: spacing.xxl, lineHeight: 22 },

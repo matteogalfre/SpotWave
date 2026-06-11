@@ -168,18 +168,17 @@ describe('computeHourlyScore', () => {
     expect(strongScore.score).toBeLessThan(calmScore.score);
   });
 
-  it('rewards a spot whose break type matches the surfer preference', () => {
+  it('ignores break type preference (no longer scored)', () => {
     const match = computeHourlyScore(0, makeMarineData(), makeWeatherData(), SPOT, { ...PROFILE, breakType: ['beach'] });
     const mismatch = computeHourlyScore(0, makeMarineData(), makeWeatherData(), SPOT, { ...PROFILE, breakType: ['reef'] });
-    expect(match.factors!.profileMatch).toBeGreaterThan(mismatch.factors!.profileMatch);
+    expect(match.factors!.profileMatch).toBe(mismatch.factors!.profileMatch);
   });
 
-  it('factors wind preference into the profile match', () => {
-    // beachOrientation 270 → offshore is 90, so a 270° wind is onshore
+  it('ignores wind preference (no longer scored)', () => {
     const weather = makeWeatherData({ wind_speed_10m: [15], wind_direction_10m: [270] });
-    const picky = computeHourlyScore(0, makeMarineData(), weather, SPOT, { ...PROFILE, windPref: 'offshore' });
-    const tolerant = computeHourlyScore(0, makeMarineData(), weather, SPOT, { ...PROFILE, windPref: 'any' });
-    expect(picky.factors!.profileMatch).toBeLessThan(tolerant.factors!.profileMatch);
+    const offshore = computeHourlyScore(0, makeMarineData(), weather, SPOT, { ...PROFILE, windPref: 'offshore' });
+    const any = computeHourlyScore(0, makeMarineData(), weather, SPOT, { ...PROFILE, windPref: 'any' });
+    expect(offshore.factors!.profileMatch).toBe(any.factors!.profileMatch);
   });
 
   it('exposes score factors for explainability', () => {

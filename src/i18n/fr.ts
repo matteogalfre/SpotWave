@@ -36,6 +36,7 @@ export default {
   spotsNightTitle: 'C\'est la nuit sur ces spots',
   spotsNightSub: (day: string, spot: string) => `Prochain bon créneau : ${day} à ${spot}`,
   spotsNightNoSlot: 'Reviens au lever du jour pour les conditions',
+  spotsOutsideHours: 'En dehors de ta plage horaire',
   spotsNoGoodWindow: 'Pas de bon créneau à venir',
   spotsBestWeek: 'Meilleurs créneaux cette semaine',
   spotsExplore: 'Explorer le monde',
@@ -128,7 +129,7 @@ export default {
   detailCurrentCond: 'Conditions actuelles',
 
   // Profile screen
-  profileTitle: 'Réglages',
+  profileTitle: 'Profil',
   profileSub: 'Personnalise tes recommandations',
   profileLevel: 'Niveau',
   profileHeight: 'Hauteur préférée',
@@ -340,6 +341,12 @@ export default {
   profileLanguageFr: 'Français',
   profileLanguageEn: 'English',
   profileLanguagePt: 'Português',
+  profileLanguageEs: 'Español',
+
+  // ── Community spot suggestion ────────────────────────────────────
+  profileCommunity: 'Communauté',
+  profileSuggestSpot: 'Suggérer un spot',
+  profileSuggestSpotSub: 'Un spot manque ? Propose-le en 1 min',
 
   // ── Share (P2) ──────────────────────────────────────────────────
   detailShare: 'Partager',

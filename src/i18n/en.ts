@@ -36,6 +36,7 @@ export default {
   spotsNightTitle: 'It\'s night at these spots',
   spotsNightSub: (day: string, spot: string) => `Next good slot: ${day} at ${spot}`,
   spotsNightNoSlot: 'Come back at first light for conditions',
+  spotsOutsideHours: 'Outside your time window',
   spotsNoGoodWindow: 'No good window ahead',
   spotsBestWeek: 'Best slots this week',
   spotsExplore: 'Explore the world',
@@ -128,7 +129,7 @@ export default {
   detailCurrentCond: 'Current conditions',
 
   // Profile screen
-  profileTitle: 'Settings',
+  profileTitle: 'Profile',
   profileSub: 'Customize your recommendations',
   profileLevel: 'Level',
   profileHeight: 'Preferred height',
@@ -340,6 +341,12 @@ export default {
   profileLanguageFr: 'Français',
   profileLanguageEn: 'English',
   profileLanguagePt: 'Português',
+  profileLanguageEs: 'Español',
+
+  // ── Community spot suggestion ────────────────────────────────────
+  profileCommunity: 'Community',
+  profileSuggestSpot: 'Suggest a spot',
+  profileSuggestSpotSub: 'A spot missing? Suggest it in 1 min',
 
   // ── Share (P2) ──────────────────────────────────────────────────
   detailShare: 'Share',

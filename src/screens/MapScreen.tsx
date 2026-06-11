@@ -111,7 +111,7 @@ function buildMapHtml(
     const boundsJson = JSON.stringify(focusBounds.map(b => [b.lat, b.lon]));
     initView = `map.fitBounds(${boundsJson}, { padding: [40, 40], maxZoom: 8 });`;
   } else if (userLat != null && userLon != null) {
-    initView = `map.setView([${userLat}, ${userLon}], 6);`;
+    initView = `map.setView([${userLat}, ${userLon}], 5);`;
   } else {
     initView = `map.setView([25, 0], 2);`;
   }

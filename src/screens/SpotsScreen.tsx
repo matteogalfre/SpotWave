@@ -38,7 +38,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToast } from '../components/Toast';
 import { useI18n } from '../i18n';
 import { scheduleGoodConditionAlerts, getAlertsEnabled } from '../services/notifications';
-import { getLevelBadge, getLevelLabel, fmtDayLabel, fmtRange, fmtElapsed } from '../utils/constants';
+import { getLevelBadge, getLevelLabel, fmtDayLabel, fmtRange } from '../utils/constants';
+import { countryLabel } from '../utils/countries';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
 import { getConfidenceForDate, confidenceColor } from '../utils/confidence';
 
@@ -70,7 +71,7 @@ function findBestPicks(
   forecasts: SpotForecast[],
   profile: SurferProfile,
   locale: string = 'fr',
-): { bestToday: BestPick | null; bestWeek: BestPick[]; nightNow: boolean } {
+): { bestToday: BestPick | null; bestWeek: BestPick[]; nightNow: boolean; outsideHoursNow: boolean } {
   const now = new Date();
   const { sessionDuration, availableFrom, availableTo } = profile;
 
@@ -100,10 +101,19 @@ function findBestPicks(
   // require all of them so we don't wrongly claim night.
   const nightNow = forecasts.length > 0 && forecasts.every(f => f.isNightNow);
 
+  // "Outside hours" = it's daytime (not night) but the spot-local time is past /
+  // before the surfer's available window (e.g. window 8–19h and it's 20h). We
+  // don't want to claim "no good conditions" — the day just isn't over.
+  const localHours = forecasts.map(f => parseInt(localKeys(f).nowKey.slice(-2), 10));
+  const allOutsideWindow = forecasts.length > 0
+    && localHours.every(h => h < availableFrom || h >= availableTo);
+  const outsideHoursNow = allOutsideWindow && !nightNow;
+
   return {
     bestToday,
     bestWeek: Object.values(dayBest).sort((a, b) => a.cond.time.localeCompare(b.cond.time)).slice(0, 5),
     nightNow,
+    outsideHoursNow,
   };
 }
 
@@ -113,7 +123,7 @@ type BreakFilter = 'all' | BreakType;
 type MinScoreFilter = 0 | 4 | 6;
 
 export default function SpotsScreen({ navigation }: SpotsScreenProps) {
-  const { profile, version } = useProfile();
+  const { profile, version, isLoading: profileLoading } = useProfile();
   const { colors } = useTheme();
   const { location, loading: locLoading } = useLocation();
   const { show: showToast } = useToast();
@@ -136,12 +146,14 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingSearchSpot, setLoadingSearchSpot] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
   const initialLoad = useRef(true);
   const prevVersion = useRef(version);
   const prevLocationKey = useRef('');
   const prevZone = useRef(profile.preferredZone);
+  const prevLocale = useRef(locale);
+  // Monotonic token so an older overlapping load can't overwrite a newer one.
+  const loadGen = useRef(0);
 
   useEffect(() => {
     AccessibilityInfo.isReduceMotionEnabled?.().then(setReduceMotion).catch(() => {});
@@ -207,6 +219,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   loadedCountRef.current = loadedCount;
 
   const loadData = useCallback(async (force = false) => {
+    const gen = ++loadGen.current;
     const spotsToLoad = allSpotsToLoad;
     try {
       setError(null);
@@ -231,6 +244,10 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
           })
         );
 
+        // A newer load (profile/zone/location/refresh) started while we awaited:
+        // abandon this run so it can't clobber fresher data.
+        if (gen !== loadGen.current) return;
+
         for (const res of settled) {
           if (res.status === 'fulfilled') {
             const forecast = res.value;
@@ -251,24 +268,27 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
       if (count === 0 && failed > 0) {
         setError(t.spotsLoadError);
       }
-      setLastUpdate(new Date());
       getAlertsEnabled().then(on => {
         if (on) scheduleGoodConditionAlerts(results, locale === 'fr').catch(() => {});
       }).catch(() => {});
     } catch (e: any) {
+      if (gen !== loadGen.current) return;
       setError(e.message || t.spotsLoadError);
     }
   }, [profile, allSpotsToLoad, locale, t]);
 
   useEffect(() => {
     if (locLoading) return;
+    // Wait for the stored profile to hydrate before the first fetch, otherwise
+    // scores are computed with DEFAULT_PROFILE and never recomputed on launch.
+    if (profileLoading) return;
     const locKey = location ? `${location.latitude.toFixed(2)}_${location.longitude.toFixed(2)}` : 'none';
     if (initialLoad.current || prevLocationKey.current !== locKey) {
       initialLoad.current = false;
       prevLocationKey.current = locKey;
       loadData(true);
     }
-  }, [locLoading, location, loadData]);
+  }, [locLoading, profileLoading, location, loadData]);
 
   useEffect(() => {
     const zoneChanged = prevZone.current !== profile.preferredZone;
@@ -280,6 +300,15 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
       }
     }
   }, [version, forecasts.length, loadData, profile.preferredZone]);
+
+  // Language change: forecast labels (best-time, day labels) are baked at compute
+  // time, so recompute them in the new locale instead of forcing a manual refresh.
+  useEffect(() => {
+    if (prevLocale.current !== locale) {
+      prevLocale.current = locale;
+      if (forecasts.length > 0) loadData(true);
+    }
+  }, [locale, forecasts.length, loadData]);
 
   const onRefresh = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
@@ -316,17 +345,17 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     setSearchHistory([]);
   }, []);
 
-  const { bestToday, bestWeek, nightNow } = useMemo(() => findBestPicks(forecasts, profile, locale), [forecasts, profile, locale]);
+  const { bestToday, bestWeek, nightNow, outsideHoursNow } = useMemo(() => findBestPicks(forecasts, profile, locale), [forecasts, profile, locale]);
   const levelTxt = getLevelLabel(profile.level, t);
 
   const locationLabel = useMemo(() => {
     if (locLoading) return t.spotsLocating;
     if (location && activeSpots.length > 0) {
-      const nearCountries = Array.from(new Set(activeSpots.slice(0, 10).map(s => s.country)));
+      const nearCountries = Array.from(new Set(activeSpots.slice(0, 10).map(s => countryLabel(s.country, locale))));
       return nearCountries.length <= 2 ? nearCountries.join(' · ') : t.spotsNearby(activeSpots.length);
     }
     return t.spotsGlobal;
-  }, [locLoading, location, activeSpots, t]);
+  }, [locLoading, location, activeSpots, t, locale]);
 
   const sortedForecasts = useMemo(() => {
     const fav = forecasts.filter(f => favs.includes(f.spot.id));
@@ -398,7 +427,9 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     }
   }, [profile, navigation, showToast, onSubmitSearch, locale, t]);
 
-  const isLoading = (loadedCount === 0 && forecasts.length === 0 && !error) || locLoading;
+  // Only show the full-screen skeleton when we have nothing to display yet. A
+  // location refresh (locLoading) must not blank an already-populated list.
+  const isLoading = forecasts.length === 0 && !error && (locLoading || loadedCount === 0 || profileLoading);
   const hasEnoughData = totalCount > 0 && (forecasts.length >= Math.min(4, totalCount) || loadedCount >= totalCount);
 
   const renderHeader = () => (
@@ -488,9 +519,6 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
         <FilterChip label={`${t.spotsFilterMinScore} ≥4`} active={minScoreFilter === 4} onPress={() => setMinScoreFilter(4)} colors={colors} />
         <FilterChip label={`${t.spotsFilterMinScore} ≥6`} active={minScoreFilter === 6} onPress={() => setMinScoreFilter(6)} colors={colors} />
       </ScrollView>
-      <Text style={[ss.filterCount, { color: colors.textMuted }]}>
-        {t.spotsFilterResultsCount(filteredForecasts.length)}
-      </Text>
     </View>
   );
 
@@ -589,7 +617,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
               <View style={{ flex: 1 }}>
                 <Text style={[ss.searchName, { color: colors.white }]}>{spot.name}</Text>
                 <Text style={[ss.searchMeta, { color: colors.textMuted }]}>
-                  {spot.region} · {spot.country}
+                  {spot.region} · {countryLabel(spot.country, locale)}
                   {dist != null ? (
                     <Text>{'  ·  '}<MaterialCommunityIcons name={ICONS.location} size={11} color={colors.textMuted} /> {formatDistance(dist)}</Text>
                   ) : ''}
@@ -668,17 +696,17 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
 
         {searchQuery.length === 0 && (
           <>
-            <View style={ss.metaRow}>
-              {loadedCount < totalCount && totalCount > 0 ? (
-                <View style={ss.progressRow}>
-                  <ActivityIndicator size="small" color={colors.accent} />
-                  <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{loadedCount}/{totalCount} spot{totalCount !== 1 ? 's' : ''}</Text>
-                </View>
-              ) : lastUpdate ? (
-                <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{t.spotsUpdated(fmtElapsed(lastUpdate, t))}</Text>
-              ) : null}
-              {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.orange }]}>{t.spotsUnavailable(failedCount)}</Text>}
-            </View>
+            {((loadedCount < totalCount && totalCount > 0) || failedCount > 0) && (
+              <View style={ss.metaRow}>
+                {loadedCount < totalCount && totalCount > 0 && (
+                  <View style={ss.progressRow}>
+                    <ActivityIndicator size="small" color={colors.accent} />
+                    <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{loadedCount}/{totalCount} spot{totalCount !== 1 ? 's' : ''}</Text>
+                  </View>
+                )}
+                {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.orange }]}>{t.spotsUnavailable(failedCount)}</Text>}
+              </View>
+            )}
 
             {/* HERO simplifié */}
             {bestToday ? (
@@ -710,13 +738,13 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
             ) : (
               <View style={[ss.emptyHero, { backgroundColor: colors.card }]}>
                 <MaterialCommunityIcons
-                  name={nightNow ? 'weather-night' : ICONS.swell}
+                  name={nightNow ? 'weather-night' : outsideHoursNow ? 'clock-outline' : ICONS.swell}
                   size={32}
                   color={colors.textMuted}
                   style={ss.emptyEmoji}
                 />
                 <Text style={[ss.emptyTitle, { color: colors.white }]}>
-                  {nightNow ? t.spotsNightTitle : t.spotsNoConditions}
+                  {nightNow ? t.spotsNightTitle : outsideHoursNow ? t.spotsOutsideHours : t.spotsNoConditions}
                 </Text>
                 <Text style={[ss.emptySubtitle, { color: colors.textMuted }]}>
                   {nightNow
@@ -795,14 +823,12 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
             {renderSearchOverlay()}
             {searchQuery.length === 0 && (
               <View style={ss.metaRow}>
-                {loadedCount < totalCount && totalCount > 0 ? (
+                {loadedCount < totalCount && totalCount > 0 && (
                   <View style={ss.progressRow}>
                     <ActivityIndicator size="small" color={colors.accent} />
                     <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{loadedCount}/{totalCount} spots</Text>
                   </View>
-                ) : lastUpdate ? (
-                  <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{t.spotsUpdated(fmtElapsed(lastUpdate, t))}</Text>
-                ) : null}
+                )}
                 {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.orange }]}>{t.spotsUnavailable(failedCount)}</Text>}
               </View>
             )}
@@ -851,7 +877,7 @@ const SpotCard = memo(function SpotCard({
 }: {
   forecast: SpotForecast; isFav: boolean; distance?: number; onPress: () => void; onToggleFav: () => void; colors: any;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const cc = f.currentCondition;
   const wl = cc ? windLabel(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : '';
   const isOnshore = wl === 'Onshore' || wl === 'Cross-on';
@@ -874,7 +900,7 @@ const SpotCard = memo(function SpotCard({
             <MaterialCommunityIcons name={scoreIcon(f.currentScore)} size={13} color={scoreColor(f.currentScore)} /> {scoreLabel(f.currentScore, t)}
           </Text>
           <View style={ss.spotMeta}>
-            <Text style={[ss.spotDistance, { color: colors.textMuted }]} numberOfLines={1}>{f.spot.country}</Text>
+            <Text style={[ss.spotDistance, { color: colors.textMuted }]} numberOfLines={1}>{countryLabel(f.spot.country, locale)}</Text>
             {f.spot.webcamUrl && <MaterialCommunityIcons name={ICONS.webcam} size={13} color={colors.textMuted} accessibilityLabel={t.detailWebcam} />}
             {distance != null && (
               <Text style={[ss.spotDistance, { color: colors.accent }]}><MaterialCommunityIcons name={ICONS.location} size={11} color={colors.accent} /> {formatDistance(distance)}</Text>
@@ -1042,7 +1068,6 @@ const ss = StyleSheet.create({
   },
   filterChipTxt: { ...typography.micro, fontWeight: '700' },
   filterSep: { width: 1, height: 22, alignSelf: 'center', marginHorizontal: spacing.xs },
-  filterCount: { ...typography.micro, paddingHorizontal: 4 },
   filterEmpty: { paddingHorizontal: spacing.xxxl, paddingTop: spacing.xxxl, alignItems: 'center' },
   filterEmptyTxt: { ...typography.body, fontSize: 13, textAlign: 'center' },
 

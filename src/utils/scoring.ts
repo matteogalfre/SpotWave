@@ -405,16 +405,15 @@ function levelFit(spot: SpotConfig, profile: SurferProfile): number {
 }
 
 // ── PROFILE MATCH ────────────────────────────────────────────────────────────
-// Gentle nudge from the surfer's stated preferences (height band, break type,
-// wind). Kept close to 1 so taste never dominates objective quality.
+// Gentle nudge from the surfer's stated preferences. Only the preferred wave
+// height band is taken into account — break type and wind preference are NOT
+// scored (they don't reflect objective quality and confused users), so taste
+// never dominates the real conditions.
 
 function profileMatch(
   swellHeight: number,
   waveHeight: number,
-  spot: SpotConfig,
   profile: SurferProfile,
-  windDir: number,
-  windSpeed: number,
 ): number {
   const h = swellHeight || waveHeight;
 
@@ -425,23 +424,7 @@ function profileMatch(
     if (pref === '2+' && h >= 1.8) { heightM = 1.06; break; }
   }
 
-  let breakM = 1.0;
-  if (profile.breakType && profile.breakType.length > 0) {
-    breakM = profile.breakType.includes(spot.bottomType) ? 1.04 : 0.96;
-  }
-
-  let windM = 1.0;
-  if (profile.windPref && profile.windPref !== 'any' && windSpeed >= 8) {
-    const offshoreDir = (spot.beachOrientation + 180) % 360;
-    const diff = angleDiff(windDir, offshoreDir);
-    if (profile.windPref === 'offshore') {
-      windM = piecewise(diff, [[45, 1.0], [90, 0.97], [180, 0.94]]);
-    } else {
-      windM = diff <= 120 ? 1.0 : 0.97;
-    }
-  }
-
-  return heightM * breakM * windM;
+  return heightM;
 }
 
 // ── CLEAN FACTOR ─────────────────────────────────────────────────────────────
@@ -647,7 +630,7 @@ export function computeHourlyScore(
 
   const tide = tideMatch(seaLevel, prevSeaLevel, spot, profile);
   const level = levelFit(spot, profile);
-  const pMatch = profileMatch(rawSwellHeight, waveHeight, spot, profile, windDir, windSpeed);
+  const pMatch = profileMatch(rawSwellHeight, waveHeight, profile);
   const clean = cleanFactor(rawSwellHeight, waveHeight, swellDir, windWaveHeight, windWavePeriod, windWaveDir);
   const weather_ = weatherPenalty(weatherCode);
   const consistency = consistencyFactor(index, marine);
@@ -740,7 +723,7 @@ function spotLocalNow(utcOffsetSeconds?: number): Date {
 }
 
 /** "YYYY-MM-DDTHH" key for the spot's current local hour. */
-function spotLocalNowKey(utcOffsetSeconds?: number): string {
+export function spotLocalNowKey(utcOffsetSeconds?: number): string {
   const d = spotLocalNow(utcOffsetSeconds);
   if (typeof utcOffsetSeconds === 'number') {
     const y = d.getUTCFullYear();
@@ -771,13 +754,49 @@ export function isNightAtSpot(utcOffsetSeconds?: number): boolean {
 
 // ── BEST TIME LABEL ──────────────────────────────────────────────────────────
 
+const BEST_TIME_I18N: Record<string, {
+  now: string;
+  inH: (h: number) => string;
+  today: (h: string) => string;
+  tomorrow: (h: string) => string;
+  days: string[];
+}> = {
+  fr: {
+    now: 'Maintenant !',
+    inH: (h) => `Dans ${h}h`,
+    today: (h) => `Aujourd'hui ${h}h`,
+    tomorrow: (h) => `Demain ${h}h`,
+    days: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+  },
+  en: {
+    now: 'Now!',
+    inH: (h) => `In ${h}h`,
+    today: (h) => `Today ${h}h`,
+    tomorrow: (h) => `Tomorrow ${h}h`,
+    days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  },
+  es: {
+    now: '¡Ahora!',
+    inH: (h) => `En ${h}h`,
+    today: (h) => `Hoy ${h}h`,
+    tomorrow: (h) => `Mañana ${h}h`,
+    days: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+  },
+  pt: {
+    now: 'Agora !',
+    inH: (h) => `Em ${h}h`,
+    today: (h) => `Hoje ${h}h`,
+    tomorrow: (h) => `Amanhã ${h}h`,
+    days: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+  },
+};
+
 function formatBestTimeLabel(
   bestTime: string,
   nowKey: string,
   locale: string = 'fr',
 ): string {
-  const isFr = locale === 'fr';
-  const isPt = locale === 'pt';
+  const L = BEST_TIME_I18N[locale] ?? BEST_TIME_I18N.en;
   // Compare on the spot-local hour keys (strings sort chronologically).
   const bestKey = bestTime.slice(0, 13);
   const bestDate = bestTime.slice(0, 10);
@@ -786,13 +805,13 @@ function formatBestTimeLabel(
   const nowHour = parseInt(nowKey.slice(11, 13), 10);
   const bestHourNum = parseInt(bestHour, 10);
 
-  if (bestKey <= nowKey) return isFr ? 'Maintenant !' : isPt ? 'Agora !' : 'Now!';
+  if (bestKey <= nowKey) return L.now;
 
   // Hours difference within the same/next day.
   if (bestDate === nowDate) {
     const diff = bestHourNum - nowHour;
-    if (diff <= 6) return isFr ? `Dans ${diff}h` : isPt ? `Em ${diff}h` : `In ${diff}h`;
-    return isFr ? `Aujourd'hui ${bestHour}h` : isPt ? `Hoje ${bestHour}h` : `Today ${bestHour}h`;
+    if (diff <= 6) return L.inH(diff);
+    return L.today(bestHour);
   }
 
   // Day-of-week label in the spot's local calendar.
@@ -800,17 +819,12 @@ function formatBestTimeLabel(
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   const tomorrowStr = `${tomorrow.getUTCFullYear()}-${String(tomorrow.getUTCMonth() + 1).padStart(2, '0')}-${String(tomorrow.getUTCDate()).padStart(2, '0')}`;
   if (bestDate === tomorrowStr) {
-    return isFr ? `Demain ${bestHour}h` : isPt ? `Amanhã ${bestHour}h` : `Tomorrow ${bestHour}h`;
+    return L.tomorrow(bestHour);
   }
 
   const dayDate = new Date(`${bestDate}T00:00:00Z`);
   const dayIdx = dayDate.getUTCDay();
-  const dayNames = isFr
-    ? ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
-    : isPt
-      ? ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  return `${dayNames[dayIdx]} ${bestHour}h`;
+  return `${L.days[dayIdx]} ${bestHour}h`;
 }
 
 // ── SPOT FORECAST ────────────────────────────────────────────────────────────

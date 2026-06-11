@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -7,28 +7,17 @@ import { ICONS, MCIName } from '../utils/icons';
 import { useProfile } from '../context/ProfileContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLocation } from '../context/LocationContext';
-import { useToast } from '../components/Toast';
-import { SurferLevel, WaveHeightPref, SurferProfile, DEFAULT_PROFILE } from '../types';
+import { SurferLevel, WaveHeightPref, SurferProfile } from '../types';
 import { ProfileScreenProps } from '../navigation/types';
 import { useI18n, Locale } from '../i18n';
 import { requestNotifPermission, getAlertsEnabled, setAlertsEnabled as setAlertsEnabledPref } from '../services/notifications';
 import { getZoneCountries } from '../data/spots';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
-import { BreakType, WindPref } from '../types';
+import LanguageSelect from '../components/LanguageSelect';
+import { SUGGEST_SPOT_URL } from '../utils/constants';
+import { countryLabel } from '../utils/countries';
 
 const LEVELS_MAP = { beginner: 'levelBeginner', intermediate: 'levelIntermediate', expert: 'levelExpert' } as const;
-
-const BREAK_TYPES: { key: BreakType; labelKey: 'breakBeach' | 'breakReef' | 'breakPoint'; icon: MCIName }[] = [
-  { key: 'beach', labelKey: 'breakBeach', icon: ICONS.beach },
-  { key: 'reef', labelKey: 'breakReef', icon: ICONS.reef },
-  { key: 'point', labelKey: 'breakPoint', icon: ICONS.point },
-];
-
-const WIND_PREFS: { key: WindPref; labelKey: 'profileWindOffshore' | 'profileWindSideShore' | 'profileWindAny' }[] = [
-  { key: 'offshore', labelKey: 'profileWindOffshore' },
-  { key: 'side-shore', labelKey: 'profileWindSideShore' },
-  { key: 'any', labelKey: 'profileWindAny' },
-];
 
 const ZONE_COUNTRIES = getZoneCountries().map((z) => z.country);
 
@@ -47,8 +36,11 @@ const HEIGHTS: { key: WaveHeightPref; label: string }[] = [
 const SESSION_DURATIONS = [1, 1.5, 2, 2.5, 3];
 
 const hapticLight = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-const hapticError = () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
-const hapticSuccess = () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+// Small double tap used to confirm an instant save (sync badge).
+const hapticDouble = () => {
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+  setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}), 110);
+};
 
 function toggle<T>(arr: T[], item: T): T[] {
   if (arr.includes(item)) {
@@ -175,16 +167,13 @@ const hs = StyleSheet.create({
 });
 
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
-  const { t, locale, setLocale } = useI18n();
+  const { t, locale } = useI18n();
   const { profile, updateProfile } = useProfile();
   const { colors, isDark, toggleTheme } = useTheme();
   const { location, loading: locLoading, denied: locDenied, refresh: refreshLoc } = useLocation();
-  const { show: showToast } = useToast();
   const insets = useSafeAreaInsets();
   const [form, setForm] = useState<SurferProfile>({ ...profile });
   const [alertsOn, setAlertsOn] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [syncedHint, setSyncedHint] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => { setForm({ ...profile }); }, [profile]);
@@ -203,79 +192,32 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   };
 
   const showSyncedHint = useCallback(() => {
-    setSyncedHint(true);
+    hapticDouble();
+    fadeAnim.stopAnimation();
     Animated.sequence([
       Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
       Animated.delay(1200),
       Animated.timing(fadeAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
-    ]).start(() => setSyncedHint(false));
+    ]).start();
   }, [fadeAnim]);
 
-  const handleStartEdit = useCallback(() => {
-    hapticLight();
-    setIsEditing(true);
-  }, []);
-
-  const handleCancel = useCallback(() => {
-    hapticLight();
-    setForm({ ...profile });
-    setIsEditing(false);
-  }, [profile]);
-
-  const handleSave = useCallback(async () => {
-    if (form.availableFrom >= form.availableTo) {
-      hapticError();
-      showToast(t.profileValidFrom, 'error');
-      return;
-    }
-    if (form.preferredHeight.length === 0) {
-      hapticError();
-      showToast(t.profileValidHeight, 'error');
-      return;
-    }
-    try {
-      await updateProfile(form);
-      hapticSuccess();
-      showSyncedHint();
-      setIsEditing(false);
-    } catch {
-      hapticError();
-      showToast(t.profileSaveError, 'error');
-    }
-  }, [form, updateProfile, t, showToast, showSyncedHint]);
-
-  const handleReset = useCallback(() => {
-    hapticLight();
-    setForm({ ...DEFAULT_PROFILE });
-  }, []);
-
-  // True when the form differs from the saved profile (arrays compared as sets).
-  const isDirty = useMemo(() => {
-    const sameSet = (x: string[] = [], y: string[] = []) =>
-      x.length === y.length && [...x].sort().join(',') === [...y].sort().join(',');
-    return (
-      form.level !== profile.level ||
-      form.windPref !== profile.windPref ||
-      form.sessionDuration !== profile.sessionDuration ||
-      form.availableFrom !== profile.availableFrom ||
-      form.availableTo !== profile.availableTo ||
-      (form.preferredZone ?? '') !== (profile.preferredZone ?? '') ||
-      !sameSet(form.preferredHeight, profile.preferredHeight) ||
-      !sameSet(form.breakType, profile.breakType)
-    );
-  }, [form, profile]);
+  // Every control saves instantly and flashes the "synced" badge — no edit mode.
+  const apply = useCallback((next: SurferProfile) => {
+    setForm(next);
+    updateProfile(next);
+    showSyncedHint();
+  }, [updateProfile, showSyncedHint]);
 
   const LANG_LABELS: Record<Locale, string> = {
     fr: t.profileLanguageFr,
     en: t.profileLanguageEn,
     pt: t.profileLanguagePt,
+    es: t.profileLanguageEs,
   };
 
   const locSubtitle = location
     ? t.profileLocCoords(location.latitude.toFixed(2), location.longitude.toFixed(2))
     : locDenied ? t.profileLocDenied : t.profileLocDisabled;
-
-  const editBtnTextColor = isDark ? '#0B0F1A' : '#FFFFFF';
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -283,35 +225,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       <View style={[s.header, { paddingTop: insets.top + spacing.md }]}>
         <View style={s.headerLeft}>
           <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.profileTitle}</Text>
-          <Text style={[s.sub, { color: colors.textMuted }]}>
-            {isEditing ? t.profileEditing : t.profileLockedHint}
-          </Text>
-          {syncedHint && (
-            <Animated.View style={[s.syncBadge, { backgroundColor: colors.accentDim, opacity: fadeAnim }]}>
-              <Text style={[s.syncTxt, { color: colors.accent }]}>{t.profileAutoSaved}</Text>
-            </Animated.View>
-          )}
+          <Text style={[s.sub, { color: colors.textMuted }]}>{t.profileSub}</Text>
         </View>
-        {isEditing && (
-          <View style={s.editActions}>
-            <TouchableOpacity
-              style={[s.editCancelBtn, { borderColor: colors.border }]}
-              onPress={handleCancel}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t.cancel}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Text style={[s.editCancelTxt, { color: colors.textMuted }]}>{t.cancel}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
       </View>
 
-      <View
-        pointerEvents={isEditing ? 'auto' : 'none'}
-        style={{ opacity: isEditing ? 1 : 0.55 }}
-      >
+      <View>
 
       {/* Level */}
       <Section label={t.profileLevel} colors={colors}>
@@ -324,11 +242,10 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 key={l.key}
                 style={[s.levelBtn, { backgroundColor: active ? colors.accentDim : colors.bgSubtle, borderColor: active ? colors.accent : 'transparent' }]}
                 activeOpacity={0.7}
-                onPress={() => { hapticLight(); setForm({ ...form, level: l.key }); }}
+                onPress={() => apply({ ...form, level: l.key })}
                 accessibilityRole="radio"
-                accessibilityState={{ selected: active, disabled: !isEditing }}
+                accessibilityState={{ selected: active }}
                 accessibilityLabel={levelLabel}
-                disabled={!isEditing}
               >
                 <MaterialCommunityIcons name={l.icon} size={24} color={active ? colors.accent : colors.textMuted} style={s.levelEmoji} />
                 <Text style={[s.levelLabel, { color: active ? colors.accent : colors.textMuted }]}>{levelLabel}</Text>
@@ -348,11 +265,10 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 key={h.key}
                 style={[s.chip, { backgroundColor: on ? colors.accentDim : colors.bgSubtle, borderColor: on ? colors.accent : 'transparent' }]}
                 activeOpacity={0.7}
-                onPress={() => { hapticLight(); setForm({ ...form, preferredHeight: toggle(form.preferredHeight, h.key) }); }}
+                onPress={() => apply({ ...form, preferredHeight: toggle(form.preferredHeight, h.key) })}
                 accessibilityRole="checkbox"
-                accessibilityState={{ checked: on, disabled: !isEditing }}
+                accessibilityState={{ checked: on }}
                 accessibilityLabel={h.label}
-                disabled={!isEditing}
               >
                 <Text style={[s.chipTxt, { color: on ? colors.accent : colors.textMuted }]}>{h.label}</Text>
               </TouchableOpacity>
@@ -371,66 +287,12 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 key={d}
                 style={[s.chip, { backgroundColor: on ? colors.accentDim : colors.bgSubtle, borderColor: on ? colors.accent : 'transparent' }]}
                 activeOpacity={0.7}
-                onPress={() => { hapticLight(); setForm({ ...form, sessionDuration: d }); }}
+                onPress={() => apply({ ...form, sessionDuration: d })}
                 accessibilityRole="radio"
-                accessibilityState={{ selected: on, disabled: !isEditing }}
+                accessibilityState={{ selected: on }}
                 accessibilityLabel={`${d}h`}
-                disabled={!isEditing}
               >
                 <Text style={[s.chipTxt, { color: on ? colors.accent : colors.textMuted }]}>{d}h</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </Section>
-
-      {/* Break type favorite */}
-      <Section label={t.profileBreakType} colors={colors}>
-        <Text style={[s.hoursSummary, { color: colors.textMuted, marginBottom: spacing.md }]}>{t.profileBreakTypeHint}</Text>
-        <View style={s.chipRow}>
-          {BREAK_TYPES.map((b) => {
-            const on = form.breakType.includes(b.key);
-            const label = t[b.labelKey];
-            return (
-              <TouchableOpacity
-                key={b.key}
-                style={[s.chip, { backgroundColor: on ? colors.accentDim : colors.bgSubtle, borderColor: on ? colors.accent : 'transparent', flexDirection: 'row', gap: 6 }]}
-                activeOpacity={0.7}
-                onPress={() => {
-                  hapticLight();
-                  setForm({ ...form, breakType: toggle(form.breakType, b.key) });
-                }}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: on, disabled: !isEditing }}
-                accessibilityLabel={label}
-                disabled={!isEditing}
-              >
-                <MaterialCommunityIcons name={b.icon} size={15} color={on ? colors.accent : colors.textMuted} />
-                <Text style={[s.chipTxt, { color: on ? colors.accent : colors.textMuted }]}>{label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </Section>
-
-      {/* Wind preference */}
-      <Section label={t.profileWindPref} colors={colors}>
-        <View style={s.chipRow}>
-          {WIND_PREFS.map((w) => {
-            const on = form.windPref === w.key;
-            const label = t[w.labelKey];
-            return (
-              <TouchableOpacity
-                key={w.key}
-                style={[s.chip, { backgroundColor: on ? colors.accentDim : colors.bgSubtle, borderColor: on ? colors.accent : 'transparent' }]}
-                activeOpacity={0.7}
-                onPress={() => { hapticLight(); setForm({ ...form, windPref: w.key }); }}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: on, disabled: !isEditing }}
-                accessibilityLabel={label}
-                disabled={!isEditing}
-              >
-                <Text style={[s.chipTxt, { color: on ? colors.accent : colors.textMuted }]}>{label}</Text>
               </TouchableOpacity>
             );
           })}
@@ -442,7 +304,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <HourStepper
           label={t.profileFrom}
           value={form.availableFrom}
-          onChange={(v) => setForm({ ...form, availableFrom: v })}
+          onChange={(v) => apply({ ...form, availableFrom: v })}
           min={5}
           max={form.availableTo - 1}
           colors={colors}
@@ -450,7 +312,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <HourStepper
           label={t.profileTo}
           value={form.availableTo}
-          onChange={(v) => setForm({ ...form, availableTo: v })}
+          onChange={(v) => apply({ ...form, availableTo: v })}
           min={form.availableFrom + 1}
           max={21}
           colors={colors}
@@ -459,20 +321,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           {t.profileHoursSummary(form.availableFrom, form.availableTo)}
         </Text>
       </Section>
-
-      {/* Reset to defaults — only available while editing */}
-      {isEditing && (
-        <TouchableOpacity
-          style={[s.resetBtn, { borderColor: colors.border }]}
-          onPress={handleReset}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          accessibilityLabel={t.profileReset}
-        >
-          <Ionicons name="refresh" size={16} color={colors.textMuted} />
-          <Text style={[s.resetTxt, { color: colors.textMuted }]}>{t.profileReset}</Text>
-        </TouchableOpacity>
-      )}
 
       </View>
 
@@ -510,7 +358,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           <Text style={[s.hoursSummary, { color: colors.textMuted, marginBottom: spacing.md }]}>{t.profilePreferredZoneDesc}</Text>
           <TouchableOpacity
             style={[s.chip, { backgroundColor: !form.preferredZone ? colors.accentDim : colors.bgSubtle, borderColor: !form.preferredZone ? colors.accent : 'transparent', marginBottom: spacing.sm }]}
-            onPress={() => { hapticLight(); const next = { ...form, preferredZone: undefined }; setForm(next); updateProfile(next); }}
+            onPress={() => apply({ ...form, preferredZone: undefined })}
             activeOpacity={0.7}
             accessibilityRole="radio"
             accessibilityState={{ selected: !form.preferredZone }}
@@ -525,13 +373,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 <TouchableOpacity
                   key={z}
                   style={[s.chip, { backgroundColor: active ? colors.accentDim : colors.bgSubtle, borderColor: active ? colors.accent : 'transparent' }]}
-                  onPress={() => { hapticLight(); const next = { ...form, preferredZone: z }; setForm(next); updateProfile(next); }}
+                  onPress={() => apply({ ...form, preferredZone: z })}
                   activeOpacity={0.7}
                   accessibilityRole="radio"
                   accessibilityState={{ selected: active }}
-                  accessibilityLabel={z}
+                  accessibilityLabel={countryLabel(z, locale)}
                 >
-                  <Text style={[s.chipTxt, { color: active ? colors.accent : colors.textMuted }]}>{z}</Text>
+                  <Text style={[s.chipTxt, { color: active ? colors.accent : colors.textMuted }]}>{countryLabel(z, locale)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -558,28 +406,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             title={t.profileLanguage}
             subtitle={LANG_LABELS[locale]}
             colors={colors}
-            right={
-              <View style={s.langSwitcher}>
-                {(['fr', 'en', 'pt'] as Locale[]).map(l => {
-                  const active = locale === l;
-                  return (
-                    <TouchableOpacity
-                      key={l}
-                      onPress={() => { hapticLight(); setLocale(l); }}
-                      style={[s.langChip, { backgroundColor: active ? colors.accentDim : colors.bgSubtle, borderColor: active ? colors.accent : 'transparent' }]}
-                      activeOpacity={0.7}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected: active }}
-                      accessibilityLabel={LANG_LABELS[l]}
-                    >
-                      <Text style={[s.langChipTxt, { color: active ? colors.accent : colors.textMuted }]}>
-                        {l.toUpperCase()}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            }
+            right={<LanguageSelect compact />}
           />
           <SettingRow
             icon="notifications"
@@ -590,6 +417,23 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             colors={colors}
             isLast
             right={<ToggleSwitch value={alertsOn} onToggle={handleToggleAlerts} accentColor={colors.accent} trackBg={colors.border} />}
+          />
+        </View>
+      </View>
+
+      <View style={s.settingsSection}>
+        <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{t.profileCommunity}</Text>
+        <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
+          <SettingRow
+            icon="add-circle"
+            iconColor={colors.accent}
+            iconBg={colors.accentDim}
+            title={t.profileSuggestSpot}
+            subtitle={t.profileSuggestSpotSub}
+            colors={colors}
+            isLast
+            onPress={() => { hapticLight(); Linking.openURL(SUGGEST_SPOT_URL).catch(() => {}); }}
+            right={<Ionicons name="open-outline" size={18} color={colors.textMuted} />}
           />
         </View>
       </View>
@@ -621,45 +465,15 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         </View>
       </View>
 
-      <View style={{ height: 120 }} />
+      <View style={{ height: 40 }} />
     </ScrollView>
-
-      <View style={s.floatBar} pointerEvents="box-none">
-        {isEditing ? (
-          <TouchableOpacity
-            style={[
-              s.floatSaveBtn,
-              { backgroundColor: isDirty ? colors.accent : colors.card, shadowColor: isDirty ? colors.accent : '#000' },
-            ]}
-            onPress={handleSave}
-            disabled={!isDirty}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !isDirty }}
-            accessibilityLabel={t.profileEditSave}
-          >
-            <Ionicons
-              name="checkmark-circle"
-              size={20}
-              color={isDirty ? editBtnTextColor : colors.textMuted}
-            />
-            <Text style={[s.floatSaveTxt, { color: isDirty ? editBtnTextColor : colors.textMuted }]}>
-              {isDirty ? t.profileEditSave : t.profileNoChanges}
-            </Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[s.floatSaveBtn, { backgroundColor: colors.accent, shadowColor: colors.accent }]}
-            onPress={handleStartEdit}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel={t.profileEdit}
-          >
-            <Ionicons name="pencil" size={18} color={editBtnTextColor} />
-            <Text style={[s.floatSaveTxt, { color: editBtnTextColor }]}>{t.profileEdit}</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+    <Animated.View
+      pointerEvents="none"
+      style={[s.syncBadge, { top: insets.top + spacing.md, backgroundColor: colors.accentDim, opacity: fadeAnim }]}
+    >
+      <Ionicons name="checkmark-circle" size={13} color={colors.accent} />
+      <Text style={[s.syncTxt, { color: colors.accent }]}>{t.profileAutoSaved}</Text>
+    </Animated.View>
     </View>
   );
 }
@@ -685,52 +499,16 @@ const s = StyleSheet.create({
   title: { ...typography.display },
   sub: { ...typography.body, fontWeight: '500', marginTop: 2 },
   syncBadge: {
-    alignSelf: 'flex-start',
+    position: 'absolute',
+    right: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
     borderRadius: radius.pill,
-    marginTop: spacing.sm,
   },
   syncTxt: { ...typography.micro, fontWeight: '700' },
-
-  floatBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xl,
-  },
-  floatSaveBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    borderRadius: radius.pill,
-    minHeight: touchTarget.min,
-    paddingHorizontal: spacing.lg,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.28,
-    shadowRadius: 14,
-    elevation: 8,
-  },
-  floatSaveTxt: { ...typography.bodyBold, fontSize: 15 },
-  editActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: 6,
-  },
-  editCancelBtn: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    minHeight: touchTarget.min,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  editCancelTxt: { ...typography.caption, fontWeight: '600' },
 
   section: { marginTop: spacing.xl, paddingHorizontal: spacing.lg },
   settingsSection: { marginTop: spacing.xxl, paddingHorizontal: spacing.lg },
@@ -775,31 +553,4 @@ const s = StyleSheet.create({
   settingTitle: { ...typography.h3, fontSize: 15, fontWeight: '600' },
   settingSub: { ...typography.caption, marginTop: 2 },
   settingDivider: { height: StyleSheet.hairlineWidth, marginLeft: 52 },
-
-  resetBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    alignSelf: 'center',
-    marginTop: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm + 2,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    minHeight: touchTarget.min,
-  },
-  resetTxt: { ...typography.caption, fontWeight: '600' },
-
-  langSwitcher: { flexDirection: 'row', gap: 6 },
-  langChip: {
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 4,
-    borderRadius: radius.pill,
-    borderWidth: 1.5,
-    minWidth: 38,
-    minHeight: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  langChipTxt: { ...typography.micro, fontWeight: '800' },
 });

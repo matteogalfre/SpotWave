@@ -7,11 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0B0F1A"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.spotwave.app",
@@ -24,9 +19,14 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0B0F1A"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.spotwave.app",
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "versionCode": 14,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,12 +37,21 @@
         {
           "locationWhenInUsePermission": "SpotWave utilise votre position pour afficher les spots de surf les plus proches."
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#0B0F1A"
+        }
       ]
     ],
     "extra": {
       "eas": {
-        "projectId": "6502e0d2-178b-42ce-835e-fb60f71ef237"
+        "projectId": "d47380e8-6d28-46fd-9ad6-e372fa7f92cd"
       }
-    }
+    },
+    "owner": "mcleanjeanluc"
   }
 }

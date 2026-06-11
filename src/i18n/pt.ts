@@ -36,6 +36,7 @@ export default {
   spotsNightTitle: 'É noite nestes spots',
   spotsNightSub: (day: string, spot: string) => `Próxima boa janela: ${day} em ${spot}`,
   spotsNightNoSlot: 'Volta ao amanhecer para ver as condições',
+  spotsOutsideHours: 'Fora do teu horário',
   spotsNoGoodWindow: 'Sem boa janela à vista',
   spotsBestWeek: 'Melhores janelas desta semana',
   spotsExplore: 'Explorar o mundo',
@@ -128,7 +129,7 @@ export default {
   detailCurrentCond: 'Condições atuais',
 
   // Profile screen
-  profileTitle: 'Definições',
+  profileTitle: 'Perfil',
   profileSub: 'Personalize as suas recomendações',
   profileLevel: 'Nível',
   profileHeight: 'Altura preferida',
@@ -340,6 +341,12 @@ export default {
   profileLanguageFr: 'Français',
   profileLanguageEn: 'English',
   profileLanguagePt: 'Português',
+  profileLanguageEs: 'Español',
+
+  // ── Community spot suggestion ────────────────────────────────────
+  profileCommunity: 'Comunidade',
+  profileSuggestSpot: 'Sugerir um spot',
+  profileSuggestSpotSub: 'Falta um spot? Sugere-o em 1 min',
 
   // ── Share (P2) ──────────────────────────────────────────────────
   detailShare: 'Partilhar',

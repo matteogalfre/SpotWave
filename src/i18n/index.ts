@@ -4,14 +4,15 @@ import { Platform, NativeModules } from 'react-native';
 import fr from './fr';
 import en from './en';
 import pt from './pt';
+import es from './es';
 
-export type Locale = 'fr' | 'en' | 'pt';
+export type Locale = 'fr' | 'en' | 'pt' | 'es';
 type DeepString<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => infer R ? (...args: A) => R : string;
 };
 export type Translations = DeepString<typeof fr>;
 
-const translations: Record<Locale, Translations> = { fr, en, pt };
+const translations: Record<Locale, Translations> = { fr, en, pt, es };
 
 const STORAGE_KEY = '@spotwave_locale';
 
@@ -26,6 +27,7 @@ function getDeviceLocale(): Locale {
       const lower = raw.toLowerCase();
       if (lower.startsWith('fr')) return 'fr';
       if (lower.startsWith('pt')) return 'pt';
+      if (lower.startsWith('es')) return 'es';
     }
   } catch {}
   return 'en';
@@ -52,7 +54,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then(saved => {
-        if (saved === 'fr' || saved === 'en' || saved === 'pt') setLocaleState(saved);
+        if (saved === 'fr' || saved === 'en' || saved === 'pt' || saved === 'es') setLocaleState(saved);
       })
       .catch(() => {})
       .finally(() => setReady(true));

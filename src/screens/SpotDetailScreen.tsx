@@ -8,29 +8,27 @@ import { useTheme } from '../context/ThemeContext';
 import { useProfile } from '../context/ProfileContext';
 import { useLocation } from '../context/LocationContext';
 import { fetchSpotData, DailyData } from '../services/api';
-import { computeSpotForecast } from '../utils/scoring';
+import { computeSpotForecast, spotLocalNowKey } from '../utils/scoring';
 import { haversineDistance, formatDistance } from '../services/location';
 import { getStoredForecasts } from '../context/ForecastStore';
 import { getFavorites, toggleFavorite } from '../services/favorites';
 import { useToast } from '../components/Toast';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { SpotForecast, HourlyCondition, MarineData } from '../types';
+import { SpotForecast, HourlyCondition } from '../types';
 import { scoreColor, scoreBg, scoreLabel, dirLabel, windLabel, isDaytime } from '../theme';
 import { scoreIcon, weatherMCIcon, ICONS, MCIName } from '../utils/icons';
 import { SpotDetailScreenProps } from '../navigation/types';
 import { getLevelLabel, getBreakLabel, getTideLabel, fmtDayLabelShort, fmtRange, fmtH } from '../utils/constants';
+import { spotDescription, spotDangers } from '../utils/spotI18n';
 import * as Haptics from 'expo-haptics';
 import { log } from '../utils/logger';
 import { useI18n } from '../i18n';
-import { getConfidenceForDate, confidenceLabel, confidenceColor } from '../utils/confidence';
-
 const W = Dimensions.get('window').width;
 
-function getDaySlice(conditions: HourlyCondition[], from = 7, to = 20): HourlyCondition[] {
-  const now = new Date().toISOString().slice(0, 13);
+function getDaySlice(conditions: HourlyCondition[], nowKey: string, from = 7, to = 20): HourlyCondition[] {
   let nowIdx = 0;
   for (let i = 0; i < conditions.length; i++) {
-    if (conditions[i].time.slice(0, 13) >= now) { nowIdx = i; break; }
+    if (conditions[i].time.slice(0, 13) >= nowKey) { nowIdx = i; break; }
   }
   const pastHours = 1;
   const start = Math.max(0, nowIdx - pastHours);
@@ -72,8 +70,7 @@ function getTideTrend(slice: HourlyCondition[], currentIdx: number, t: any): { a
   return { arrow: '→', label: t.detailTideSlack };
 }
 
-function buildDaySummary(slice: HourlyCondition[], spot: any, locale: string = 'fr'): string {
-  const todayStr = new Date().toISOString().slice(0, 10);
+function buildDaySummary(slice: HourlyCondition[], spot: any, todayStr: string, locale: string = 'fr'): string {
   const todaySlice = slice.filter(c => c.time.slice(0, 10) === todayStr);
   const data = todaySlice.length > 0 ? todaySlice : slice;
   const fr = locale === 'fr';
@@ -166,9 +163,8 @@ function NowLine({ x, height, color }: { x: number; height: number; color: strin
   );
 }
 
-function getSunTimes(daily: DailyData | null): { sunrise: string; sunset: string } | null {
+function getSunTimes(daily: DailyData | null, todayStr: string): { sunrise: string; sunset: string } | null {
   if (!daily?.sunrise?.length) return null;
-  const todayStr = new Date().toISOString().slice(0, 10);
   const idx = daily.time.findIndex(t => t === todayStr);
   if (idx < 0) return null;
   const sr = daily.sunrise[idx];
@@ -197,8 +193,6 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
   const [currentSpotIdx, setCurrentSpotIdx] = useState(initialIndex);
   const [refreshing, setRefreshing] = useState(false);
   const [dailyData, setDailyData] = useState<DailyData | null>(null);
-  const [marineData, setMarineData] = useState<MarineData | null>(null);
-  const [cacheTs, setCacheTs] = useState<number | null>(null);
   const [ready, setReady] = useState(false);
   const [isFav, setIsFav] = useState(false);
   const { show: showToast } = useToast();
@@ -256,7 +250,11 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
       log.warn('Share failed:', e);
     }
   }, [spot.name, spot.region, forecast.currentScore, t]);
-  const slice = useMemo(() => getDaySlice(forecast.hourlyConditions, profile.availableFrom, profile.availableTo), [forecast.hourlyConditions, profile.availableFrom, profile.availableTo]);
+  // "Now"/"today" anchored to the SPOT's timezone (not the device), so charts,
+  // sun times and "best today" stay correct when viewing a far-away spot.
+  const nowKey = useMemo(() => spotLocalNowKey(forecast.utcOffsetSeconds), [forecast.utcOffsetSeconds]);
+  const spotTodayStr = nowKey.slice(0, 10);
+  const slice = useMemo(() => getDaySlice(forecast.hourlyConditions, nowKey, profile.availableFrom, profile.availableTo), [forecast.hourlyConditions, nowKey, profile.availableFrom, profile.availableTo]);
   const scrollRef = useRef<ScrollView>(null);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
   const stickyOpacity = useRef(new Animated.Value(0)).current;
@@ -275,15 +273,11 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     let cancelled = false;
     // Clear the previous spot's data so stale tide times / sun times are never
     // shown while the new spot loads (e.g. prev/next swipe).
-    setMarineData(null);
     setDailyData(null);
-    setCacheTs(null);
     fetchSpotData(spot.latitude, spot.longitude)
-      .then(({ daily, marine, cacheTs: ts }) => {
+      .then(({ daily }) => {
         if (cancelled) return;
         if (daily) setDailyData(daily);
-        if (marine) setMarineData(marine);
-        if (ts) setCacheTs(ts);
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -292,11 +286,9 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      const { marine, weather, daily, cacheTs: ts } = await fetchSpotData(spot.latitude, spot.longitude);
+      const { marine, weather, daily } = await fetchSpotData(spot.latitude, spot.longitude);
       setForecast(computeSpotForecast(spot, marine, weather, profile, locale));
       if (daily) setDailyData(daily);
-      if (marine) setMarineData(marine);
-      if (ts) setCacheTs(ts);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Erreur inconnue';
       log.warn('Refresh failed:', msg);
@@ -322,12 +314,11 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
   const combinedData = useMemo(() => buildCombinedChart(slice, colors.accent, colors.orange), [slice, colors.accent, colors.orange]);
   const tideData = useMemo(() => buildTideChart(slice, colors.blue), [slice, colors.blue]);
 
-  const summary = useMemo(() => buildDaySummary(slice, spot, locale), [slice, spot, locale]);
+  const summary = useMemo(() => buildDaySummary(slice, spot, spotTodayStr, locale), [slice, spot, spotTodayStr, locale]);
 
   const currentIdx = useMemo(() => {
-    const now = new Date().toISOString().slice(0, 13);
-    return Math.max(0, slice.findIndex(c => c.time.slice(0, 13) >= now));
-  }, [slice]);
+    return Math.max(0, slice.findIndex(c => c.time.slice(0, 13) >= nowKey));
+  }, [slice, nowKey]);
 
   const nowFractionalIdx = useMemo(() => {
     const minutes = new Date().getMinutes();
@@ -338,12 +329,11 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
 
   const nowX = useMemo(() => getNowLineX(nowFractionalIdx, slice.length, chartWidth), [nowFractionalIdx, slice.length, chartWidth]);
 
-  const sunTimes = useMemo(() => getSunTimes(dailyData), [dailyData]);
+  const sunTimes = useMemo(() => getSunTimes(dailyData, spotTodayStr), [dailyData, spotTodayStr]);
 
   const spotBests = useMemo(() => {
-    const now = new Date();
-    const todayStr = now.toISOString().slice(0, 10);
-    const nowStr = now.toISOString().slice(0, 13);
+    const todayStr = spotTodayStr;
+    const nowStr = nowKey;
     const valid = forecast.hourlyConditions.filter(c =>
       c.time.slice(0, 13) >= nowStr && isDaytime(c.time, profile.availableFrom, profile.availableTo)
     );
@@ -360,7 +350,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
       today: bestTodayC ? { cond: bestTodayC, timeRange: fmtRange(bestTodayC.time, profile.sessionDuration, profile.availableTo) } : null,
       next: bestNextC ? { cond: bestNextC, dayLabel: fmtDayLabelShort(bestNextC.time, t, locale), timeRange: fmtRange(bestNextC.time, profile.sessionDuration, profile.availableTo) } : null,
     };
-  }, [forecast.hourlyConditions, profile, t, locale]);
+  }, [forecast.hourlyConditions, profile, t, locale, nowKey, spotTodayStr]);
 
 
   const chartCfg = useMemo(() => ({
@@ -501,30 +491,18 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
           <ScoreBadge score={spotBests.today.cond.score} size="lg" animated />
         </View>
       )}
-      {spotBests.next && (() => {
-        const conf = getConfidenceForDate(spotBests.next.cond.time);
-        const confCol = confidenceColor(conf, colors);
-        return (
-          <View style={[s.bestCard, { backgroundColor: colors.card, borderColor: colors.white15 }]}>
-            <View style={s.bestCardLeft}>
-              <Text style={[s.bestCardLabel, { color: colors.white40 }]}>{t.detailBestNext}</Text>
-              <Text style={[s.bestCardTime, { color: colors.white }]}>
-                <MaterialCommunityIcons name={scoreIcon(spotBests.next.cond.score)} size={16} color={scoreColor(spotBests.next.cond.score)} />  {spotBests.next.dayLabel} · {spotBests.next.timeRange}
-              </Text>
-              <Text style={[s.bestCardDesc, { color: colors.white70 }]}>{scoreLabel(spotBests.next.cond.score, t)}</Text>
-              <View style={s.confidenceRow}>
-                <Text style={[s.confidenceTxt, { color: confCol }]}>
-                  {t.detailDataAccuracy} · {confidenceLabel(conf, t)}
-                </Text>
-              </View>
-              {conf === 'low' && (
-                <Text style={[s.confidenceHint, { color: colors.white40 }]}>{t.detailConfidenceHint}</Text>
-              )}
-            </View>
-            <ScoreBadge score={spotBests.next.cond.score} size="md" />
+      {spotBests.next && (
+        <View style={[s.bestCard, { backgroundColor: colors.card, borderColor: colors.white15 }]}>
+          <View style={s.bestCardLeft}>
+            <Text style={[s.bestCardLabel, { color: colors.white40 }]}>{t.detailBestNext}</Text>
+            <Text style={[s.bestCardTime, { color: colors.white }]}>
+              <MaterialCommunityIcons name={scoreIcon(spotBests.next.cond.score)} size={16} color={scoreColor(spotBests.next.cond.score)} />  {spotBests.next.dayLabel} · {spotBests.next.timeRange}
+            </Text>
+            <Text style={[s.bestCardDesc, { color: colors.white70 }]}>{scoreLabel(spotBests.next.cond.score, t)}</Text>
           </View>
-        );
-      })()}
+          <ScoreBadge score={spotBests.next.cond.score} size="md" />
+        </View>
+      )}
 
       {/* Day summary */}
       <FadeInView delay={100}>
@@ -723,7 +701,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
             <View style={s.sec}>
               <Text style={[s.secT, { color: colors.white }]}>{t.detailSpotInfo}</Text>
               <View style={[s.info, { backgroundColor: colors.card }]}>
-                <Text style={[s.desc, { color: colors.white70 }]}>{spot.description}</Text>
+                <Text style={[s.desc, { color: colors.white70 }]}>{spotDescription(spot, locale)}</Text>
 
                 <Text style={[s.infoGroupTitle, { color: colors.accent }]}>{t.detailIdealCond}</Text>
                 <View style={s.idealGrid}>
@@ -765,7 +743,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
                   <>
                     <Text style={[s.infoGroupTitle, { color: colors.red, marginTop: 16 }]}>{t.detailDangers}</Text>
                     <View style={[s.dangerBox, { backgroundColor: colors.redDim }]}>
-                      {spot.dangers.map((d: string, i: number) => (
+                      {spotDangers(spot, locale).map((d: string, i: number) => (
                         <Text key={i} style={[s.dangerTxt, { color: colors.red }]}><MaterialCommunityIcons name={ICONS.danger} size={13} color={colors.red} />  {d}</Text>
                       ))}
                     </View>
@@ -849,9 +827,6 @@ const s = StyleSheet.create({
   bestCardLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
   bestCardTime: { fontSize: 17, fontWeight: '800' },
   bestCardDesc: { fontSize: 12, marginTop: 3 },
-  confidenceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
-  confidenceTxt: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
-  confidenceHint: { fontSize: 11, lineHeight: 16, marginTop: 4, fontStyle: 'italic' },
   deferredLoading: { paddingVertical: 60, alignItems: 'center' },
 
   summaryBox: { marginHorizontal: 16, marginTop: 10, marginBottom: 6, borderRadius: 14, padding: 16, borderWidth: 1 },
