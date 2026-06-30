@@ -8,10 +8,27 @@ export interface UserLocation {
 
 const LOCATION_TIMEOUT_MS = 8000;
 
-export async function requestLocation(): Promise<UserLocation | null> {
+/**
+ * Resolve the device location.
+ * @param prompt  When `false` (silent mode), we never trigger the OS permission
+ *                dialog: we only return a fix if permission was already granted.
+ *                This lets the app start without nagging for location — the
+ *                prompt is deferred until the user explicitly picks "Ma position".
+ */
+export async function requestLocation(prompt = true): Promise<UserLocation | null> {
   try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') return null;
+    let granted = false;
+    try {
+      const current = await Location.getForegroundPermissionsAsync();
+      granted = current.status === 'granted';
+    } catch {}
+
+    if (!granted) {
+      if (!prompt) return null;
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      granted = status === 'granted';
+    }
+    if (!granted) return null;
 
     // Fast path: a cached OS fix returns instantly when available.
     try {

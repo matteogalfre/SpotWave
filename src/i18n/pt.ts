@@ -103,9 +103,6 @@ export default {
   detailWebcam: 'Webcam ao vivo',
   detailWebcamSub: 'Ver as condições em tempo real',
   detailWebcamOpen: 'ABRIR',
-  detailMap: 'Ver no mapa',
-  detailMapSub: 'Centrar o mapa neste spot',
-  detailMapBtn: 'MAPA',
   detailSwellWind: 'Ondulação & Vento',
   detailTideChart: 'Maré',
   detailHourly: 'Previsão hora a hora',
@@ -113,6 +110,7 @@ export default {
   detailSpotInfo: 'Ficha do spot',
   detailIdealCond: 'Condições ideais',
   detailSwellDir: 'Direção da ondulação',
+  detailSwellDirShort: 'Direção',
   detailSwellHeight: 'Altura ideal',
   detailIdealWind: 'Vento ideal',
   detailOffshore: 'Offshore',
@@ -121,13 +119,9 @@ export default {
   detailBottom: 'Tipo de fundo',
   detailLevel: 'Nível',
   detailDangers: 'Perigos',
-  detailPrev: '‹ Anterior',
-  detailNext: 'Seguinte ›',
   detailSwellM: 'Ondulação (m)',
   detailWindDiv: 'Vento (÷10 km/h)',
   detailNow: 'Agora',
-  detailCurrentCond: 'Condições atuais',
-
   // Profile screen
   profileTitle: 'Perfil',
   profileSub: 'Personalize as suas recomendações',
@@ -168,13 +162,13 @@ export default {
   profileGuide: 'Como funciona?',
   profileGuideSub: 'Pontuação, previsões e dicas',
   profilePreferredZone: 'Zona preferida',
-  profilePreferredZoneDesc: 'Mostrada primeiro sem GPS',
+  profilePreferredZoneDesc: 'Escolhe um país para mostrar só os seus spots. Caso contrário: spots próximos (GPS) ou uma seleção mundial.',
   profilePreferredZoneNone: 'Automático (GPS ou mundial)',
 
   // Levels
   levelBeginner: 'Iniciante',
   levelIntermediate: 'Intermédio',
-  levelExpert: 'Especialista',
+  levelExpert: 'Avançado',
 
   // About screen
   aboutTitle: 'Acerca',
@@ -232,6 +226,18 @@ export default {
   profileAlertsTitle: 'Alertas de condições',
   profileAlertsSub: 'Seja notificado quando as condições de amanhã estiverem ótimas',
 
+  // Per-spot alert modal
+  alertTitle: 'Alerta para este spot',
+  alertSubtitle: 'Recebe uma notificação na manhã do próximo dia em que este spot atingir o teu nível.',
+  alertMinScore: 'Pontuação mínima',
+  alertPreview: (score: string) => `Avisamos-te assim que o spot ultrapassar ${score}/10.`,
+  alertSave: 'Ativar alerta',
+  alertUpdate: 'Atualizar',
+  alertDisable: 'Desativar alerta',
+  alertEnabled: 'Alerta ativado',
+  alertDisabled: 'Alerta desativado',
+  alertNeedsPermission: 'Permite as notificações para ativar os alertas',
+
   // Error boundary
   errorTitle: 'Ups, algo falhou',
   errorUnknown: 'Erro desconhecido',
@@ -243,7 +249,6 @@ export default {
   // Onboarding
   onboardWelcome: 'Bem-vindo à SpotWave',
   onboardWelcomeSub: 'As melhores condições de surf, em todo o mundo',
-  onboardLang: 'Escolha o seu idioma',
   onboardProfile: 'O seu perfil de surf',
   onboardProfileSub: 'Para recomendações personalizadas',
   onboardZone: 'A sua zona preferida',
@@ -255,19 +260,10 @@ export default {
   onboardStep: (n: number, total: number) => `Passo ${n}/${total}`,
 
   // Onboarding — extended
-  onboardLocation: 'Localização',
-  onboardLocationSub: 'Para mostrar primeiro os spots perto de si. A sua localização fica no dispositivo — nenhum dado é enviado.',
-  onboardLocationEnable: 'Ativar localização',
-  onboardLocationSkip: 'Continuar sem localização',
-  onboardLocationGranted: 'Localização ativada',
-  onboardLocationDenied: 'Localização recusada — pode ativá-la mais tarde',
-
   onboardPrefs: 'As suas preferências',
   onboardPrefsSub: 'Para pontuar melhor as sessões ao seu gosto',
   onboardPrefsHeight: 'Altura de onda preferida',
   onboardPrefsDuration: 'Duração da sessão',
-  onboardPrefsHours: 'Os seus horários de surf',
-
   onboardDemo: 'Como ler um spot',
   onboardDemoSub: 'Cada janela recebe uma pontuação de 0 a 10. A cor, o ícone e a etiqueta ajudam a decidir num relance.',
   onboardDemoSpotLabel: 'Vamos a isso!',
@@ -276,19 +272,7 @@ export default {
   onboardDemoLabel: 'Etiqueta clara: «Vamos a isso!», «Médio», etc.',
   onboardDemoStats: 'Ondulação, vento, período no fundo de cada cartão',
 
-  // ── Tide HT/LT (P0) ─────────────────────────────────────────────
-  detailTideTimes: 'Horas de maré',
-  detailTideHigh: 'Preia-mar',
-  detailTideLow: 'Baixa-mar',
-  detailTideNext: 'Próximas',
-  detailTideToday: 'Hoje',
-  detailTideTomorrow: 'Amh.',
-
   // ── Confidence / source (P0) ────────────────────────────────────
-  detailDataSource: 'Fonte dos dados',
-  detailDataSourceVal: 'Open-Meteo · modelos GFS / ICON-EU',
-  detailDataUpdated: (elapsed: string) => `Atualizado ${elapsed}`,
-  detailUpdatedShort: 'Atual.',
   detailDataAccuracy: 'Precisão',
   detailConfidenceHigh: 'Elevada',
   detailConfidenceMedium: 'Média',
@@ -311,8 +295,7 @@ export default {
   detailWhyCurrent: 'Correntes',
   detailWhyRaw: 'Pontuação bruta',
   detailWhyFinal: 'Pontuação final',
-  detailWhyCapped: 'Limitada por',
-  detailWhyWindSwell: 'Wind swell puro (-35%)',
+  detailWhyWindSwell: 'Wind swell puro (-22%)',
   capFlat: 'Ondulação demasiado fraca',
   capPeriod: 'Período demasiado curto',
   capOnshore: 'Vento onshore violento',
@@ -342,14 +325,80 @@ export default {
   profileLanguageEn: 'English',
   profileLanguagePt: 'Português',
   profileLanguageEs: 'Español',
+  profileLanguageDe: 'Deutsch',
+  profileLanguageIt: 'Italiano',
+  profileLanguageJa: '日本語',
 
   // ── Community spot suggestion ────────────────────────────────────
   profileCommunity: 'Comunidade',
   profileSuggestSpot: 'Sugerir um spot',
   profileSuggestSpotSub: 'Falta um spot? Sugere-o em 1 min',
 
+  // ── Rate the conditions (ground-truth) ──────────────────────────
+  rateButton: 'Avaliar as condições',
+  rateTitle: 'A tua nota agora',
+  rateSubtitle: 'Como estão as condições neste momento?',
+  rateAppScore: (s: string) => `Pontuação SpotWave atual: ${s}/10`,
+  rateSend: 'Enviar',
+  rateCancel: 'Cancelar',
+  rateThanks: 'Obrigado! A tua nota ajuda a melhorar a pontuação 🙏',
+  rateQueued: 'Nota guardada, será enviada mais tarde 🙏',
+  rateAlready: 'Já avaliaste este spot hoje',
+  rateHint: 'A tua nota ajuda a melhorar o algoritmo de pontuação para todos.',
+
+  // ── In-app spot suggestion ──────────────────────────────────────
+  suggestTitle: 'Sugerir um spot',
+  suggestSubtitle: 'Falta um spot? Dá os dados e eu adiciono-o.',
+  suggestName: 'Nome do spot',
+  suggestNamePh: 'Ex. La Gravière',
+  suggestCountry: 'País',
+  suggestCountryPh: 'Ex. Portugal',
+  suggestLevel: 'Nível recomendado (opcional)',
+  suggestWebcam: 'Link da webcam (opcional)',
+  suggestWebcamPh: 'https://…',
+  suggestSend: 'Enviar',
+  suggestThanks: 'Obrigado! A tua sugestão foi enviada 🙏',
+  suggestError: 'Não foi possível enviar, tenta mais tarde',
+  suggestRequired: 'Indica pelo menos o nome e o país',
+
+  // ── Rate the app (store) ────────────────────────────────────────
+  profileRateApp: 'Avaliar a aplicação',
+  profileRateAppSub: 'Gostas do SpotWave? Deixa uma avaliação',
+  profileSupport: 'Apoiar o SpotWave',
+  profileSupportSub: 'Ajuda no desenvolvimento da app',
+
   // ── Share (P2) ──────────────────────────────────────────────────
   detailShare: 'Partilhar',
   detailShareMessage: (name: string, region: string, score: string, label: string) =>
     `${name} (${region}) — ${score}/10, ${label}\nVer na SpotWave.`,
+
+  // ── Wind condition (surface read) ───────────────────────────────
+  windGlassy: 'Glassy',
+  windClean: 'Limpo',
+  windChoppy: 'Mexido',
+
+  // ── Comfort & gear (detail) ─────────────────────────────────────
+  detailSurface: 'Superfície',
+  detailWindLabel: 'Vento',
+  detailGusts: 'Rajadas',
+  detailComfort: 'Conforto e equipamento',
+  detailWetsuit: 'Fato',
+  detailWetsuitNone: 'Calções',
+  wetsuitBoots: 'botas',
+  wetsuitGloves: 'luvas',
+  wetsuitHood: 'capuz',
+  detailWater: 'Água',
+  detailUV: 'UV',
+  detailRain: 'Chuva',
+  detailCloud: 'Nebulosidade',
+  uvLow: 'Baixo',
+  uvModerate: 'Moderado',
+  uvHigh: 'Alto',
+  uvVeryHigh: 'Muito alto',
+  uvExtreme: 'Extremo',
+
+  // ── Posicionamento / confiança ──────────────────────────────────
+  trustFree: 'Grátis',
+  trustNoAds: 'Sem anúncios',
+  trustNoAccount: 'Sem conta',
 } as const;

@@ -12,7 +12,7 @@ export type MainTabParamList = {
 
 export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList>;
-  SpotDetail: { forecast: SpotForecast; spotIndex?: number };
+  SpotDetail: { forecast: SpotForecast };
   About: undefined;
   Guide: undefined;
 };

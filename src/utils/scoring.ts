@@ -108,9 +108,10 @@ function levelHeightRange(profile: SurferProfile): { ideal: [number, number]; ma
     case 'beginner':
       return { ideal: [0.4, 1.1], max: 1.7 };
     case 'intermediate':
-      // Intermediates comfortably surf chest-to-slightly-overhead; 2m is squarely
-      // in their wheelhouse, so the ideal band extends to 2.0m.
-      return { ideal: [0.7, 2.0], max: 2.8 };
+      // Intermediates ideally want chest-to-overhead. Below ~1m it's small/weak
+      // for them (fun but not "good"), so the ideal band starts at 1.0m — sub-chest
+      // days then fall on the below-ideal ramp instead of getting full credit.
+      return { ideal: [1.0, 2.0], max: 2.8 };
     case 'expert':
       return { ideal: [1.2, 3.5], max: 6.0 };
   }
@@ -173,24 +174,31 @@ function directionFactor(direction: number, spot: SpotConfig): number {
   }
 
   // Outside the window: continuous decay starting from 0.66 at the edge, so the
-  // function is continuous across the boundary (no jump).
+  // function is continuous across the boundary (no jump). Beach breaks accept a
+  // wider swell window than reefs/points (sand refracts/reshapes more), so they
+  // decay slower and keep a higher floor.
   const beyond = Math.min(
     angleDiff(direction, spot.optimalSwellDirMin),
     angleDiff(direction, spot.optimalSwellDirMax),
   );
-  return clamp(0.66 * Math.exp(-beyond / 32), 0.04, 0.66);
+  const isBeach = spot.bottomType === 'beach';
+  const decay = isBeach ? 45 : 32;
+  const floor = isBeach ? 0.12 : 0.04;
+  return clamp(0.66 * Math.exp(-beyond / decay), floor, 0.66);
 }
 
 function periodFactor(period: number | null, profile: SurferProfile): number {
   // Unknown period → neutral (don't reward, don't punish).
   if (period == null) return 0.55;
+  // Short period is weak, gutless surf even when the buoy shows size, so the
+  // low end is deliberately firm; the long end (real groundswell) is rewarded.
   const base = piecewise(period, [
     [3, 0.05],
-    [5, 0.18],
-    [7, 0.38],
-    [9, 0.56],
-    [11, 0.70],
-    [13, 0.82],
+    [5, 0.14],
+    [7, 0.30],
+    [9, 0.50],
+    [11, 0.68],
+    [13, 0.80],
     [15, 0.90],
     [18, 0.96],
     [22, 0.98],
@@ -280,24 +288,32 @@ function windQuality(
 
   // Wind direction only matters once there's actual wind: at 0 km/h the surface
   // is glassy regardless of nominal direction, and the directional penalty fades
-  // in smoothly up to ~8 km/h. This both reflects reality AND removes the cliff
-  // that a hard "glassy below 3 km/h" override used to create.
-  const windStrength = clamp01(speed / 8);
+  // in smoothly. A light 8-12 km/h (≈5-7 kt) breeze — even cross/onshore — barely
+  // textures small surf, so the penalty must NOT be at full strength by 8 km/h
+  // (that used to drag a knee-high, light-wind day Surfline rates POOR down to
+  // ~1/10). It ramps from ~4 km/h and reaches full weight around 18 km/h (~10 kt),
+  // the speed at which wind direction genuinely starts to make or break a session.
+  const windStrength = clamp01((speed - 4) / 14);
   const effDir = lerp(1.0, dirMult, windStrength);
   let base = effDir * speedMult;
 
-  // Gust instability (continuous): irregular wind ruins the surface — but a big
-  // gust ratio at LIGHT wind (e.g. gusting 12 over a 4 km/h breeze) barely
-  // matters, the surface is still clean. So we fade the ratio penalty in with
-  // the absolute steady wind, and there is no hard speed threshold (no cliff).
+  // Gusts ruin the surface, but the gust *ratio* (irregularity) and the *absolute*
+  // gust strength describe the SAME gusty wind. Stacking both (multiplying them)
+  // double-counted it and dragged otherwise-surfable windy days near zero, so we
+  // keep only whichever is the stronger penalty.
+  let gustMult = 1.0;
+  // 1) Gust ratio: a big ratio over a ~4 km/h breeze barely textures the surface,
+  //    so it fades out at light wind and only bites once there's real steady wind.
   if (gusts > speed && speed > 0.5) {
     const ratio = gusts / speed;
     const ratioPen = piecewise(ratio, [[1.3, 1.0], [1.6, 0.93], [2.2, 0.82], [3.5, 0.7]]);
-    const wind = clamp01(speed / 14); // ratio only bites once there's real wind
-    base *= lerp(1.0, ratioPen, wind);
+    const lightFade = clamp01((speed - 4) / 10); // ≈0 at/below 4 km/h, full by ~14
+    gustMult = Math.min(gustMult, lerp(1.0, ratioPen, lightFade));
   }
-  // Absolute gust ceiling (continuous): strong gusts are bad regardless.
-  base *= piecewise(gusts, [[25, 1.0], [30, 0.82], [40, 0.62], [55, 0.4]]);
+  // 2) Absolute gust ceiling (continuous): strong gusts are bad regardless. Kicks
+  //    in a bit later/softer so a single gust reading doesn't flatten the score.
+  gustMult = Math.min(gustMult, piecewise(gusts, [[28, 1.0], [36, 0.82], [46, 0.6], [60, 0.42]]));
+  base *= gustMult;
 
   // Wind × wave-size interaction: the same onshore wind is worse on a bigger,
   // more exposed face. Negligible on knee-high days.
@@ -502,7 +518,17 @@ function consistencyFactor(index: number, marine: MarineData): number {
 // ── EFFECTIVE HEIGHT ─────────────────────────────────────────────────────────
 
 function effectiveSwellHeight(swellHeight: number, waveHeight: number): { height: number; isWindSwellOnly: boolean } {
-  if (swellHeight > 0.15) return { height: swellHeight, isWindSwellOnly: false };
+  if (swellHeight > 0.15) {
+    // For modest groundswell, the total significant height (which bundles the
+    // short-period / refracted waves you actually ride at the beach) is a better
+    // proxy than deep-water swell alone — Open-Meteo routinely under-reads tiny
+    // coastal swell, which used to crater the score on small-but-clean days.
+    // Blend the two below 0.8 m so a clean little day reads "fair", not "flat".
+    // Genuine swell (>= 0.8 m) is left exactly as-is.
+    const total = Math.max(waveHeight, swellHeight);
+    const height = swellHeight >= 0.8 ? swellHeight : Math.max(swellHeight, swellHeight * 0.5 + total * 0.5);
+    return { height, isWindSwellOnly: false };
+  }
   if (waveHeight > 0.15) return { height: waveHeight, isWindSwellOnly: true };
   return { height: 0, isWindSwellOnly: false };
 }
@@ -531,16 +557,30 @@ function applyDealBreakers(
     if (ceiling < rawScore - 0.2 && !caps.includes(label)) caps.push(label);
   };
 
-  // Flat / tiny surf — continuous ramp.
-  if (swellHeight < 0.6) {
-    consider(piecewise(swellHeight, [[0.1, 0.5], [0.3, 2.0], [0.4, 3.5], [0.6, 7.5]]), 'flat');
+  // Flat / tiny surf — continuous ramp. Use the total rideable height (swell OR
+  // total sea), not deep-water swell alone, so a small clean shorebreak isn't
+  // declared "flat" just because the groundswell channel reads near-zero.
+  const offshoreDirFlat = (spot.beachOrientation + 180) % 360;
+  const windAngleFlat = angleDiff(windDir, offshoreDirFlat);
+  const rideable = Math.max(swellHeight, waveHeight);
+  if (rideable < 0.6) {
+    const baseCeil = piecewise(rideable, [[0.1, 0.5], [0.3, 2.0], [0.4, 3.5], [0.6, 7.5]]);
+    // Glassy/clean small surf is still fun — lift the ceiling when the wind is
+    // light and roughly offshore. cleanLift: 1 = glassy & offshore, 0 = windy/onshore.
+    const lightWind = piecewise(windSpeed, [[6, 1], [12, 0.6], [18, 0.15], [24, 0]]);
+    const offshoreish = piecewise(windAngleFlat, [[60, 1], [100, 0.45], [140, 0]]);
+    const cleanLift = lightWind * offshoreish;
+    // Starts at the harsh base ceiling for near-flat seas (no rescue for 0.1 m),
+    // then lifts as soon as there's something real to ride.
+    const cleanCeil = piecewise(rideable, [[0.2, 0.5], [0.32, 3.0], [0.46, 4.7], [0.6, 7.5]]);
+    consider(lerp(baseCeil, Math.max(baseCeil, cleanCeil), cleanLift), 'flat');
   }
 
   // Short period — gentle continuous ceiling. Missing period (null) = no cap.
   // Note: `period` is the ROBUST max(swell, peak), so a lone bad swell-period
   // reading next to a healthy peak period will NOT trigger this.
-  if (period != null && period < 9) {
-    consider(piecewise(period, [[3.5, 2.0], [5, 3.7], [9, 9.0]]), 'period');
+  if (period != null && period < 10) {
+    consider(piecewise(period, [[3.5, 1.8], [5, 3.0], [7, 4.8], [9, 7.5], [10, 9.0]]), 'period');
   }
 
   // Wind direction/speed ceilings, blended by onshore-ness (continuous).
@@ -615,6 +655,10 @@ export function computeHourlyScore(
   const prevSeaLevel = marine.sea_level_height_msl?.[Math.max(0, index - 1)] ?? seaLevel;
   const tideVelocity = marine.ocean_current_velocity[index] ?? 0;
   const weatherCode = weather.weather_code[index] ?? 0;
+  // Display-only comfort extras (do NOT influence the score).
+  const uvIndex = weather.uv_index?.[index];
+  const precipProb = weather.precipitation_probability?.[index];
+  const cloudCover = weather.cloud_cover?.[index];
 
   // ONE robust effective period, used by quality AND deal-breakers (the v1 bug
   // was using a different period in each place).
@@ -666,6 +710,9 @@ export function computeHourlyScore(
     seaTemp,
     seaLevel,
     weatherCode,
+    uvIndex: uvIndex ?? undefined,
+    precipProb: precipProb ?? undefined,
+    cloudCover: cloudCover ?? undefined,
     factors: {
       swellQuality: swell,
       windQuality: wind,
@@ -789,6 +836,27 @@ const BEST_TIME_I18N: Record<string, {
     tomorrow: (h) => `Amanhã ${h}h`,
     days: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
   },
+  de: {
+    now: 'Jetzt!',
+    inH: (h) => `In ${h} Std`,
+    today: (h) => `Heute ${h} Uhr`,
+    tomorrow: (h) => `Morgen ${h} Uhr`,
+    days: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+  },
+  it: {
+    now: 'Adesso!',
+    inH: (h) => `Tra ${h}h`,
+    today: (h) => `Oggi ${h}h`,
+    tomorrow: (h) => `Domani ${h}h`,
+    days: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
+  },
+  ja: {
+    now: '今すぐ！',
+    inH: (h) => `${h}時間後`,
+    today: (h) => `今日 ${h}時`,
+    tomorrow: (h) => `明日 ${h}時`,
+    days: ['日', '月', '火', '水', '木', '金', '土'],
+  },
 };
 
 function formatBestTimeLabel(
@@ -828,6 +896,20 @@ function formatBestTimeLabel(
 }
 
 // ── SPOT FORECAST ────────────────────────────────────────────────────────────
+
+/**
+ * Re-derive the "best window" label for the CURRENT locale at render time.
+ * `forecast.bestTime.label` is baked at fetch time, so it would otherwise stay
+ * in the language that was active when the data was loaded.
+ */
+export function bestTimeLabel(
+  forecast: { bestTime: { time: string }; utcOffsetSeconds?: number },
+  locale: string = 'fr',
+): string {
+  const time = forecast.bestTime?.time;
+  if (!time) return '';
+  return formatBestTimeLabel(time, spotLocalNowKey(forecast.utcOffsetSeconds), locale);
+}
 
 export function computeSpotForecast(
   spot: SpotConfig,

@@ -3,7 +3,7 @@
     "name": "SpotWave",
     "slug": "SpotWave",
     "scheme": "spotwave",
-    "version": "1.0.1",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -15,12 +15,13 @@
       }
     },
     "android": {
+      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0B0F1A"
+        "backgroundColor": "#FBF2DF"
       },
       "package": "com.spotwave.app",
-      "versionCode": 14,
+      "versionCode": 29,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
@@ -32,6 +33,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "./plugins/withDeviceCompatibility.js",
       [
         "expo-location",
         {
@@ -43,15 +45,15 @@
         {
           "image": "./assets/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#0B0F1A"
+          "backgroundColor": "#FBF2DF"
         }
       ]
     ],
+    "owner": "scrtymailer",
     "extra": {
       "eas": {
-        "projectId": "d47380e8-6d28-46fd-9ad6-e372fa7f92cd"
+        "projectId": "068cc588-5389-4af2-a6b8-cf47df297fc3"
       }
-    },
-    "owner": "mcleanjeanluc"
+    }
   }
 }

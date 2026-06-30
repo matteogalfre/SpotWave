@@ -100,5 +100,6 @@ export function countryLabel(frName: string, locale: Locale): string {
   if (locale === 'fr') return frName;
   const tri = MAP[frName];
   if (!tri) return frName;
-  return tri[locale];
+  // German falls back to the English display name (country names are close).
+  return (tri as Record<string, string>)[locale] ?? tri.en;
 }

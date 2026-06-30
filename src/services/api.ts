@@ -31,6 +31,8 @@ const MARINE_PARAMS = [
 
 const WEATHER_PARAMS = [
   'wind_speed_10m', 'wind_direction_10m', 'wind_gusts_10m', 'temperature_2m', 'weather_code',
+  // Display-only comfort extras (no extra request — same forecast endpoint).
+  'uv_index', 'precipitation_probability', 'cloud_cover',
 ].join(',');
 
 /**
@@ -46,12 +48,20 @@ function withOffset<T extends object>(hourly: T, utcOffsetSeconds: unknown): T {
   return hourly;
 }
 
+/** True if the array holds at least one real, positive measurement. */
+function hasSignal(arr: unknown): boolean {
+  return Array.isArray(arr) && arr.some(v => typeof v === 'number' && Number.isFinite(v) && v > 0);
+}
+
 function validateMarineData(data: unknown): data is MarineData {
   if (!data || typeof data !== 'object') return false;
   const d = data as any;
-  return Array.isArray(d.time) && d.time.length > 0
-    && Array.isArray(d.wave_height)
-    && Array.isArray(d.swell_wave_height);
+  if (!Array.isArray(d.time) || d.time.length === 0) return false;
+  if (!Array.isArray(d.wave_height) || !Array.isArray(d.swell_wave_height)) return false;
+  // Known Open-Meteo limitation: coastal coordinates can snap to a grid cell with
+  // no wave model data and return an all-null or all-zero series. Treat that as
+  // "no data" (→ spot marked unavailable) instead of showing a misleading 0/10.
+  return hasSignal(d.wave_height) || hasSignal(d.swell_wave_height);
 }
 
 function validateWeatherData(data: unknown): data is WeatherData {
@@ -297,15 +307,22 @@ export async function getMarineCacheTimestamp(lat: number, lon: number): Promise
   }
 }
 
-export async function fetchSpotData(lat: number, lon: number) {
+/**
+ * Fetch everything a spot needs. `daily` (sunrise/sunset) is only used by the
+ * spot detail screen, so list/map/favorites callers pass `{ daily: false }` to
+ * skip a whole network request per spot (~33% fewer calls on the loading path).
+ */
+export async function fetchSpotData(lat: number, lon: number, opts: { daily?: boolean } = {}) {
+  const withDaily = opts.daily ?? true;
   const [marine, weather, daily] = await Promise.all([
     fetchMarineData(lat, lon),
     fetchWeatherData(lat, lon),
-    fetchDailyData(lat, lon).catch((e) => {
-      log.warn('Daily data fetch failed:', e?.message);
-      return null;
-    }),
+    withDaily
+      ? fetchDailyData(lat, lon).catch((e) => {
+          log.warn('Daily data fetch failed:', e?.message);
+          return null;
+        })
+      : Promise.resolve(null),
   ]);
-  const cacheTs = await getMarineCacheTimestamp(lat, lon);
-  return { marine, weather, daily, cacheTs };
+  return { marine, weather, daily };
 }

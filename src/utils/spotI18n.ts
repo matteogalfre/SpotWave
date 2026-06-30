@@ -10,10 +10,17 @@ import { SPOT_DESCRIPTIONS, SPOT_DANGERS } from '../data/spotDescriptions';
  */
 export function spotDescription(spot: SpotConfig, locale: Locale): string {
   if (locale === 'fr') return spot.description;
-  return SPOT_DESCRIPTIONS[spot.id]?.[locale] ?? spot.description;
+  const tr = SPOT_DESCRIPTIONS[spot.id];
+  if (!tr) return spot.description;
+  // Only es/pt are translated; other locales (en/de/it/ja) use English.
+  if (locale === 'es' || locale === 'pt') return tr[locale] ?? tr.en ?? spot.description;
+  return tr.en ?? spot.description;
 }
 
 export function spotDangers(spot: SpotConfig, locale: Locale): string[] {
   if (locale === 'fr') return spot.dangers;
-  return SPOT_DANGERS[spot.id]?.[locale] ?? spot.dangers;
+  const tr = SPOT_DANGERS[spot.id];
+  if (!tr) return spot.dangers;
+  if (locale === 'es' || locale === 'pt') return tr[locale] ?? tr.en ?? spot.dangers;
+  return tr.en ?? spot.dangers;
 }

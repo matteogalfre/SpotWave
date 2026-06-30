@@ -6,7 +6,8 @@ import { useProfile } from '../context/ProfileContext';
 import { useLocation } from '../context/LocationContext';
 import { getFavorites, toggleFavorite } from '../services/favorites';
 import { fetchSpotData } from '../services/api';
-import { computeSpotForecast, RIDABLE_SCORE } from '../utils/scoring';
+import { computeSpotForecast, RIDABLE_SCORE, bestTimeLabel } from '../utils/scoring';
+import { countryLabel } from '../utils/countries';
 import { haversineDistance, formatDistance } from '../services/location';
 import { setStoredForecasts, getStoredForecasts } from '../context/ForecastStore';
 import { useToast } from '../components/Toast';
@@ -72,7 +73,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
         const batch = toLoad.slice(i, i + BATCH);
         const settled = await Promise.allSettled(
           batch.map(async (spot) => {
-            const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude);
+            const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude, { daily: false });
             return computeSpotForecast(spot, marine, weather, profile, locale);
           })
         );
@@ -140,8 +141,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   const navigateToSpot = useCallback((forecast: SpotForecast) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setStoredForecasts(sortedForecasts);
-    const idx = sortedForecasts.findIndex(f => f.spot.id === forecast.spot.id);
-    navigation.navigate('SpotDetail', { forecast, spotIndex: idx >= 0 ? idx : 0 });
+    navigation.navigate('SpotDetail', { forecast });
   }, [navigation, sortedForecasts]);
 
   const renderItem = useCallback(({ item: f }: ListRenderItemInfo<SpotForecast>) => {
@@ -164,7 +164,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
               <MaterialCommunityIcons name={scoreIcon(f.currentScore)} size={13} color={scoreColor(f.currentScore)} /> {scoreLabel(f.currentScore, t)}
             </Text>
             <View style={s.cardMeta}>
-              <Text style={[s.cardCountry, { color: colors.textMuted }]}>{f.spot.country}</Text>
+              <Text style={[s.cardCountry, { color: colors.textMuted }]}>{countryLabel(f.spot.country, locale)}</Text>
               {dist != null && <Text style={[s.cardDist, { color: colors.accent }]}><MaterialCommunityIcons name={ICONS.location} size={11} color={colors.accent} /> {formatDistance(dist)}</Text>}
             </View>
           </View>
@@ -192,7 +192,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
         {f.bestTime.score >= RIDABLE_SCORE ? (
           <View style={[s.bestRow, { backgroundColor: scoreBg(f.bestTime.score) }]}>
             <Text style={[s.bestTxt, { color: scoreColor(f.bestTime.score) }]}>
-              <MaterialCommunityIcons name={ICONS.bestTime} size={12} color={scoreColor(f.bestTime.score)} /> {f.bestTime.label} — {scoreShort(f.bestTime.score, t)} ({f.bestTime.score.toFixed(1)})
+              <MaterialCommunityIcons name={ICONS.bestTime} size={12} color={scoreColor(f.bestTime.score)} /> {bestTimeLabel(f, locale)} — {scoreShort(f.bestTime.score, t)} ({f.bestTime.score.toFixed(1)})
             </Text>
           </View>
         ) : (
@@ -204,7 +204,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
         )}
       </TouchableOpacity>
     );
-  }, [colors, distanceMap, handleRemoveFav, navigateToSpot, t]);
+  }, [colors, distanceMap, handleRemoveFav, navigateToSpot, t, locale]);
 
   const keyExtractor = useCallback((f: SpotForecast) => f.spot.id, []);
 
@@ -216,6 +216,10 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
       keyExtractor={keyExtractor}
       contentContainerStyle={{ paddingBottom: 100 }}
       showsVerticalScrollIndicator={false}
+      initialNumToRender={6}
+      maxToRenderPerBatch={4}
+      windowSize={7}
+      removeClippedSubviews={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
       ListHeaderComponent={
         <View>

@@ -133,6 +133,22 @@ const SCENARIOS: Scenario[] = [
     marine: { wave_height: [1.3], swell_wave_height: [1.3], swell_wave_period: [11], swell_wave_peak_period: [12], swell_wave_direction: [275], wind_wave_height: [0.3] },
     weather: { wind_speed_10m: [16], wind_direction_10m: [(BEACH_W.beachOrientation + 90) % 360], wind_gusts_10m: [22] },
   },
+  {
+    // Size on the buoy but ultra-short period = gutless wind-chop. Even clean &
+    // offshore this is "poor", NOT a fun day. (Locks the short-period precision.)
+    name: 'Short-period junk with size: 1.6m @ 6s, light offshore',
+    band: [1.0, 4.5],
+    marine: { wave_height: [1.6], swell_wave_height: [1.6], swell_wave_period: [6], swell_wave_peak_period: [6], swell_wave_direction: [275], wind_wave_height: [0.3] },
+    weather: { wind_speed_10m: [8], wind_direction_10m: [OFFSHORE], wind_gusts_10m: [11] },
+  },
+  {
+    // Small, sub-chest, short-period day, clean & light wind — fun but flawed for
+    // an intermediate. Must read "fair", never "good" (was over-rated ~7+ before).
+    name: 'Small short-period: 0.9m @ 7s, light offshore (intermediate)',
+    band: [3.0, 6.5],
+    marine: { wave_height: [0.9], swell_wave_height: [0.9], swell_wave_period: [7], swell_wave_peak_period: [8], swell_wave_direction: [275], wind_wave_height: [0.25] },
+    weather: { wind_speed_10m: [7], wind_direction_10m: [OFFSHORE], wind_gusts_10m: [10] },
+  },
 ];
 
 describe('scoring vs verified-style reference bands', () => {

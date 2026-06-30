@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useCallback, useRef } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
@@ -8,6 +9,7 @@ import { useProfile } from '../context/ProfileContext';
 import { getStoredForecasts, setStoredForecasts } from '../context/ForecastStore';
 import { fetchSpotData } from '../services/api';
 import { computeSpotForecast } from '../utils/scoring';
+import { getFavorites } from '../services/favorites';
 import SPOTS from '../data/spots';
 import { SpotForecast } from '../types';
 import { scoreColor, scoreShort } from '../theme';
@@ -29,15 +31,18 @@ interface MapSpot {
   label: string;
   swell: string;
   wind: string;
+  fav: boolean;
 }
 
 function buildAllMapSpots(
   forecastMap: Map<string, SpotForecast>,
   levelColors: Record<string, string>,
   fallbackColor: string,
+  favSet: Set<string>,
   t?: any,
 ): MapSpot[] {
   return SPOTS.map((spot) => {
+    const fav = favSet.has(spot.id);
     const f = forecastMap.get(spot.id);
     if (f && f.currentCondition) {
       return {
@@ -48,6 +53,7 @@ function buildAllMapSpots(
         label: scoreShort(f.currentScore, t),
         swell: f.currentCondition.swellHeight.toFixed(1) + 'm',
         wind: f.currentCondition.windSpeed.toFixed(0) + ' km/h',
+        fav,
       };
     }
     const levelLabels: Record<string, string> = { beginner: 'B', intermediate: 'I', expert: 'E' };
@@ -58,6 +64,7 @@ function buildAllMapSpots(
       color: levelColors[spot.recommendedLevel] || fallbackColor,
       label: levelLabels[spot.recommendedLevel] || '?',
       swell: '—', wind: '—',
+      fav,
     };
   });
 }
@@ -83,6 +90,8 @@ interface MapThemeStyle {
   accentDim: string;
   clusterInner: string;
   clusterText: string;
+  clusterNeutral: string;
+  favColor: string;
   userPin: string;
   scoreText: string;
 }
@@ -169,7 +178,7 @@ function buildMapHtml(
 </head>
 <body>
 <div id="map"></div>
-${(userLat != null && userLon != null) ? '<button class="recenter-btn" onclick="recenter()">&#x1f4cd;</button>' : ''}
+<button id="recenterBtn" class="recenter-btn" style="${(userLat != null && userLon != null) ? '' : 'display:none'}" onclick="recenter()">&#x1f4cd;</button>
 <script>
 var USER_LAT = ${userLat ?? 'null'};
 var USER_LON = ${userLon ?? 'null'};
@@ -178,18 +187,48 @@ var LABEL_COLOR = '${themeStyle.textColor}';
 var LABEL_SHADOW = '${themeStyle.labelShadow}';
 var spotMarkers = {};
 
+var FAV_COLOR = '${themeStyle.favColor}';
+var CLUSTER_NEUTRAL = '${themeStyle.clusterNeutral}';
+var CLUSTER_TEXT = '${themeStyle.clusterText}';
+var SCORE_TEXT = '${themeStyle.scoreText}';
+
+// Mirror of theme.scoreColor so cluster bubbles & markers share the exact ramp.
+function scoreColorJs(s) {
+  s = Math.max(0, Math.min(10, s));
+  function lc(r1,g1,b1,r2,g2,b2,t){return 'rgb('+Math.round(r1+(r2-r1)*t)+','+Math.round(g1+(g2-g1)*t)+','+Math.round(b1+(b2-b1)*t)+')';}
+  if (s <= 2.5) return lc(228,82,76,255,138,80,s/2.5);
+  if (s <= 5.0) return lc(255,138,80,255,200,70,(s-2.5)/2.5);
+  if (s <= 7.5) return lc(255,200,70,52,184,96,(s-5.0)/2.5);
+  return lc(52,184,96,35,199,194,(s-7.5)/2.5);
+}
+
 var map = L.map('map', { zoomControl: false, attributionControl: false });
-L.tileLayer('${tileSrc}', { maxZoom: 18 }).addTo(map);
+// noWrap keeps a single world copy so spot markers (which only exist on the
+// primary copy) don't disappear when panning into a repeated map.
+L.tileLayer('${tileSrc}', { maxZoom: 18, noWrap: true }).addTo(map);
 ${initView}
 
-if (USER_LAT !== null) {
-  var userIcon = L.divIcon({
-    className: 'user-icon',
-    html: '<div style="width:18px;height:18px;border-radius:50%;background:${themeStyle.userPin};border:3px solid white;box-shadow:0 2px 10px rgba(74,144,255,0.6)"></div>',
-    iconSize: [18, 18], iconAnchor: [9, 9]
-  });
-  L.marker([USER_LAT, USER_LON], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+// User marker is set/moved imperatively so the map never reloads when GPS
+// resolves after first paint — we just drop or move the pin via injectJavaScript.
+var userMarker = null;
+function setUserLocation(lat, lon, doCenter) {
+  USER_LAT = lat; USER_LON = lon;
+  if (userMarker) {
+    userMarker.setLatLng([lat, lon]);
+  } else {
+    var userIcon = L.divIcon({
+      className: 'user-icon',
+      html: '<div style="width:18px;height:18px;border-radius:50%;background:${themeStyle.userPin};border:3px solid white;box-shadow:0 2px 10px rgba(74,144,255,0.6)"></div>',
+      iconSize: [18, 18], iconAnchor: [9, 9]
+    });
+    userMarker = L.marker([lat, lon], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+  }
+  var rb = document.getElementById('recenterBtn');
+  if (rb) rb.style.display = 'flex';
+  if (doCenter) map.setView([lat, lon], 8, { animate: true });
 }
+
+if (USER_LAT !== null) { setUserLocation(USER_LAT, USER_LON, false); }
 
 function recenter() {
   if (USER_LAT !== null) map.setView([USER_LAT, USER_LON], 8, { animate: true });
@@ -208,7 +247,6 @@ function makePopup(s) {
   return '<div>' +
     '<div class="popup-title">' + s.name + '</div>' +
     '<div class="popup-region">' + s.region + ' \\u00b7 ' + s.country + '</div>' +
-    '<div class="popup-label" style="color:' + s.color + '">' + s.label + '</div>' +
     '<div class="popup-nodata">' + LABELS.noData + '</div>' +
     '<button class="popup-btn" id="btn-' + s.id + '" onclick="sendMsg(\\'load\\',\\'' + s.id + '\\')">' + LABELS.loadConditions + '</button></div>';
 }
@@ -221,20 +259,30 @@ function sendMsg(action, id) {
   window.ReactNativeWebView.postMessage(JSON.stringify({action: action, id: id}));
 }
 
+// Star badge shown on favorite spots so they pop out without zooming in.
+function favStar(isFav) {
+  return isFav
+    ? '<div style="position:absolute;top:-7px;right:-7px;width:15px;height:15px;border-radius:50%;background:' + FAV_COLOR + ';color:#0B0F1A;font-size:10px;font-weight:900;line-height:15px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.4)">\\u2605</div>'
+    : '';
+}
+
 function updateSpot(data) {
   var entry = spotMarkers[data.id];
   if (!entry) return;
   var s = data;
+  s.fav = entry.data.fav;
+  var border = s.fav ? '2px solid ' + FAV_COLOR : 'none';
   var icon = L.divIcon({
     className: 'spot-div-icon',
     html: '<div style="display:flex;flex-direction:column;align-items:center;pointer-events:auto">' +
-      '<div style="padding:3px 7px;border-radius:10px;font-size:13px;font-weight:800;color:${themeStyle.scoreText};text-align:center;min-width:36px;background:' + s.color + ';box-shadow:0 2px 8px rgba(0,0,0,0.3)">' + s.score + '</div>' +
+      '<div style="position:relative;padding:3px 7px;border-radius:10px;font-size:13px;font-weight:800;color:' + SCORE_TEXT + ';text-align:center;min-width:36px;background:' + s.color + ';border:' + border + ';box-shadow:0 2px 8px rgba(0,0,0,0.3)">' + s.score + favStar(s.fav) + '</div>' +
       '<div style="margin-top:2px;font-size:9px;color:' + LABEL_COLOR + ';font-weight:600;text-shadow:' + LABEL_SHADOW + ';white-space:nowrap;max-width:100px;overflow:hidden;text-overflow:ellipsis">' + s.name + '</div></div>',
     iconSize: [0, 0], iconAnchor: [0, 0], popupAnchor: [0, -28]
   });
   entry.marker.setIcon(icon);
   s.hasData = true;
   entry.data = s;
+  entry.marker.options.swData = s;
   entry.marker.setPopupContent(makePopup(s));
 }
 
@@ -242,27 +290,58 @@ var spots = ${spotsJson};
 var clusters = L.markerClusterGroup({
   maxClusterRadius: 50, spiderfyOnMaxZoom: true,
   showCoverageOnHover: false, zoomToBoundsOnClick: true,
-  disableClusteringAtZoom: 10
+  disableClusteringAtZoom: 10,
+  // Colour each cluster by the BEST score it contains, so quality is visible
+  // without zooming in. Neutral grey when no spot in the cluster has data yet.
+  iconCreateFunction: function(cluster) {
+    var markers = cluster.getAllChildMarkers();
+    var best = null, favCount = 0;
+    for (var i = 0; i < markers.length; i++) {
+      var d = markers[i].options.swData;
+      if (!d) continue;
+      if (d.fav) favCount++;
+      if (d.hasData) {
+        var sc = parseFloat(d.score);
+        if (!isNaN(sc) && (best === null || sc > best)) best = sc;
+      }
+    }
+    var count = markers.length;
+    var size = count < 10 ? 34 : (count < 50 ? 40 : 46);
+    var bg = best !== null ? scoreColorJs(best) : CLUSTER_NEUTRAL;
+    var txt = best !== null ? SCORE_TEXT : CLUSTER_TEXT;
+    var ring = favCount > 0 ? FAV_COLOR : 'rgba(255,255,255,0.55)';
+    var ringW = favCount > 0 ? '3px' : '2px';
+    return L.divIcon({
+      className: 'sw-cluster',
+      html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + bg + ';border:' + ringW + ' solid ' + ring + ';display:flex;align-items:center;justify-content:center;color:' + txt + ';font-weight:800;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.35)">' + count + '</div>',
+      iconSize: [size, size]
+    });
+  }
 });
 
 spots.forEach(function(s) {
-  var dotSize = s.hasData ? '36px' : '28px';
-  var fontSize = s.hasData ? '13px' : '10px';
-  var opacity = s.hasData ? '1' : '0.7';
-  var content = s.hasData ? s.score : s.label.charAt(0);
-  var border = s.hasData ? 'none' : '2px dashed ' + s.color;
-  var bg = s.hasData ? s.color : 'transparent';
-  var txtColor = s.hasData ? '${themeStyle.scoreText}' : s.color;
+  var pin;
+  if (s.hasData) {
+    var bd = s.fav ? '2px solid ' + FAV_COLOR : 'none';
+    pin = '<div style="position:relative;padding:3px 7px;border-radius:10px;font-size:13px;font-weight:800;color:' + SCORE_TEXT + ';text-align:center;min-width:36px;background:' + s.color + ';border:' + bd + ';box-shadow:0 2px 8px rgba(0,0,0,0.3)">' + s.score + favStar(s.fav) + '</div>';
+  } else {
+    // Unloaded spot: clean accent ring (no cryptic B/I/E letter, no dead grey).
+    // Reads as "tap to load conditions". Center filled with the map bg so it
+    // stays visible on any tile.
+    var ringColor = s.fav ? FAV_COLOR : '${accentColor}';
+    pin = '<div style="position:relative;width:12px;height:12px;border-radius:50%;background:${bgColor};border:2.5px solid ' + ringColor + ';box-shadow:0 1px 4px rgba(0,0,0,0.3)">' + favStar(s.fav) + '</div>';
+  }
+  var opacity = s.hasData ? '1' : '0.85';
 
   var icon = L.divIcon({
     className: 'spot-div-icon',
     html: '<div style="display:flex;flex-direction:column;align-items:center;pointer-events:auto;opacity:' + opacity + '">' +
-      '<div style="padding:3px 7px;border-radius:10px;font-size:' + fontSize + ';font-weight:800;color:' + txtColor + ';text-align:center;min-width:' + dotSize + ';background:' + bg + ';border:' + border + ';box-shadow:0 2px 8px rgba(0,0,0,0.3)">' + content + '</div>' +
+      pin +
       '<div style="margin-top:2px;font-size:9px;color:' + LABEL_COLOR + ';font-weight:600;text-shadow:' + LABEL_SHADOW + ';white-space:nowrap;max-width:100px;overflow:hidden;text-overflow:ellipsis">' + s.name + '</div></div>',
     iconSize: [0, 0], iconAnchor: [0, 0], popupAnchor: [0, -28]
   });
 
-  var marker = L.marker([s.lat, s.lon], { icon: icon })
+  var marker = L.marker([s.lat, s.lon], { icon: icon, swData: s })
     .bindPopup(makePopup(s), { closeButton: false, minWidth: 170 });
   spotMarkers[s.id] = { marker: marker, data: s };
   clusters.addLayer(marker);
@@ -285,6 +364,13 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
   const webviewRef = useRef<WebView>(null);
   const insets = useSafeAreaInsets();
   const forecastsRef = useRef<SpotForecast[]>(getStoredForecasts());
+  // null = not loaded yet; we gate the map build on it so favorites are drawn
+  // on first paint (no WebView reload flash).
+  const [favIds, setFavIds] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    getFavorites().then(setFavIds).catch(() => setFavIds([]));
+  }, []);
 
   const focusCountry = route.params?.focusCountry;
   const focusSpotId = route.params?.focusSpotId;
@@ -296,12 +382,13 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
   }, []);
 
   const levelColors = useMemo(
-    () => ({ beginner: colors.blue, intermediate: colors.orange, expert: colors.red }),
-    [colors.blue, colors.orange, colors.red],
+    () => ({ beginner: colors.blue, intermediate: colors.yellow, expert: colors.red }),
+    [colors.blue, colors.yellow, colors.red],
   );
+  const favSet = useMemo(() => new Set(favIds ?? []), [favIds]);
   const initialSpots = useMemo(
-    () => buildAllMapSpots(initialForecastMap, levelColors, colors.textMuted, t),
-    [initialForecastMap, levelColors, colors.textMuted, t],
+    () => buildAllMapSpots(initialForecastMap, levelColors, colors.textMuted, favSet, t),
+    [initialForecastMap, levelColors, colors.textMuted, favSet, t],
   );
 
   const focusBounds = useMemo(() => {
@@ -336,13 +423,64 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
     accentDim: colors.accentDim,
     clusterInner: isDark ? 'rgba(0,212,170,0.6)' : 'rgba(0,184,148,0.65)',
     clusterText: '#FFFFFF',
+    clusterNeutral: isDark ? 'rgba(120,130,150,0.85)' : 'rgba(90,100,120,0.85)',
+    favColor: colors.yellow,
     userPin: colors.blue,
     scoreText: '#0B0F1A',
-  }), [colors.text, colors.border, colors.accentDim, colors.blue, isDark]);
+  }), [colors.text, colors.border, colors.accentDim, colors.blue, colors.yellow, isDark]);
+
+  // Snapshot the location at mount: the map HTML must NOT depend on `location`,
+  // otherwise the WebView fully reloads (re-fetching Leaflet + re-creating 100
+  // markers) every time the GPS fix changes. Live updates go through
+  // `setUserLocation` injection below instead.
+  const initialLocRef = useRef(location);
+  const userInjected = useRef(false);
 
   const html = useMemo(
-    () => buildMapHtml(initialSpots, colors.mapTile, colors.bg, colors.accent, colors.mapSea, themeStyle, location?.latitude, location?.longitude, focusBounds, colors.mapFilter, focusSpotCenter, mapLabels),
-    [initialSpots, colors.mapTile, colors.bg, colors.accent, colors.mapSea, themeStyle, location, focusBounds, colors.mapFilter, focusSpotCenter, mapLabels],
+    () => buildMapHtml(initialSpots, colors.mapTile, colors.bg, colors.accent, colors.mapSea, themeStyle, initialLocRef.current?.latitude, initialLocRef.current?.longitude, focusBounds, colors.mapFilter, focusSpotCenter, mapLabels),
+    [initialSpots, colors.mapTile, colors.bg, colors.accent, colors.mapSea, themeStyle, focusBounds, colors.mapFilter, focusSpotCenter, mapLabels],
+  );
+
+  // Push the user pin into the already-mounted map when the fix resolves (or
+  // moves). Center on the user only the first time, and never when the map was
+  // opened focused on a specific spot/country.
+  useEffect(() => {
+    if (!location) return;
+    const first = !userInjected.current;
+    userInjected.current = true;
+    const doCenter = first && !focusCountry && !focusSpotId;
+    webviewRef.current?.injectJavaScript(
+      `setUserLocation(${location.latitude}, ${location.longitude}, ${doCenter ? 'true' : 'false'}); true;`,
+    );
+  }, [location, focusCountry, focusSpotId]);
+
+  const buildUpdateData = useCallback((forecast: SpotForecast) => ({
+    id: forecast.spot.id,
+    name: forecast.spot.name,
+    region: forecast.spot.region,
+    country: forecast.spot.country,
+    score: forecast.currentScore.toFixed(1),
+    color: scoreColor(forecast.currentScore),
+    label: scoreShort(forecast.currentScore, t),
+    swell: forecast.currentCondition ? forecast.currentCondition.swellHeight.toFixed(1) + 'm' : '—',
+    wind: forecast.currentCondition ? forecast.currentCondition.windSpeed.toFixed(0) + ' km/h' : '—',
+  }), [t]);
+
+  // When other tabs load spots into the shared store, refresh the map markers on
+  // focus so scores aren't stale (the map mounts once and otherwise never syncs).
+  useFocusEffect(
+    useCallback(() => {
+      const stored = getStoredForecasts();
+      if (stored.length === 0) return;
+      const known = new Set(forecastsRef.current.map(f => f.spot.id));
+      const fresh = stored.filter(f => !known.has(f.spot.id));
+      if (fresh.length === 0 && stored.length === forecastsRef.current.length) return;
+      forecastsRef.current = stored;
+      setLoadedCount(stored.length);
+      for (const forecast of fresh) {
+        webviewRef.current?.injectJavaScript(`updateSpot(${JSON.stringify(buildUpdateData(forecast))}); true;`);
+      }
+    }, [buildUpdateData]),
   );
 
   const loadSpotOnMap = useCallback(async (spotId: string) => {
@@ -350,7 +488,7 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
     if (!spot) return;
     setLoadingSpot(spotId);
     try {
-      const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude);
+      const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude, { daily: false });
       const forecast = computeSpotForecast(spot, marine, weather, profile, locale);
 
       forecastsRef.current = [...forecastsRef.current.filter(f => f.spot.id !== spotId), forecast]
@@ -358,19 +496,7 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
       setStoredForecasts(forecastsRef.current);
       setLoadedCount(forecastsRef.current.length);
 
-      const updateData = {
-        id: spot.id,
-        name: spot.name,
-        region: spot.region,
-        country: spot.country,
-        score: forecast.currentScore.toFixed(1),
-        color: scoreColor(forecast.currentScore),
-        label: scoreShort(forecast.currentScore, t),
-        swell: forecast.currentCondition ? forecast.currentCondition.swellHeight.toFixed(1) + 'm' : '—',
-        wind: forecast.currentCondition ? forecast.currentCondition.windSpeed.toFixed(0) + ' km/h' : '—',
-      };
-
-      webviewRef.current?.injectJavaScript(`updateSpot(${JSON.stringify(updateData)}); true;`);
+      webviewRef.current?.injectJavaScript(`updateSpot(${JSON.stringify(buildUpdateData(forecast))}); true;`);
     } catch {
       webviewRef.current?.injectJavaScript(`
         var btn = document.getElementById('btn-${spotId}');
@@ -380,7 +506,7 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
     } finally {
       setLoadingSpot(null);
     }
-  }, [profile, locale, t]);
+  }, [profile, locale, buildUpdateData]);
 
   const onMessage = useCallback((event: { nativeEvent: { data: string } }) => {
     try {
@@ -388,8 +514,7 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
       if (msg.action === 'detail') {
         const f = forecastsRef.current.find(fc => fc.spot.id === msg.id);
         if (f) {
-          const idx = forecastsRef.current.findIndex(fc => fc.spot.id === msg.id);
-          navigation.navigate('SpotDetail', { forecast: f, spotIndex: idx >= 0 ? idx : 0 });
+          navigation.navigate('SpotDetail', { forecast: f });
         }
       } else if (msg.action === 'load') {
         loadSpotOnMap(msg.id);
@@ -399,6 +524,19 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
       log.warn('Map message parse error:', msg);
     }
   }, [navigation, loadSpotOnMap]);
+
+  const onWebViewLoaded = useCallback(() => {
+    setMapLoading(false);
+    // Make sure the pin is present even if the fix resolved before the page
+    // finished loading (the earlier inject would have been a no-op).
+    if (location) {
+      const doCenter = !userInjected.current && !focusCountry && !focusSpotId;
+      userInjected.current = true;
+      webviewRef.current?.injectJavaScript(
+        `setUserLocation(${location.latitude}, ${location.longitude}, ${doCenter ? 'true' : 'false'}); true;`,
+      );
+    }
+  }, [location, focusCountry, focusSpotId]);
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg }]}>
@@ -414,17 +552,19 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
         </View>
       </View>
       <View style={{ flex: 1 }}>
-        <WebView
-          ref={webviewRef}
-          source={{ html }}
-          style={{ flex: 1, backgroundColor: colors.bg }}
-          originWhitelist={['https://*', 'http://*']}
-          javaScriptEnabled
-          onMessage={onMessage}
-          onLoadEnd={() => setMapLoading(false)}
-          scrollEnabled={false}
-          bounces={false}
-        />
+        {favIds !== null && (
+          <WebView
+            ref={webviewRef}
+            source={{ html }}
+            style={{ flex: 1, backgroundColor: colors.bg }}
+            originWhitelist={['https://*', 'http://*']}
+            javaScriptEnabled
+            onMessage={onMessage}
+            onLoadEnd={onWebViewLoaded}
+            scrollEnabled={false}
+            bounces={false}
+          />
+        )}
         {mapLoading && (
           <View style={[s.loaderOverlay, { backgroundColor: colors.bg }]}>
             <ActivityIndicator size="large" color={colors.accent} />

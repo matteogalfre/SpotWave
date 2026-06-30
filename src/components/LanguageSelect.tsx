@@ -13,6 +13,9 @@ const LANGS: { locale: Locale; label: string; flag: string }[] = [
   { locale: 'en', label: 'English', flag: '🇬🇧' },
   { locale: 'es', label: 'Español', flag: '🇪🇸' },
   { locale: 'pt', label: 'Português', flag: '🇵🇹' },
+  { locale: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { locale: 'it', label: 'Italiano', flag: '🇮🇹' },
+  { locale: 'ja', label: '日本語', flag: '🇯🇵' },
 ];
 
 /**

@@ -2,6 +2,76 @@
 // Source of truth: src/data/spots.ts (French). Machine-assisted translation.
 
 export const SPOT_DESCRIPTIONS: Record<string, { en: string; es: string; pt: string }> = {
+  "portugal-ofir": {
+    "en": "Exposed beach break at the mouth of the Cávado river, near Esposende. Powerful waves and shifting sandbars, heavy on the good days.",
+    "es": "Beach break expuesto en la desembocadura del río Cávado, cerca de Esposende. Olas potentes y bancos de arena cambiantes, fuerte los buenos días.",
+    "pt": "Beach break exposto na foz do rio Cávado, perto de Esposende. Ondas potentes e bancos de areia variáveis, pesado nos bons dias."
+  },
+  "portugal-agucadoura": {
+    "en": "Powerful beach break north of Póvoa de Varzim. Picks up Atlantic swell well, hollow waves for experienced surfers only.",
+    "es": "Beach break potente al norte de Póvoa de Varzim. Recoge bien el oleaje atlántico, olas huecas solo para surfistas experimentados.",
+    "pt": "Beach break potente a norte da Póvoa de Varzim. Apanha bem a ondulação atlântica, ondas cavadas só para surfistas experientes."
+  },
+  "portugal-azurara": {
+    "en": "Quiet beach break south of Vila do Conde, near the mouth of the Ave. A good spot to progress when the swell is moderate.",
+    "es": "Beach break tranquilo al sur de Vila do Conde, cerca de la desembocadura del Ave. Buen sitio para progresar cuando el oleaje es moderado.",
+    "pt": "Beach break tranquilo a sul de Vila do Conde, perto da foz do Ave. Bom local para evoluir quando a ondulação é moderada."
+  },
+  "portugal-santa-cruz": {
+    "en": "Iconic Torres Vedras beach with its trademark rock stacks. Accessible beach break, great for beginners and surf schools.",
+    "es": "Playa emblemática de Torres Vedras con sus característicos islotes de roca. Beach break accesible, ideal para principiantes y escuelas.",
+    "pt": "Praia emblemática de Torres Vedras com os seus característicos rochedos. Beach break acessível, ótimo para iniciantes e escolas de surf."
+  },
+  "portugal-espinho-matadouro": {
+    "en": "Urban beach break in Espinho sheltered by rock groynes. Regular, accessible waves, popular with surf schools.",
+    "es": "Beach break urbano en Espinho protegido por espigones de roca. Olas regulares y accesibles, popular entre las escuelas de surf.",
+    "pt": "Beach break urbano em Espinho protegido por esporões de pedra. Ondas regulares e acessíveis, popular entre as escolas de surf."
+  },
+  "afrique-sud-kalk-bay-reef": {
+    "en": "Renowned False Bay reef break, a hollow, fast right that peels over a shallow reef. For experienced surfers only.",
+    "es": "Reconocido reef break de False Bay, una derecha hueca y rápida que rompe sobre un arrecife poco profundo. Solo para surfistas expertos.",
+    "pt": "Conhecido reef break de False Bay, uma direita cavada e rápida que quebra sobre um recife pouco profundo. Só para surfistas experientes."
+  },
+  "afrique-sud-thermopylae": {
+    "en": "False Bay spot that breaks over the wreck of the Thermopylae, near Sunrise Beach. Consistent lefts and rights, good for intermediates.",
+    "es": "Spot de False Bay que rompe sobre el pecio del Thermopylae, cerca de Sunrise Beach. Izquierdas y derechas consistentes, bueno para nivel intermedio.",
+    "pt": "Spot de False Bay que quebra sobre o naufrágio do Thermopylae, perto de Sunrise Beach. Esquerdas e direitas consistentes, bom para nível intermédio."
+  },
+  "portugal-guincho": {
+    "en": "Very exposed beach break north of Cascais. Picks up every swell but is often windy (nortada).",
+    "es": "Beach break muy expuesto al norte de Cascais. Recoge todo el oleaje pero suele tener viento (nortada).",
+    "pt": "Beach break muito exposto a norte de Cascais. Apanha todas as ondulações mas tem muito vento (nortada)."
+  },
+  "portugal-aveiro-barra": {
+    "en": "Beach break by the big lighthouse and jetty of Aveiro. Powerful waves, popular with surf schools.",
+    "es": "Beach break junto al gran faro y el espigón de Aveiro. Olas potentes, popular entre las escuelas de surf.",
+    "pt": "Beach break junto ao farol grande e ao molhe de Aveiro. Ondas poderosas, popular entre as escolas de surf."
+  },
+  "portugal-aveiro-costa-nova": {
+    "en": "Aveiro beach break by the iconic striped houses. Shifting sandbars, less crowded than Barra.",
+    "es": "Beach break de Aveiro junto a las casas de rayas típicas. Bancos de arena cambiantes, menos gente que en Barra.",
+    "pt": "Beach break de Aveiro junto às casas às riscas típicas. Bancos de areia variáveis, menos gente do que na Barra."
+  },
+  "portugal-aveiro-vagueira": {
+    "en": "Exposed beach break south of Aveiro. Consistent, powerful waves, favoured by experienced surfers.",
+    "es": "Beach break expuesto al sur de Aveiro. Olas consistentes y potentes, preferido por surfistas experimentados.",
+    "pt": "Beach break exposto a sul de Aveiro. Ondas consistentes e poderosas, preferido por surfistas experientes."
+  },
+  "uk-joss-bay": {
+    "en": "The most consistent spot in Kent, near Broadstairs. Beginner-friendly beach break on North Sea swell.",
+    "es": "El spot más consistente de Kent, cerca de Broadstairs. Beach break para principiantes con oleaje del Mar del Norte.",
+    "pt": "O spot mais consistente de Kent, perto de Broadstairs. Beach break para iniciantes com ondulação do Mar do Norte."
+  },
+  "uk-viking-bay": {
+    "en": "Town bay in Broadstairs. Small sheltered beach break, ideal to learn when the NE swell comes in.",
+    "es": "Bahía urbana de Broadstairs. Pequeño beach break protegido, ideal para aprender cuando entra el oleaje del NE.",
+    "pt": "Baía urbana de Broadstairs. Pequeno beach break abrigado, ideal para aprender quando entra a ondulação de NE."
+  },
+  "nicaragua-the-boom": {
+    "en": "Powerful beach break in northwest Nicaragua, near Aposentillo. Near-daily offshore wind, hollow waves.",
+    "es": "Potente beach break del noroeste de Nicaragua, cerca de Aposentillo. Viento offshore casi diario, olas huecas.",
+    "pt": "Beach break poderoso do noroeste da Nicarágua, perto de Aposentillo. Vento offshore quase diário, ondas ocas."
+  },
   "sao-joao": {
     "en": "Family beach north of Caparica. Beach break soft, ideal for beginners.",
     "es": "Playa familiar al norte de Caparica. Beach break suave, ideal para principiantes.",
@@ -881,11 +951,6 @@ export const SPOT_DESCRIPTIONS: Record<string, { en: string; es: string; pt: str
     "en": "Beach break near Pisa. Small Mediterranean spot.",
     "es": "Beach break cerca de Pisa. Pequeño rincón mediterráneo.",
     "pt": "Beach break perto de Pisa. Pequeno local mediterrâneo."
-  },
-  "portugal-guincho": {
-    "en": "Spot exposed to the wind. Beach break powerful when swell W-NW.",
-    "es": "Lugar expuesto al viento. Beach break potente cuando oleaje W-NW.",
-    "pt": "Local exposto ao vento. Beach break poderoso quando inchado W-NW."
   },
   "france-cap-ferret": {
     "en": "Ocean side basin. Beach break, less swell than in Lacanau.",
@@ -1880,6 +1945,76 @@ export const SPOT_DESCRIPTIONS: Record<string, { en: string; es: string; pt: str
 };
 
 export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: string[] }> = {
+  "portugal-ofir": {
+    "en": ["Strong currents", "River mouth (Cávado)", "Shore break"],
+    "es": ["Corrientes fuertes", "Desembocadura (Cávado)", "Shore break"],
+    "pt": ["Correntes fortes", "Foz (Cávado)", "Shore break"]
+  },
+  "portugal-agucadoura": {
+    "en": ["Strong currents", "Shore break"],
+    "es": ["Corrientes fuertes", "Shore break"],
+    "pt": ["Correntes fortes", "Shore break"]
+  },
+  "portugal-azurara": {
+    "en": ["Currents", "River mouth"],
+    "es": ["Corrientes", "Desembocadura"],
+    "pt": ["Correntes", "Foz"]
+  },
+  "portugal-santa-cruz": {
+    "en": ["Currents", "Rocks"],
+    "es": ["Corrientes", "Rocas"],
+    "pt": ["Correntes", "Rochas"]
+  },
+  "portugal-espinho-matadouro": {
+    "en": ["Currents", "Rock groynes"],
+    "es": ["Corrientes", "Espigones de roca"],
+    "pt": ["Correntes", "Esporões de pedra"]
+  },
+  "afrique-sud-kalk-bay-reef": {
+    "en": ["Sharp reef", "Sharks", "Cold water"],
+    "es": ["Arrecife cortante", "Tiburones", "Agua fría"],
+    "pt": ["Recife cortante", "Tubarões", "Água fria"]
+  },
+  "afrique-sud-thermopylae": {
+    "en": ["Wreck/reef", "Sharks", "Cold water"],
+    "es": ["Pecio/arrecife", "Tiburones", "Agua fría"],
+    "pt": ["Naufrágio/recife", "Tubarões", "Água fria"]
+  },
+  "portugal-guincho": {
+    "en": ["Strong wind (nortada)", "Currents", "Shore break"],
+    "es": ["Viento fuerte (nortada)", "Corrientes", "Shore break"],
+    "pt": ["Vento forte (nortada)", "Correntes", "Shore break"]
+  },
+  "portugal-aveiro-barra": {
+    "en": ["Currents", "Jetty"],
+    "es": ["Corrientes", "Espigón"],
+    "pt": ["Correntes", "Molhe"]
+  },
+  "portugal-aveiro-costa-nova": {
+    "en": ["Currents", "Sandbars"],
+    "es": ["Corrientes", "Bancos de arena"],
+    "pt": ["Correntes", "Bancos de areia"]
+  },
+  "portugal-aveiro-vagueira": {
+    "en": ["Strong currents", "Shore break"],
+    "es": ["Corrientes fuertes", "Shore break"],
+    "pt": ["Correntes fortes", "Shore break"]
+  },
+  "uk-joss-bay": {
+    "en": ["Cold water", "Tides", "Rocks at high tide"],
+    "es": ["Agua fría", "Mareas", "Rocas con marea alta"],
+    "pt": ["Água fria", "Marés", "Rochas na maré alta"]
+  },
+  "uk-viking-bay": {
+    "en": ["Cold water", "Tides", "Summer crowds"],
+    "es": ["Agua fría", "Mareas", "Aglomeraciones en verano"],
+    "pt": ["Água fria", "Marés", "Multidão no verão"]
+  },
+  "nicaragua-the-boom": {
+    "en": ["Strong currents", "Shore break", "Remoteness"],
+    "es": ["Corrientes fuertes", "Shore break", "Aislamiento"],
+    "pt": ["Correntes fortes", "Shore break", "Isolamento"]
+  },
   "sao-joao": {
     "en": [
       "Lateral currents",
@@ -4639,20 +4774,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Ondulação pequena",
       "Multidão no verão"
-    ]
-  },
-  "portugal-guincho": {
-    "en": [
-      "Strong wind",
-      "Currents"
-    ],
-    "es": [
-      "Viento fuerte",
-      "Corrientes"
-    ],
-    "pt": [
-      "Vento forte",
-      "Correntes"
     ]
   },
   "france-cap-ferret": {

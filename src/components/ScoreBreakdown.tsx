@@ -28,7 +28,7 @@ function pctOfIdeal(v: number, ideal: number): number {
 function modifierColor(v: number, colors: any): string {
   if (v >= 1.03) return colors.accent;
   if (v <= 0.85) return colors.red;
-  if (v <= 0.95) return colors.orange;
+  if (v <= 0.95) return colors.yellow;
   return colors.textSecondary;
 }
 
@@ -78,26 +78,21 @@ export default function ScoreBreakdown({ factors, finalScore }: Props) {
     <View style={s.wrap}>
       <Text style={[s.secT, { color: colors.white }]}>{t.detailWhyScore}</Text>
       <View style={[s.card, { backgroundColor: cardBg, borderColor: border }]}>
-        <View style={s.summaryRow}>
-          <View style={s.summaryItem}>
-            <Text style={[s.summaryLbl, { color: colors.textMuted ?? colors.white40 }]}>{t.detailWhyRaw}</Text>
-            <Text style={[s.summaryVal, { color: colors.white }]}>{factors.rawScore.toFixed(1)}</Text>
+        {/* The big score already sits at the top of the spot screen, so we only
+            surface a header here when a deal-breaker actually lowered it (brut → final). */}
+        {factors.cappedScore < factors.rawScore - 0.05 && (
+          <View style={s.summaryRow}>
+            <View style={s.summaryItem}>
+              <Text style={[s.summaryLbl, { color: colors.textMuted ?? colors.white40 }]}>{t.detailWhyRaw}</Text>
+              <Text style={[s.summaryVal, { color: colors.white }]}>{factors.rawScore.toFixed(1)}</Text>
+            </View>
+            <Ionicons name="arrow-forward" size={14} color={colors.textMuted ?? colors.white40} />
+            <View style={s.summaryItem}>
+              <Text style={[s.summaryLbl, { color: colors.accent }]}>{t.detailWhyFinal}</Text>
+              <Text style={[s.summaryVal, { color: colors.accent }]}>{finalScore.toFixed(1)}</Text>
+            </View>
           </View>
-          {factors.cappedScore < factors.rawScore - 0.05 && (
-            <>
-              <Ionicons name="arrow-forward" size={14} color={colors.textMuted ?? colors.white40} />
-              <View style={s.summaryItem}>
-                <Text style={[s.summaryLbl, { color: colors.orange }]}>{t.detailWhyCapped}</Text>
-                <Text style={[s.summaryVal, { color: colors.orange }]}>{factors.cappedScore.toFixed(1)}</Text>
-              </View>
-            </>
-          )}
-          <Ionicons name="arrow-forward" size={14} color={colors.textMuted ?? colors.white40} />
-          <View style={s.summaryItem}>
-            <Text style={[s.summaryLbl, { color: colors.accent }]}>{t.detailWhyFinal}</Text>
-            <Text style={[s.summaryVal, { color: colors.accent }]}>{finalScore.toFixed(1)}</Text>
-          </View>
-        </View>
+        )}
 
         {factors.caps.length > 0 && (
           <View style={[s.capsBox, { backgroundColor: colors.redDim ?? 'rgba(255,90,90,0.12)' }]}>
@@ -108,8 +103,8 @@ export default function ScoreBreakdown({ factors, finalScore }: Props) {
         )}
 
         {factors.windSwellOnly && (
-          <View style={[s.capsBox, { backgroundColor: colors.orangeDim ?? 'rgba(255,138,80,0.12)' }]}>
-            <Text style={[s.capTxt, { color: colors.orange }]}><MaterialCommunityIcons name="alert" size={13} color={colors.orange} />  {t.detailWhyWindSwell}</Text>
+          <View style={[s.capsBox, { backgroundColor: colors.yellowDim ?? 'rgba(224,152,44,0.14)' }]}>
+            <Text style={[s.capTxt, { color: colors.yellow }]}><MaterialCommunityIcons name="alert" size={13} color={colors.yellow} />  {t.detailWhyWindSwell}</Text>
           </View>
         )}
 
@@ -141,7 +136,7 @@ export default function ScoreBreakdown({ factors, finalScore }: Props) {
 function BarRow({ bar, colors, t, kind }: { bar: Bar; colors: any; t: any; kind: 'quality' | 'modifier' }) {
   if (kind === 'quality') {
     const pct = pctOfIdeal(bar.value, bar.ideal);
-    const color = pct >= 0.75 ? colors.accent : pct >= 0.5 ? colors.orange : colors.red;
+    const color = pct >= 0.75 ? colors.accent : pct >= 0.5 ? colors.yellow : colors.red;
     return (
       <View style={s.barRow} accessibilityLabel={`${bar.label}: ${Math.round(pct * 100)}%`}>
         <Text style={[s.barLbl, { color: colors.white }]}>{bar.label}</Text>

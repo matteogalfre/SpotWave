@@ -7,7 +7,11 @@ interface LocationState {
   location: UserLocation | null;
   loading: boolean;
   denied: boolean;
-  refresh: () => Promise<void>;
+  /**
+   * Resolve the location. Pass `prompt: true` (default) to trigger the OS
+   * permission dialog on demand (e.g. when the user taps "Ma position").
+   */
+  refresh: (prompt?: boolean) => Promise<void>;
 }
 
 const LocationContext = createContext<LocationState>({
@@ -25,7 +29,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
 
-  const fetchLocation = useCallback(async () => {
+  const fetchLocation = useCallback(async (prompt = true) => {
     setLoading(true);
 
     let hasCache = false;
@@ -53,7 +57,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
     if (hasCache) setLoading(false);
 
     try {
-      const loc = await requestLocation();
+      const loc = await requestLocation(prompt);
       if (loc) {
         setLocation(loc);
         setDenied(false);
@@ -62,12 +66,14 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         } catch (e) {
           log.warn('Location cache write error:', e);
         }
-      } else if (!hasCache) {
+      } else if (!hasCache && prompt) {
+        // Only flag as denied after an explicit prompt. On the silent startup
+        // pass we leave the state neutral (the user hasn't been asked yet).
         setDenied(true);
       }
     } catch (e) {
       log.warn('Location fetch error:', e);
-      if (!hasCache) setDenied(true);
+      if (!hasCache && prompt) setDenied(true);
     } finally {
       // Always release the gate so screens can load data even if the GPS fix
       // never resolves (otherwise the app stays stuck on an empty screen).
@@ -76,7 +82,10 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    fetchLocation();
+    // Silent on startup: use an already-granted permission, but never pop the
+    // OS dialog here. The prompt is triggered later when the user opts into
+    // location (e.g. choosing "Ma position" over a country).
+    fetchLocation(false);
   }, [fetchLocation]);
 
   return (

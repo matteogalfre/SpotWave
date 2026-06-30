@@ -63,6 +63,11 @@ export interface WeatherData {
   wind_gusts_10m: (number | null)[];
   temperature_2m: (number | null)[];
   weather_code: (number | null)[];
+  // Comfort/gear extras (display only — never feed the score). Optional because
+  // older cached payloads won't carry them; the UI guards against undefined.
+  uv_index?: (number | null)[];
+  precipitation_probability?: (number | null)[];
+  cloud_cover?: (number | null)[];
 }
 
 export type ScoreCap =
@@ -106,6 +111,10 @@ export interface HourlyCondition {
   seaTemp: number;
   seaLevel: number;
   weatherCode: number;
+  // Comfort extras (display only). Undefined when not provided by the source.
+  uvIndex?: number;
+  precipProb?: number;
+  cloudCover?: number;
   factors?: ScoreFactors;
 }
 

@@ -103,9 +103,6 @@ export default {
   detailWebcam: 'Webcam en directo',
   detailWebcamSub: 'Ver las condiciones en directo',
   detailWebcamOpen: 'ABRIR',
-  detailMap: 'Ver en el mapa',
-  detailMapSub: 'Centrar el mapa en este spot',
-  detailMapBtn: 'MAPA',
   detailSwellWind: 'Oleaje y viento',
   detailTideChart: 'Marea',
   detailHourly: 'Previsión hora por hora',
@@ -113,6 +110,7 @@ export default {
   detailSpotInfo: 'Ficha del spot',
   detailIdealCond: 'Condiciones ideales',
   detailSwellDir: 'Dirección del oleaje',
+  detailSwellDirShort: 'Dirección',
   detailSwellHeight: 'Altura ideal',
   detailIdealWind: 'Viento ideal',
   detailOffshore: 'Offshore',
@@ -121,13 +119,9 @@ export default {
   detailBottom: 'Tipo de fondo',
   detailLevel: 'Nivel',
   detailDangers: 'Peligros',
-  detailPrev: '‹ Anterior',
-  detailNext: 'Siguiente ›',
   detailSwellM: 'Oleaje (m)',
   detailWindDiv: 'Viento (÷10 km/h)',
   detailNow: 'Ahora',
-  detailCurrentCond: 'Condiciones actuales',
-
   // Profile screen
   profileTitle: 'Perfil',
   profileSub: 'Personaliza tus recomendaciones',
@@ -168,13 +162,13 @@ export default {
   profileGuide: '¿Cómo funciona?',
   profileGuideSub: 'Puntuación, previsiones y consejos',
   profilePreferredZone: 'Zona preferida',
-  profilePreferredZoneDesc: 'Mostrada primero sin GPS',
+  profilePreferredZoneDesc: 'Elige un país para mostrar solo sus spots. Si no: spots cercanos (GPS) o una selección mundial.',
   profilePreferredZoneNone: 'Automático (GPS o mundial)',
 
   // Levels
   levelBeginner: 'Principiante',
   levelIntermediate: 'Intermedio',
-  levelExpert: 'Experto',
+  levelExpert: 'Avanzado',
 
   // About screen
   aboutTitle: 'Acerca de',
@@ -232,6 +226,18 @@ export default {
   profileAlertsTitle: 'Alertas de condiciones',
   profileAlertsSub: 'Notificación cuando las condiciones sean buenas mañana',
 
+  // Per-spot alert modal
+  alertTitle: 'Alerta para este spot',
+  alertSubtitle: 'Recibe una notificación la mañana del próximo día que este spot alcance tu nivel.',
+  alertMinScore: 'Puntuación mínima',
+  alertPreview: (score: string) => `Te avisamos en cuanto el spot supere ${score}/10.`,
+  alertSave: 'Activar alerta',
+  alertUpdate: 'Actualizar',
+  alertDisable: 'Desactivar alerta',
+  alertEnabled: 'Alerta activada',
+  alertDisabled: 'Alerta desactivada',
+  alertNeedsPermission: 'Permite las notificaciones para activar las alertas',
+
   // Error boundary
   errorTitle: 'Vaya, algo ha fallado',
   errorUnknown: 'Error desconocido',
@@ -243,7 +249,6 @@ export default {
   // Onboarding
   onboardWelcome: 'Bienvenido a SpotWave',
   onboardWelcomeSub: 'Las mejores condiciones de surf, en todo el mundo',
-  onboardLang: 'Elige tu idioma',
   onboardProfile: 'Tu perfil de surf',
   onboardProfileSub: 'Para recomendaciones personalizadas',
   onboardZone: 'Tu zona preferida',
@@ -255,19 +260,10 @@ export default {
   onboardStep: (n: number, total: number) => `Paso ${n}/${total}`,
 
   // Onboarding — extended
-  onboardLocation: 'Ubicación',
-  onboardLocationSub: 'Para mostrarte primero los spots cercanos a ti. La ubicación permanece en tu dispositivo — no se envía ningún dato.',
-  onboardLocationEnable: 'Activar la ubicación',
-  onboardLocationSkip: 'Continuar sin ubicación',
-  onboardLocationGranted: 'Ubicación activada',
-  onboardLocationDenied: 'Ubicación denegada — podrás activarla más tarde',
-
   onboardPrefs: 'Tus preferencias',
   onboardPrefsSub: 'Para puntuar mejor las ventanas según lo que esperas',
   onboardPrefsHeight: 'Altura de olas preferida',
   onboardPrefsDuration: 'Duración de sesión',
-  onboardPrefsHours: 'Tus horarios de surf',
-
   onboardDemo: 'Cómo leer un spot',
   onboardDemoSub: 'Cada ventana recibe una puntuación de 0 a 10. El color, el icono y la etiqueta te ayudan a decidir de un vistazo.',
   onboardDemoSpotLabel: '¡A por ello!',
@@ -276,19 +272,7 @@ export default {
   onboardDemoLabel: 'Etiqueta clara: «¡A por ello!», «Regular», etc.',
   onboardDemoStats: 'Oleaje, viento, periodo en cada tarjeta',
 
-  // ── Tide PM/BM (P0) ─────────────────────────────────────────────
-  detailTideTimes: 'Horas de marea',
-  detailTideHigh: 'Pleamar',
-  detailTideLow: 'Bajamar',
-  detailTideNext: 'Próximas',
-  detailTideToday: 'Hoy',
-  detailTideTomorrow: 'Mañ.',
-
   // ── Confidence / source (P0) ────────────────────────────────────
-  detailDataSource: 'Fuente de los datos',
-  detailDataSourceVal: 'Open-Meteo · modelos GFS / ICON-EU',
-  detailDataUpdated: (elapsed: string) => `Actualizado ${elapsed}`,
-  detailUpdatedShort: 'ACT',
   detailDataAccuracy: 'Precisión',
   detailConfidenceHigh: 'Alta',
   detailConfidenceMedium: 'Media',
@@ -311,8 +295,7 @@ export default {
   detailWhyCurrent: 'Corrientes',
   detailWhyRaw: 'Puntuación bruta',
   detailWhyFinal: 'Puntuación final',
-  detailWhyCapped: 'Limitado por',
-  detailWhyWindSwell: 'Wind swell puro (-35%)',
+  detailWhyWindSwell: 'Wind swell puro (-22%)',
   capFlat: 'Oleaje demasiado débil',
   capPeriod: 'Periodo demasiado corto',
   capOnshore: 'Viento onshore fuerte',
@@ -342,14 +325,80 @@ export default {
   profileLanguageEn: 'English',
   profileLanguagePt: 'Português',
   profileLanguageEs: 'Español',
+  profileLanguageDe: 'Deutsch',
+  profileLanguageIt: 'Italiano',
+  profileLanguageJa: '日本語',
 
   // ── Community spot suggestion ────────────────────────────────────
   profileCommunity: 'Comunidad',
   profileSuggestSpot: 'Sugerir un spot',
   profileSuggestSpotSub: '¿Falta un spot? Propónlo en 1 min',
 
+  // ── Rate the conditions (ground-truth) ──────────────────────────
+  rateButton: 'Puntuar las condiciones',
+  rateTitle: 'Tu nota de ahora',
+  rateSubtitle: '¿Cómo están las condiciones ahora mismo?',
+  rateAppScore: (s: string) => `Puntuación SpotWave actual: ${s}/10`,
+  rateSend: 'Enviar',
+  rateCancel: 'Cancelar',
+  rateThanks: '¡Gracias! Tu nota ayuda a mejorar la puntuación 🙏',
+  rateQueued: 'Nota guardada, se enviará más tarde 🙏',
+  rateAlready: 'Ya has puntuado este spot hoy',
+  rateHint: 'Tu nota ayuda a mejorar el algoritmo de puntuación para todos.',
+
+  // ── In-app spot suggestion ──────────────────────────────────────
+  suggestTitle: 'Sugerir un spot',
+  suggestSubtitle: '¿Falta un spot? Dame los datos y lo añado.',
+  suggestName: 'Nombre del spot',
+  suggestNamePh: 'Ej. La Gravière',
+  suggestCountry: 'País',
+  suggestCountryPh: 'Ej. Francia',
+  suggestLevel: 'Nivel recomendado (opcional)',
+  suggestWebcam: 'Enlace webcam (opcional)',
+  suggestWebcamPh: 'https://…',
+  suggestSend: 'Enviar',
+  suggestThanks: '¡Gracias! Tu sugerencia se ha enviado 🙏',
+  suggestError: 'No se pudo enviar, inténtalo más tarde',
+  suggestRequired: 'Indica al menos el nombre y el país',
+
+  // ── Rate the app (store) ────────────────────────────────────────
+  profileRateApp: 'Puntuar la app',
+  profileRateAppSub: '¿Te gusta SpotWave? Deja una reseña',
+  profileSupport: 'Apoyar SpotWave',
+  profileSupportSub: 'Ayuda al desarrollo de la app',
+
   // ── Share (P2) ──────────────────────────────────────────────────
   detailShare: 'Compartir',
   detailShareMessage: (name: string, region: string, score: string, label: string) =>
     `${name} (${region}) — ${score}/10, ${label}\nVer en SpotWave.`,
+
+  // ── Wind condition (surface read) ───────────────────────────────
+  windGlassy: 'Glassy',
+  windClean: 'Limpio',
+  windChoppy: 'Picado',
+
+  // ── Comfort & gear (detail) ─────────────────────────────────────
+  detailSurface: 'Superficie',
+  detailWindLabel: 'Viento',
+  detailGusts: 'Rachas',
+  detailComfort: 'Confort y equipo',
+  detailWetsuit: 'Neopreno',
+  detailWetsuitNone: 'Bañador',
+  wetsuitBoots: 'escarpines',
+  wetsuitGloves: 'guantes',
+  wetsuitHood: 'capucha',
+  detailWater: 'Agua',
+  detailUV: 'UV',
+  detailRain: 'Lluvia',
+  detailCloud: 'Nubosidad',
+  uvLow: 'Bajo',
+  uvModerate: 'Moderado',
+  uvHigh: 'Alto',
+  uvVeryHigh: 'Muy alto',
+  uvExtreme: 'Extremo',
+
+  // ── Posicionamiento / confianza ─────────────────────────────────
+  trustFree: 'Gratis',
+  trustNoAds: 'Sin anuncios',
+  trustNoAccount: 'Sin cuenta',
 } as const;

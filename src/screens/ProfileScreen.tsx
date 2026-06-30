@@ -10,11 +10,14 @@ import { useLocation } from '../context/LocationContext';
 import { SurferLevel, WaveHeightPref, SurferProfile } from '../types';
 import { ProfileScreenProps } from '../navigation/types';
 import { useI18n, Locale } from '../i18n';
-import { requestNotifPermission, getAlertsEnabled, setAlertsEnabled as setAlertsEnabledPref } from '../services/notifications';
+import { requestNotifPermission, getAlertsEnabled, setAlertsEnabled as setAlertsEnabledPref, scheduleGoodConditionAlerts } from '../services/notifications';
+import { getStoredForecasts } from '../context/ForecastStore';
+import { useToast } from '../components/Toast';
 import { getZoneCountries } from '../data/spots';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
 import LanguageSelect from '../components/LanguageSelect';
-import { SUGGEST_SPOT_URL } from '../utils/constants';
+import SuggestSpotModal from '../components/SuggestSpotModal';
+import { PLAY_STORE_URL, PLAY_STORE_MARKET, SUPPORT_URL } from '../utils/constants';
 import { countryLabel } from '../utils/countries';
 
 const LEVELS_MAP = { beginner: 'levelBeginner', intermediate: 'levelIntermediate', expert: 'levelExpert' } as const;
@@ -170,10 +173,12 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { t, locale } = useI18n();
   const { profile, updateProfile } = useProfile();
   const { colors, isDark, toggleTheme } = useTheme();
-  const { location, loading: locLoading, denied: locDenied, refresh: refreshLoc } = useLocation();
+  const { refresh: refreshLoc } = useLocation();
+  const { show: showToast } = useToast();
   const insets = useSafeAreaInsets();
   const [form, setForm] = useState<SurferProfile>({ ...profile });
   const [alertsOn, setAlertsOn] = useState(false);
+  const [suggestOpen, setSuggestOpen] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => { setForm({ ...profile }); }, [profile]);
@@ -185,10 +190,18 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const handleToggleAlerts = async (val: boolean) => {
     if (val) {
       const granted = await requestNotifPermission();
-      if (!granted) return;
+      if (!granted) {
+        showToast(t.alertNeedsPermission, 'error');
+        return;
+      }
     }
     await setAlertsEnabledPref(val);
     setAlertsOn(val);
+    // Apply right away using the forecasts already loaded in memory, so the
+    // toggle takes effect without waiting for the Spots tab to reload.
+    // (No-op when the store is empty or the device is offline.)
+    const fc = getStoredForecasts();
+    if (fc.length > 0) scheduleGoodConditionAlerts(fc, locale).catch(() => {});
   };
 
   const showSyncedHint = useCallback(() => {
@@ -213,11 +226,10 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     en: t.profileLanguageEn,
     pt: t.profileLanguagePt,
     es: t.profileLanguageEs,
+    de: t.profileLanguageDe,
+    it: t.profileLanguageIt,
+    ja: t.profileLanguageJa,
   };
-
-  const locSubtitle = location
-    ? t.profileLocCoords(location.latitude.toFixed(2), location.longitude.toFixed(2))
-    : locDenied ? t.profileLocDenied : t.profileLocDisabled;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -324,41 +336,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
       </View>
 
-      {/* Settings section: Location, Alerts, Appearance, Guide, About */}
-      <View style={s.settingsSection}>
-        <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{t.profileLocation}</Text>
-        <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
-          <SettingRow
-            icon={locLoading ? 'navigate' : location ? 'location' : 'location-outline'}
-            iconColor={colors.accent}
-            iconBg={colors.accentDim}
-            title={locLoading ? t.profileLocSearching : location ? t.profileLocActive : t.profileLocInactive}
-            subtitle={locSubtitle}
-            colors={colors}
-            isLast
-            right={!location && !locLoading ? (
-              <TouchableOpacity
-                style={[s.chip, { backgroundColor: colors.accentDim, borderColor: colors.accent }]}
-                onPress={() => { hapticLight(); refreshLoc(); }}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={t.profileLocEnable}
-              >
-                <Text style={[s.chipTxt, { color: colors.accent }]}>{t.profileLocEnable}</Text>
-              </TouchableOpacity>
-            ) : undefined}
-          />
-        </View>
-      </View>
-
-      {/* Preferred zone — saved instantly, no edit mode required */}
+      {/* Preferred zone — GPS (priorité) fusionné avec la zone manuelle. Sauvé instantanément. */}
       <View style={s.settingsSection}>
         <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{t.profilePreferredZone}</Text>
         <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, padding: spacing.md }]}>
           <Text style={[s.hoursSummary, { color: colors.textMuted, marginBottom: spacing.md }]}>{t.profilePreferredZoneDesc}</Text>
           <TouchableOpacity
             style={[s.chip, { backgroundColor: !form.preferredZone ? colors.accentDim : colors.bgSubtle, borderColor: !form.preferredZone ? colors.accent : 'transparent', marginBottom: spacing.sm }]}
-            onPress={() => apply({ ...form, preferredZone: undefined })}
+            onPress={() => { apply({ ...form, preferredZone: undefined }); refreshLoc(true).catch(() => {}); }}
             activeOpacity={0.7}
             accessibilityRole="radio"
             accessibilityState={{ selected: !form.preferredZone }}
@@ -410,8 +395,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           />
           <SettingRow
             icon="notifications"
-            iconColor={colors.orange}
-            iconBg={colors.orangeDim}
+            iconColor={colors.yellow}
+            iconBg={colors.yellowDim}
             title={t.profileAlertsTitle}
             subtitle={t.profileAlertsSub}
             colors={colors}
@@ -432,8 +417,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             subtitle={t.profileSuggestSpotSub}
             colors={colors}
             isLast
-            onPress={() => { hapticLight(); Linking.openURL(SUGGEST_SPOT_URL).catch(() => {}); }}
-            right={<Ionicons name="open-outline" size={18} color={colors.textMuted} />}
+            onPress={() => { hapticLight(); setSuggestOpen(true); }}
+            right={<Ionicons name="chevron-forward" size={18} color={colors.textMuted} />}
           />
         </View>
       </View>
@@ -441,6 +426,26 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       <View style={s.settingsSection}>
         <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{t.profileAbout}</Text>
         <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
+          <SettingRow
+            icon="star"
+            iconColor={colors.yellow}
+            iconBg={colors.yellowDim}
+            title={t.profileRateApp}
+            subtitle={t.profileRateAppSub}
+            colors={colors}
+            onPress={() => { hapticLight(); Linking.openURL(PLAY_STORE_MARKET).catch(() => Linking.openURL(PLAY_STORE_URL).catch(() => {})); }}
+            right={<Ionicons name="open-outline" size={18} color={colors.textMuted} />}
+          />
+          <SettingRow
+            icon="heart"
+            iconColor={colors.red}
+            iconBg={colors.redDim}
+            title={t.profileSupport}
+            subtitle={t.profileSupportSub}
+            colors={colors}
+            onPress={() => { hapticLight(); Linking.openURL(SUPPORT_URL).catch(() => {}); }}
+            right={<Ionicons name="open-outline" size={18} color={colors.textMuted} />}
+          />
           <SettingRow
             icon="book"
             iconColor={colors.blue}
@@ -474,6 +479,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       <Ionicons name="checkmark-circle" size={13} color={colors.accent} />
       <Text style={[s.syncTxt, { color: colors.accent }]}>{t.profileAutoSaved}</Text>
     </Animated.View>
+    <SuggestSpotModal visible={suggestOpen} onClose={() => setSuggestOpen(false)} />
     </View>
   );
 }

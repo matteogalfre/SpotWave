@@ -9,18 +9,17 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   TextInput,
-  Animated,
   AccessibilityInfo,
   ListRenderItemInfo,
 } from 'react-native';
 import { useProfile } from '../context/ProfileContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLocation } from '../context/LocationContext';
+import { useNetwork } from '../context/NetworkContext';
 import { fetchSpotData } from '../services/api';
-import { computeSpotForecast, RIDABLE_SCORE } from '../utils/scoring';
+import { computeSpotForecast, RIDABLE_SCORE, bestTimeLabel } from '../utils/scoring';
 import { getFavorites, toggleFavorite } from '../services/favorites';
 import { getNearbySpotsWithFallback, getGlobalShowcase, haversineDistance, formatDistance } from '../services/location';
-import { getSearchHistory, addSearchHistory, clearSearchHistory } from '../services/searchHistory';
 import { setStoredForecasts } from '../context/ForecastStore';
 import SPOTS from '../data/spots';
 import ScoreBadge from '../components/ScoreBadge';
@@ -28,7 +27,7 @@ import SkeletonCard from '../components/SkeletonCard';
 import Logo from '../components/Logo';
 import { SpotConfig, SpotForecast, HourlyCondition, SurferLevel, BreakType } from '../types';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { scoreColor, scoreBg, scoreLabel, scoreShort, windLabel, isDaytime } from '../theme';
+import { scoreColor, scoreBg, scoreLabel, scoreShort, windLabel, windConditionKey, isDaytime } from '../theme';
 import { scoreIcon, weatherMCIcon, ICONS, MCIName } from '../utils/icons';
 import { SurferProfile } from '../types';
 import { SpotsScreenProps } from '../navigation/types';
@@ -37,11 +36,11 @@ import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToast } from '../components/Toast';
 import { useI18n } from '../i18n';
-import { scheduleGoodConditionAlerts, getAlertsEnabled } from '../services/notifications';
+import { scheduleGoodConditionAlerts } from '../services/notifications';
 import { getLevelBadge, getLevelLabel, fmtDayLabel, fmtRange } from '../utils/constants';
 import { countryLabel } from '../utils/countries';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
-import { getConfidenceForDate, confidenceColor } from '../utils/confidence';
+import { getConfidenceForDate, confidenceColor, confidenceLabel } from '../utils/confidence';
 
 interface BestPick {
   spotName: string;
@@ -126,6 +125,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   const { profile, version, isLoading: profileLoading } = useProfile();
   const { colors } = useTheme();
   const { location, loading: locLoading } = useLocation();
+  const { offline } = useNetwork();
   const { show: showToast } = useToast();
   const { t, locale } = useI18n();
   const insets = useSafeAreaInsets();
@@ -139,7 +139,6 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [loadedCount, setLoadedCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
@@ -159,8 +158,6 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     AccessibilityInfo.isReduceMotionEnabled?.().then(setReduceMotion).catch(() => {});
   }, []);
 
-  useEffect(() => { getSearchHistory().then(setSearchHistory); }, []);
-
   const distanceMap = useMemo(() => {
     if (!location) return new Map<string, number>();
     const map = new Map<string, number>();
@@ -172,8 +169,19 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
 
   const activeSpots = useMemo((): SpotConfig[] => {
     if (profile.preferredZone) {
-      const zoneSpots = SPOTS.filter(s => s.country === profile.preferredZone);
-      if (zoneSpots.length >= 3) return zoneSpots;
+      let zoneSpots = SPOTS.filter(s => s.country === profile.preferredZone);
+      if (zoneSpots.length >= 3) {
+        // Cap the number of spots fetched for a zone so a country with dozens of
+        // spots doesn't fire dozens of API calls (slow + rate-limit risk). When
+        // we know the user's position, keep the closest ones first.
+        if (location) {
+          zoneSpots = [...zoneSpots].sort((a, b) =>
+            haversineDistance(location.latitude, location.longitude, a.latitude, a.longitude) -
+            haversineDistance(location.latitude, location.longitude, b.latitude, b.longitude),
+          );
+        }
+        return zoneSpots.slice(0, 30);
+      }
     }
     if (location) {
       return getNearbySpotsWithFallback(SPOTS, location.latitude, location.longitude, 200, 5, 1000);
@@ -239,7 +247,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
 
         const settled = await Promise.allSettled(
           batch.map(async (spot) => {
-            const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude);
+            const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude, { daily: false });
             return computeSpotForecast(spot, marine, weather, profile, locale);
           })
         );
@@ -262,15 +270,25 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
         setForecasts([...results].sort((a, b) => b.currentScore - a.currentScore));
         setLoadedCount(count);
         setFailedCount(failed);
+
+        // Fast-fail: once a whole batch has completed with zero successes, the
+        // weather API or the network is down. Surface the error + retry now
+        // instead of grinding through every remaining batch (each request can
+        // hang up to the timeout → minutes of skeleton). Each request was
+        // already retried once internally, so this isn't a transient blip.
+        if (count === 0 && failed > 0) {
+          setError(t.spotsLoadError);
+          return;
+        }
       }
       // Every spot failed (e.g. the weather API is down): surface a real error
       // + retry instead of spinning on skeletons forever.
       if (count === 0 && failed > 0) {
         setError(t.spotsLoadError);
       }
-      getAlertsEnabled().then(on => {
-        if (on) scheduleGoodConditionAlerts(results, locale === 'fr').catch(() => {});
-      }).catch(() => {});
+      // The scheduler itself checks the global toggle AND per-spot alerts, so
+      // we always call it (per-spot alerts work even with the global toggle off).
+      scheduleGoodConditionAlerts(results, locale).catch(() => {});
     } catch (e: any) {
       if (gen !== loadGen.current) return;
       setError(e.message || t.spotsLoadError);
@@ -332,19 +350,6 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     ).slice(0, 15);
   }, [debouncedQuery]);
 
-  const onSubmitSearch = useCallback(async () => {
-    const q = searchQuery.trim();
-    if (q.length >= 2) {
-      const next = await addSearchHistory(q);
-      setSearchHistory(next);
-    }
-  }, [searchQuery]);
-
-  const handleClearHistory = useCallback(async () => {
-    await clearSearchHistory();
-    setSearchHistory([]);
-  }, []);
-
   const { bestToday, bestWeek, nightNow, outsideHoursNow } = useMemo(() => findBestPicks(forecasts, profile, locale), [forecasts, profile, locale]);
   const levelTxt = getLevelLabel(profile.level, t);
 
@@ -357,11 +362,15 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     return t.spotsGlobal;
   }, [locLoading, location, activeSpots, t, locale]);
 
+  // O(1) favorite lookups + stable identity per `favs` change, so memoized
+  // SpotCards only re-render when the favorite set actually changes.
+  const favSet = useMemo(() => new Set(favs), [favs]);
+
   const sortedForecasts = useMemo(() => {
-    const fav = forecasts.filter(f => favs.includes(f.spot.id));
-    const rest = forecasts.filter(f => !favs.includes(f.spot.id));
+    const fav = forecasts.filter(f => favSet.has(f.spot.id));
+    const rest = forecasts.filter(f => !favSet.has(f.spot.id));
     return [...fav, ...rest];
-  }, [forecasts, favs]);
+  }, [forecasts, favSet]);
 
   const filteredForecasts = useMemo(() => {
     return sortedForecasts.filter(f => {
@@ -400,8 +409,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     const allList = sortedForecasts.length > 0 ? sortedForecasts : forecasts;
     setStoredForecasts(allList);
-    const idx = allList.findIndex(f => f.spot.id === forecast.spot.id);
-    navigation.navigate('SpotDetail', { forecast, spotIndex: idx >= 0 ? idx : 0 });
+    navigation.navigate('SpotDetail', { forecast });
   }, [navigation, sortedForecasts, forecasts]);
 
   const navigateToPick = useCallback((pick: BestPick) => { navigateToSpot(pick.forecast); }, [navigateToSpot]);
@@ -409,34 +417,38 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   const loadAndNavigateToSpot = useCallback(async (spot: SpotConfig) => {
     setLoadingSearchSpot(spot.id);
     try {
-      const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude);
+      const { marine, weather } = await fetchSpotData(spot.latitude, spot.longitude, { daily: false });
       const forecast = computeSpotForecast(spot, marine, weather, profile, locale);
       setForecasts(prev => {
         const next = [...prev.filter(f => f.spot.id !== spot.id), forecast].sort((a, b) => b.currentScore - a.currentScore);
         setStoredForecasts(next);
-        const idx = next.findIndex(f => f.spot.id === spot.id);
-        setTimeout(() => navigation.navigate('SpotDetail', { forecast, spotIndex: idx >= 0 ? idx : 0 }), 0);
+        setTimeout(() => navigation.navigate('SpotDetail', { forecast }), 0);
         return next;
       });
       setLoadingSearchSpot(null);
-      onSubmitSearch();
       setSearchQuery('');
     } catch {
       setLoadingSearchSpot(null);
       showToast(t.spotsSearchError, 'error');
     }
-  }, [profile, navigation, showToast, onSubmitSearch, locale, t]);
+  }, [profile, navigation, showToast, locale, t]);
 
   // Only show the full-screen skeleton when we have nothing to display yet. A
   // location refresh (locLoading) must not blank an already-populated list.
   const isLoading = forecasts.length === 0 && !error && (locLoading || loadedCount === 0 || profileLoading);
-  const hasEnoughData = totalCount > 0 && (forecasts.length >= Math.min(4, totalCount) || loadedCount >= totalCount);
+  // "Enough to render" = we have a few cards, OR everything finished (so partial
+  // failures don't leave the screen stuck on a skeleton forever).
+  const hasEnoughData = totalCount > 0 && (
+    forecasts.length >= Math.min(4, totalCount)
+    || loadedCount >= totalCount
+    || loadedCount + failedCount >= totalCount
+  );
 
   const renderHeader = () => (
     <View style={[ss.header, { paddingTop: insets.top + spacing.md }]}>
       <View style={ss.headerLeft}>
         <View style={ss.logoRow}>
-          <Logo size={26} color={colors.accent} />
+          <Logo size={26} />
           <Text style={[ss.logo, { color: colors.white }]} accessibilityRole="header">SpotWave</Text>
         </View>
         <Text style={[ss.subtitle, { color: colors.textMuted }]}>
@@ -476,6 +488,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
               setMode(m);
+              if (m === 'today') setSearchQuery('');
             }}
             activeOpacity={0.7}
             accessibilityRole="tab"
@@ -533,7 +546,6 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
         onChangeText={setSearchQuery}
         onFocus={() => setSearchFocused(true)}
         onBlur={() => setSearchFocused(false)}
-        onSubmitEditing={onSubmitSearch}
         accessibilityLabel={t.spotsSearch}
         accessibilityRole="search"
         returnKeyType="search"
@@ -553,9 +565,8 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
 
   const renderSearchOverlay = () => {
     const hasQuery = searchQuery.length > 0;
-    const showRecents = !hasQuery && searchHistory.length > 0;
 
-    if (!hasQuery && !showRecents) return null;
+    if (!hasQuery) return null;
 
     return (
       <View style={ss.searchResults}>
@@ -563,39 +574,11 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
           <Text style={[ss.searchEmpty, { color: colors.textMuted }]}>{t.spotsSearchEmpty(searchQuery)}</Text>
         )}
 
-        {showRecents && (
-          <>
-            <View style={ss.recentsHeader}>
-              <Text style={[ss.recentsLabel, { color: colors.textMuted }]}>{t.spotsSearchRecent}</Text>
-              <TouchableOpacity
-                onPress={handleClearHistory}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                accessibilityRole="button"
-                accessibilityLabel={t.spotsSearchClearHistory}
-              >
-                <Text style={[ss.recentsClear, { color: colors.accent }]}>{t.spotsSearchClearHistory}</Text>
-              </TouchableOpacity>
-            </View>
-            {searchHistory.map(q => (
-              <TouchableOpacity
-                key={q}
-                style={[ss.recentItem, { backgroundColor: colors.card }]}
-                onPress={() => setSearchQuery(q)}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={q}
-              >
-                <Ionicons name="time-outline" size={16} color={colors.textMuted} />
-                <Text style={[ss.recentTxt, { color: colors.white }]}>{q}</Text>
-              </TouchableOpacity>
-            ))}
-          </>
-        )}
-
         {hasQuery && searchResults.map((spot) => {
           const forecast = forecasts.find(f => f.spot.id === spot.id);
           const dist = distanceMap.get(spot.id);
           const isLoadingThis = loadingSearchSpot === spot.id;
+          const levelBadge = getLevelBadge(spot.recommendedLevel, t);
           return (
             <TouchableOpacity
               key={spot.id}
@@ -603,7 +586,6 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
               activeOpacity={0.7}
               disabled={isLoadingThis}
               onPress={() => {
-                onSubmitSearch();
                 if (forecast) {
                   navigateToSpot(forecast);
                   setSearchQuery('');
@@ -626,8 +608,8 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                   <Text style={[ss.searchLoading, { color: colors.accent }]}>{t.spotsSearchLoading}</Text>
                 )}
               </View>
-              <View style={[ss.levelBadge, { backgroundColor: getLevelBadge(spot.recommendedLevel, t).bg }]}>
-                <Text style={[ss.levelBadgeTxt, { color: getLevelBadge(spot.recommendedLevel, t).color }]}>{getLevelBadge(spot.recommendedLevel, t).label}</Text>
+              <View style={[ss.levelBadge, { backgroundColor: levelBadge.bg }]}>
+                <Text style={[ss.levelBadgeTxt, { color: levelBadge.color }]}>{levelBadge.label}</Text>
               </View>
               {forecast && <ScoreBadge score={forecast.currentScore} size="sm" />}
               {isLoadingThis && <ActivityIndicator size="small" color={colors.accent} />}
@@ -643,9 +625,9 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   if (error && forecasts.length === 0) {
     return (
       <View style={[ss.loadWrap, { backgroundColor: colors.bg, paddingTop: insets.top + 40 }]}>
-        <MaterialCommunityIcons name="cloud-off-outline" size={44} color={colors.textMuted} style={{ marginBottom: spacing.md }} />
+        <MaterialCommunityIcons name={offline ? 'wifi-off' : 'cloud-off-outline'} size={44} color={colors.textMuted} style={{ marginBottom: spacing.md }} />
         <Text style={{ fontSize: 18, fontWeight: '700', color: colors.white, textAlign: 'center', marginBottom: spacing.xs }}>
-          {t.spotsLoadError}
+          {offline ? t.offlineMsg : t.spotsLoadError}
         </Text>
         <Text style={{ fontSize: 14, color: colors.textMuted, textAlign: 'center', marginBottom: spacing.lg, paddingHorizontal: spacing.xl }}>
           {t.spotsLoadErrorHint}
@@ -690,9 +672,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
         {renderHeader()}
         <View style={ss.controlsWrap}>
           {renderModeTabs()}
-          {renderSearchBar()}
         </View>
-        {renderSearchOverlay()}
 
         {searchQuery.length === 0 && (
           <>
@@ -704,7 +684,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                     <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{loadedCount}/{totalCount} spot{totalCount !== 1 ? 's' : ''}</Text>
                   </View>
                 )}
-                {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.orange }]}>{t.spotsUnavailable(failedCount)}</Text>}
+                {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.yellow }]}>{t.spotsUnavailable(failedCount)}</Text>}
               </View>
             )}
 
@@ -778,7 +758,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                           <View style={ss.weekDayRow}>
                             <Text style={[ss.weekDay, { color: colors.white }]}>{pick.dayLabel}</Text>
                             {conf !== 'high' && (
-                              <View style={[ss.confDot, { backgroundColor: confCol }]} accessibilityLabel={`${t.detailDataAccuracy} ${conf}`} />
+                              <View style={[ss.confDot, { backgroundColor: confCol }]} accessibilityLabel={`${t.detailDataAccuracy} ${confidenceLabel(conf, t)}`} />
                             )}
                           </View>
                           <Text style={[ss.weekSpot, { color: colors.textSecondary }]}>{pick.spotName} · {pick.timeRange}</Text>
@@ -818,7 +798,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
             {renderHeader()}
             <View style={ss.controlsWrap}>
               {renderModeTabs()}
-              {renderSearchBar()}
+              {mode === 'all' && renderSearchBar()}
             </View>
             {renderSearchOverlay()}
             {searchQuery.length === 0 && (
@@ -829,7 +809,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                     <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{loadedCount}/{totalCount} spots</Text>
                   </View>
                 )}
-                {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.orange }]}>{t.spotsUnavailable(failedCount)}</Text>}
+                {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.yellow }]}>{t.spotsUnavailable(failedCount)}</Text>}
               </View>
             )}
             {searchQuery.length === 0 && renderFilterBar()}
@@ -857,16 +837,20 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
         renderItem={searchQuery.length > 0 ? () => null : ({ item }: ListRenderItemInfo<SpotForecast>) => (
           <SpotCard
             forecast={item}
-            isFav={favs.includes(item.spot.id)}
+            isFav={favSet.has(item.spot.id)}
             distance={distanceMap.get(item.spot.id)}
-            onPress={() => navigateToSpot(item)}
-            onToggleFav={() => handleToggleFav(item.spot.id)}
+            onPress={navigateToSpot}
+            onToggleFav={handleToggleFav}
             colors={colors}
           />
         )}
         keyboardShouldPersistTaps="handled"
         stickySectionHeadersEnabled
         showsVerticalScrollIndicator={false}
+        initialNumToRender={6}
+        maxToRenderPerBatch={4}
+        windowSize={7}
+        removeClippedSubviews={false}
       />
     </View>
   );
@@ -875,17 +859,20 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
 const SpotCard = memo(function SpotCard({
   forecast: f, isFav, distance, onPress, onToggleFav, colors,
 }: {
-  forecast: SpotForecast; isFav: boolean; distance?: number; onPress: () => void; onToggleFav: () => void; colors: any;
+  forecast: SpotForecast; isFav: boolean; distance?: number; onPress: (f: SpotForecast) => void; onToggleFav: (id: string) => void; colors: any;
 }) {
   const { t, locale } = useI18n();
+  const handlePress = useCallback(() => onPress(f), [onPress, f]);
+  const handleFav = useCallback(() => onToggleFav(f.spot.id), [onToggleFav, f.spot.id]);
   const cc = f.currentCondition;
-  const wl = cc ? windLabel(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : '';
-  const isOnshore = wl === 'Onshore' || wl === 'Cross-on';
+  const condKey = cc ? windConditionKey(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : 'clean';
+  const condLabel = condKey === 'glassy' ? t.windGlassy : condKey === 'choppy' ? t.windChoppy : t.windClean;
+  const condColor = condKey === 'choppy' ? colors.yellow : condKey === 'glassy' ? colors.accent : colors.blue;
   return (
     <TouchableOpacity
       style={[ss.spot, { backgroundColor: colors.card, borderColor: colors.border }]}
       activeOpacity={0.7}
-      onPress={onPress}
+      onPress={handlePress}
       accessibilityLabel={`${f.spot.name}, score ${f.currentScore.toFixed(1)}`}
       accessibilityRole="button"
     >
@@ -908,7 +895,7 @@ const SpotCard = memo(function SpotCard({
           </View>
         </View>
         <TouchableOpacity
-          onPress={onToggleFav}
+          onPress={handleFav}
           style={ss.favBtn}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           accessibilityLabel={isFav ? t.spotsRemovedFav : t.spotsAddedFav}
@@ -925,9 +912,9 @@ const SpotCard = memo(function SpotCard({
           <Text style={[ss.spotDot, { color: colors.border }]}>·</Text>
           <Text style={[ss.spotStat, { color: colors.textSecondary }]}>{cc.swellPeriod.toFixed(0)}s</Text>
           <Text style={[ss.spotDot, { color: colors.border }]}>·</Text>
-          <Text style={[ss.spotStat, { color: isOnshore ? colors.red : colors.textSecondary }]}><MaterialCommunityIcons name={ICONS.wind} size={12} color={isOnshore ? colors.red : colors.textSecondary} /> {wl} {cc.windSpeed.toFixed(0)}</Text>
+          <Text style={[ss.spotStat, { color: condColor }]}><MaterialCommunityIcons name={ICONS.wind} size={12} color={condColor} /> {condLabel} {cc.windSpeed.toFixed(0)}</Text>
           {cc.windGusts > 20 && (
-            <><Text style={[ss.spotDot, { color: colors.border }]}>·</Text><Text style={[ss.spotStat, { color: colors.orange }]}><MaterialCommunityIcons name={ICONS.gust} size={12} color={colors.orange} /> {cc.windGusts.toFixed(0)}</Text></>
+            <><Text style={[ss.spotDot, { color: colors.border }]}>·</Text><Text style={[ss.spotStat, { color: colors.yellow }]}><MaterialCommunityIcons name={ICONS.gust} size={12} color={colors.yellow} /> {cc.windGusts.toFixed(0)}</Text></>
           )}
           <Text style={[ss.spotDot, { color: colors.border }]}>·</Text>
           <Text style={[ss.spotStat, { color: colors.blue }]}><MaterialCommunityIcons name={ICONS.seaTemp} size={12} color={colors.blue} /> {cc.seaTemp.toFixed(0)}°</Text>
@@ -936,7 +923,7 @@ const SpotCard = memo(function SpotCard({
       {f.bestTime.score >= RIDABLE_SCORE ? (
         <View style={[ss.spotBest, { backgroundColor: scoreBg(f.bestTime.score) }]}>
           <Text style={[ss.spotBestTxt, { color: scoreColor(f.bestTime.score) }]}>
-            <MaterialCommunityIcons name={ICONS.bestTime} size={12} color={scoreColor(f.bestTime.score)} /> {f.bestTime.label} — {scoreShort(f.bestTime.score, t)} ({f.bestTime.score.toFixed(1)})
+            <MaterialCommunityIcons name={ICONS.bestTime} size={12} color={scoreColor(f.bestTime.score)} /> {bestTimeLabel(f, locale)} — {scoreShort(f.bestTime.score, t)} ({f.bestTime.score.toFixed(1)})
           </Text>
         </View>
       ) : (
@@ -984,7 +971,6 @@ function MiniStat({ icon, value, sub, colors }: { icon: MCIName; value: string; 
 
 const ss = StyleSheet.create({
   loadWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errTxt: { ...typography.h3, fontSize: 15, textAlign: 'center', paddingHorizontal: spacing.xxxl, fontWeight: '500' },
   retryBtn: {
     marginTop: spacing.lg,
     paddingHorizontal: spacing.xxl,
@@ -1088,28 +1074,6 @@ const ss = StyleSheet.create({
   levelBadge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.sm },
   levelBadgeTxt: { fontSize: 10, fontWeight: '700' },
 
-  recentsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xs,
-    marginBottom: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  recentsLabel: { ...typography.tiny },
-  recentsClear: { ...typography.micro },
-  recentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    marginBottom: spacing.xs,
-    minHeight: touchTarget.min,
-  },
-  recentTxt: { ...typography.bodyBold, fontWeight: '500' },
-
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1192,38 +1156,6 @@ const ss = StyleSheet.create({
     paddingBottom: spacing.md,
   },
 
-  destSection: { marginTop: spacing.md },
-  destHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    minHeight: 48,
-  },
-  destHeaderLeft: { flex: 1 },
-  destTitle: { ...typography.h2, fontSize: 18 },
-  destSub: { ...typography.micro, marginTop: 2 },
-  destChevron: { marginLeft: spacing.md },
-  continentBlock: { marginTop: spacing.md },
-  continentLabel: {
-    ...typography.h3,
-    fontSize: 13,
-    marginLeft: spacing.xl,
-    marginBottom: spacing.sm,
-  },
-  destRow: { paddingHorizontal: spacing.lg, gap: spacing.md, paddingBottom: spacing.xs },
-  destCard: {
-    width: 120,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    alignItems: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  destEmoji: { fontSize: 28, marginBottom: spacing.xs },
-  destName: { ...typography.caption, textAlign: 'center', fontWeight: '700' },
-  destCount: { ...typography.tiny, fontSize: 10, marginTop: 2, textTransform: 'none', letterSpacing: 0 },
-
   spot: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
@@ -1237,10 +1169,7 @@ const ss = StyleSheet.create({
   spotName: { ...typography.h2, fontSize: 17, flexShrink: 1 },
   spotLabel: { ...typography.caption, fontSize: 13, marginTop: 3 },
   spotMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs },
-  levelBadgeSm: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.sm },
-  levelBadgeSmTxt: { fontSize: 9, fontWeight: '700' },
   spotDistance: { ...typography.micro, fontSize: 11 },
-  webcamIndicator: { fontSize: 11 },
   favBtn: {
     width: touchTarget.min,
     height: touchTarget.min,

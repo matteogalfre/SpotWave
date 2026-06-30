@@ -17,16 +17,29 @@ const LIGHT = { bg: THEME_LIGHT.bg, text: THEME_LIGHT.text, textDim: THEME_LIGHT
 const LABELS = {
   fr: { title: 'Oups', message: 'Quelque chose s\'est mal passé', retry: 'Réessayer' },
   en: { title: 'Oops', message: 'Something went wrong', retry: 'Retry' },
+  es: { title: 'Vaya', message: 'Algo salió mal', retry: 'Reintentar' },
+  pt: { title: 'Ups', message: 'Algo correu mal', retry: 'Tentar de novo' },
+  de: { title: 'Ups', message: 'Etwas ist schiefgelaufen', retry: 'Erneut versuchen' },
+  it: { title: 'Ops', message: 'Qualcosa è andato storto', retry: 'Riprova' },
+  ja: { title: 'エラー', message: '問題が発生しました', retry: '再試行' },
 } as const;
 
-function getDeviceLocale(): 'fr' | 'en' {
+function getDeviceLocale(): keyof typeof LABELS {
   try {
     const raw =
       Platform.OS === 'ios'
         ? NativeModules.SettingsManager?.settings?.AppleLocale ||
           NativeModules.SettingsManager?.settings?.AppleLanguages?.[0]
         : NativeModules.I18nManager?.localeIdentifier;
-    if (raw && typeof raw === 'string' && raw.toLowerCase().startsWith('fr')) return 'fr';
+    if (raw && typeof raw === 'string') {
+      const lower = raw.toLowerCase();
+      if (lower.startsWith('fr')) return 'fr';
+      if (lower.startsWith('es')) return 'es';
+      if (lower.startsWith('pt')) return 'pt';
+      if (lower.startsWith('de')) return 'de';
+      if (lower.startsWith('it')) return 'it';
+      if (lower.startsWith('ja')) return 'ja';
+    }
   } catch {}
   return 'en';
 }

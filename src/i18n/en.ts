@@ -103,9 +103,6 @@ export default {
   detailWebcam: 'Live webcam',
   detailWebcamSub: 'See conditions in real time',
   detailWebcamOpen: 'OPEN',
-  detailMap: 'See on map',
-  detailMapSub: 'Center the map on this spot',
-  detailMapBtn: 'MAP',
   detailSwellWind: 'Swell & Wind',
   detailTideChart: 'Tide',
   detailHourly: 'Hourly forecast',
@@ -113,6 +110,7 @@ export default {
   detailSpotInfo: 'Spot info',
   detailIdealCond: 'Ideal conditions',
   detailSwellDir: 'Swell direction',
+  detailSwellDirShort: 'Direction',
   detailSwellHeight: 'Ideal height',
   detailIdealWind: 'Ideal wind',
   detailOffshore: 'Offshore',
@@ -121,13 +119,9 @@ export default {
   detailBottom: 'Bottom type',
   detailLevel: 'Level',
   detailDangers: 'Dangers',
-  detailPrev: '‹ Previous',
-  detailNext: 'Next ›',
   detailSwellM: 'Swell (m)',
   detailWindDiv: 'Wind (÷10 km/h)',
   detailNow: 'Now',
-  detailCurrentCond: 'Current conditions',
-
   // Profile screen
   profileTitle: 'Profile',
   profileSub: 'Customize your recommendations',
@@ -168,7 +162,7 @@ export default {
   profileGuide: 'How does it work?',
   profileGuideSub: 'Scoring, forecasts & tips',
   profilePreferredZone: 'Preferred zone',
-  profilePreferredZoneDesc: 'Shown first without GPS',
+  profilePreferredZoneDesc: 'Pick a country to show only its spots. Otherwise: nearby spots (GPS) or a global selection.',
   profilePreferredZoneNone: 'Automatic (GPS or worldwide)',
 
   // Levels
@@ -232,6 +226,18 @@ export default {
   profileAlertsTitle: 'Condition alerts',
   profileAlertsSub: 'Get notified when tomorrow\'s conditions look great',
 
+  // Per-spot alert modal
+  alertTitle: 'Alert for this spot',
+  alertSubtitle: 'Get a notification the morning of the next day this spot reaches your level.',
+  alertMinScore: 'Minimum score',
+  alertPreview: (score: string) => `We'll ping you as soon as the spot tops ${score}/10.`,
+  alertSave: 'Enable alert',
+  alertUpdate: 'Update',
+  alertDisable: 'Disable alert',
+  alertEnabled: 'Alert enabled',
+  alertDisabled: 'Alert disabled',
+  alertNeedsPermission: 'Allow notifications to enable alerts',
+
   // Error boundary
   errorTitle: 'Oops, something crashed',
   errorUnknown: 'Unknown error',
@@ -243,7 +249,6 @@ export default {
   // Onboarding
   onboardWelcome: 'Welcome to SpotWave',
   onboardWelcomeSub: 'The best surf conditions, worldwide',
-  onboardLang: 'Choose your language',
   onboardProfile: 'Your surf profile',
   onboardProfileSub: 'For personalized recommendations',
   onboardZone: 'Your preferred zone',
@@ -255,19 +260,10 @@ export default {
   onboardStep: (n: number, total: number) => `Step ${n}/${total}`,
 
   // Onboarding — extended
-  onboardLocation: 'Location',
-  onboardLocationSub: 'To prioritize spots near you. Your location stays on your device — no data sent.',
-  onboardLocationEnable: 'Enable location',
-  onboardLocationSkip: 'Continue without location',
-  onboardLocationGranted: 'Location enabled',
-  onboardLocationDenied: 'Location denied — you can enable it later',
-
   onboardPrefs: 'Your preferences',
   onboardPrefsSub: 'To better score sessions to your liking',
   onboardPrefsHeight: 'Preferred wave height',
   onboardPrefsDuration: 'Session duration',
-  onboardPrefsHours: 'Your surf hours',
-
   onboardDemo: 'How to read a spot',
   onboardDemoSub: 'Each slot gets a 0–10 score. Color, icon, and label help you decide at a glance.',
   onboardDemoSpotLabel: 'Let\'s go!',
@@ -276,19 +272,7 @@ export default {
   onboardDemoLabel: 'Clear label: "Let\'s go!", "Average", etc.',
   onboardDemoStats: 'Swell, wind, period below each card',
 
-  // ── Tide HT/LT (P0) ─────────────────────────────────────────────
-  detailTideTimes: 'Tide times',
-  detailTideHigh: 'High tide',
-  detailTideLow: 'Low tide',
-  detailTideNext: 'Upcoming',
-  detailTideToday: 'Today',
-  detailTideTomorrow: 'Tom.',
-
   // ── Confidence / source (P0) ────────────────────────────────────
-  detailDataSource: 'Data source',
-  detailDataSourceVal: 'Open-Meteo · GFS / ICON-EU models',
-  detailDataUpdated: (elapsed: string) => `Updated ${elapsed}`,
-  detailUpdatedShort: 'Updated',
   detailDataAccuracy: 'Accuracy',
   detailConfidenceHigh: 'High',
   detailConfidenceMedium: 'Medium',
@@ -311,8 +295,7 @@ export default {
   detailWhyCurrent: 'Currents',
   detailWhyRaw: 'Raw score',
   detailWhyFinal: 'Final score',
-  detailWhyCapped: 'Capped by',
-  detailWhyWindSwell: 'Pure wind swell (-35%)',
+  detailWhyWindSwell: 'Pure wind swell (-22%)',
   capFlat: 'Swell too small',
   capPeriod: 'Period too short',
   capOnshore: 'Brutal onshore wind',
@@ -342,14 +325,80 @@ export default {
   profileLanguageEn: 'English',
   profileLanguagePt: 'Português',
   profileLanguageEs: 'Español',
+  profileLanguageDe: 'Deutsch',
+  profileLanguageIt: 'Italiano',
+  profileLanguageJa: '日本語',
 
   // ── Community spot suggestion ────────────────────────────────────
   profileCommunity: 'Community',
   profileSuggestSpot: 'Suggest a spot',
   profileSuggestSpotSub: 'A spot missing? Suggest it in 1 min',
 
+  // ── Rate the conditions (ground-truth) ──────────────────────────
+  rateButton: 'Rate the conditions',
+  rateTitle: 'Your rating right now',
+  rateSubtitle: 'How are the conditions right now?',
+  rateAppScore: (s: string) => `Current SpotWave score: ${s}/10`,
+  rateSend: 'Send',
+  rateCancel: 'Cancel',
+  rateThanks: 'Thanks! Your rating helps improve the score 🙏',
+  rateQueued: 'Rating saved, it will be sent later 🙏',
+  rateAlready: 'You already rated this spot today',
+  rateHint: 'Your rating helps improve the scoring algorithm for everyone.',
+
+  // ── In-app spot suggestion ──────────────────────────────────────
+  suggestTitle: 'Suggest a spot',
+  suggestSubtitle: 'A spot missing? Give the details and I\'ll add it.',
+  suggestName: 'Spot name',
+  suggestNamePh: 'e.g. La Gravière',
+  suggestCountry: 'Country',
+  suggestCountryPh: 'e.g. France',
+  suggestLevel: 'Recommended level (optional)',
+  suggestWebcam: 'Webcam link (optional)',
+  suggestWebcamPh: 'https://…',
+  suggestSend: 'Send',
+  suggestThanks: 'Thanks! Your suggestion has been sent 🙏',
+  suggestError: 'Couldn\'t send, please try again later',
+  suggestRequired: 'Please enter at least the name and country',
+
+  // ── Rate the app (store) ────────────────────────────────────────
+  profileRateApp: 'Rate the app',
+  profileRateAppSub: 'Enjoying SpotWave? Leave a review',
+  profileSupport: 'Support SpotWave',
+  profileSupportSub: 'Help support the development',
+
   // ── Share (P2) ──────────────────────────────────────────────────
   detailShare: 'Share',
   detailShareMessage: (name: string, region: string, score: string, label: string) =>
     `${name} (${region}) — ${score}/10, ${label}\nSee on SpotWave.`,
+
+  // ── Wind condition (surface read) ───────────────────────────────
+  windGlassy: 'Glassy',
+  windClean: 'Clean',
+  windChoppy: 'Choppy',
+
+  // ── Comfort & gear (detail) ─────────────────────────────────────
+  detailSurface: 'Surface',
+  detailWindLabel: 'Wind',
+  detailGusts: 'Gusts',
+  detailComfort: 'Comfort & gear',
+  detailWetsuit: 'Wetsuit',
+  detailWetsuitNone: 'Boardshorts',
+  wetsuitBoots: 'boots',
+  wetsuitGloves: 'gloves',
+  wetsuitHood: 'hood',
+  detailWater: 'Water',
+  detailUV: 'UV',
+  detailRain: 'Rain',
+  detailCloud: 'Cloud cover',
+  uvLow: 'Low',
+  uvModerate: 'Moderate',
+  uvHigh: 'High',
+  uvVeryHigh: 'Very high',
+  uvExtreme: 'Extreme',
+
+  // ── Positioning / reassurance ───────────────────────────────────
+  trustFree: 'Free',
+  trustNoAds: 'No ads',
+  trustNoAccount: 'No account',
 } as const;

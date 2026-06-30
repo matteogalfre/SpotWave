@@ -5,20 +5,25 @@ function lerpColor(r1: number, g1: number, b1: number, r2: number, g2: number, b
   return `rgb(${r},${g},${b})`;
 }
 
+// Continuous traffic-light ramp across the WHOLE 0–10 range:
+// red → orange → amber → true green → brand turquoise (#23C7C2).
+// Every score gets its own shade (no flat band): a real green anchors "good"
+// at 7.5, and the top quarter visibly gradients green → turquoise so a 7.6 and
+// a 9.9 read differently, the best scores glowing in the logo colour.
 export function scoreColor(score: number) {
   const s = Math.max(0, Math.min(10, score));
-  if (s <= 2.5) return lerpColor(232, 110, 110, 255, 138, 80, s / 2.5);
-  if (s <= 5.0) return lerpColor(255, 138, 80, 255, 210, 80, (s - 2.5) / 2.5);
-  if (s <= 7.5) return lerpColor(255, 210, 80, 0, 212, 170, (s - 5.0) / 2.5);
-  return lerpColor(0, 212, 170, 0, 230, 140, (s - 7.5) / 2.5);
+  if (s <= 2.5) return lerpColor(228, 82, 76, 255, 138, 80, s / 2.5);          // red → orange
+  if (s <= 5.0) return lerpColor(255, 138, 80, 255, 200, 70, (s - 2.5) / 2.5); // orange → amber
+  if (s <= 7.5) return lerpColor(255, 200, 70, 52, 184, 96, (s - 5.0) / 2.5);  // amber → green
+  return lerpColor(52, 184, 96, 35, 199, 194, (s - 7.5) / 2.5);                // green → brand turquoise
 }
 
 export function scoreBg(score: number) {
   const s = Math.max(0, Math.min(10, score));
-  if (s <= 2.5) return `rgba(232,110,110,${0.07 + (s / 2.5) * 0.03})`;
-  if (s <= 5.0) return `rgba(255,180,80,${0.08 + ((s - 2.5) / 2.5) * 0.06})`;
-  if (s <= 7.5) return `rgba(0,212,170,${0.08 + ((s - 5.0) / 2.5) * 0.07})`;
-  return `rgba(0,230,140,${0.15})`;
+  if (s <= 2.5) return `rgba(228,82,76,${0.07 + (s / 2.5) * 0.03})`;
+  if (s <= 5.0) return `rgba(255,150,70,${0.08 + ((s - 2.5) / 2.5) * 0.05})`;
+  if (s <= 7.5) return `rgba(52,184,96,${0.08 + ((s - 5.0) / 2.5) * 0.06})`;    // green
+  return `rgba(35,199,194,${0.14 + ((s - 7.5) / 2.5) * 0.04})`;                 // turquoise (best)
 }
 
 interface ScoreTranslations {
@@ -100,6 +105,28 @@ export function windLabel(speed: number, dir: number, beachOrientation: number) 
   return type;
 }
 
+export type WindConditionKey = 'glassy' | 'clean' | 'choppy';
+
+/**
+ * Plain-language surface read derived from wind speed + how offshore it blows.
+ * This is what casual surfers actually want ("is it clean or messy?"), as
+ * opposed to the raw direction label. Continuous-ish thresholds, no jargon.
+ *  - glassy: barely any wind, mirror surface
+ *  - clean : offshore/cross-off grooming the waves (or very light onshore)
+ *  - choppy: onshore chop, strong cross, or just plain windy/blown out
+ */
+export function windConditionKey(speed: number, dir: number, beachOrientation: number): WindConditionKey {
+  if (speed < 5) return 'glassy';
+  const offshoreDir = (beachOrientation + 180) % 360;
+  let diff = Math.abs(dir - offshoreDir) % 360;
+  if (diff > 180) diff = 360 - diff;
+  // Strong wind blows everything out regardless of direction.
+  if (speed >= 30) return 'choppy';
+  if (diff <= 70) return speed <= 22 ? 'clean' : 'choppy';   // offshore / cross-off
+  if (diff <= 110) return speed <= 12 ? 'clean' : 'choppy';  // cross-shore
+  return speed <= 8 ? 'clean' : 'choppy';                     // onshore
+}
+
 export function dirLabel(deg: number): string {
   const d = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
   return d[Math.round(deg / 22.5) % 16];
@@ -110,32 +137,3 @@ export function isDaytime(isoTime: string, from = 7, to = 20): boolean {
   return h >= from && h < to;
 }
 
-const WEATHER_FR: Record<string, string> = {
-  clear: 'Dégagé', fewClouds: 'Peu nuageux', overcast: 'Couvert',
-  fog: 'Brouillard', drizzle: 'Bruine', rain: 'Pluie',
-  snow: 'Neige', showers: 'Averses', storm: 'Orage', mixed: 'Variable',
-};
-const WEATHER_EN: Record<string, string> = {
-  clear: 'Clear', fewClouds: 'Partly cloudy', overcast: 'Overcast',
-  fog: 'Fog', drizzle: 'Drizzle', rain: 'Rain',
-  snow: 'Snow', showers: 'Showers', storm: 'Storm', mixed: 'Mixed',
-};
-
-function weatherKey(code: number): string {
-  if (code === 0) return 'clear';
-  if (code <= 2) return 'fewClouds';
-  if (code === 3) return 'overcast';
-  if (code <= 49) return 'fog';
-  if (code <= 59) return 'drizzle';
-  if (code <= 69) return 'rain';
-  if (code <= 79) return 'snow';
-  if (code <= 82) return 'showers';
-  if (code <= 86) return 'snow';
-  if (code <= 99) return 'storm';
-  return 'mixed';
-}
-
-export function weatherLabel(code: number, locale: string = 'fr'): string {
-  const dict = locale === 'fr' ? WEATHER_FR : WEATHER_EN;
-  return dict[weatherKey(code)] || dict.mixed;
-}

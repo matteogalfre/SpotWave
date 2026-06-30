@@ -30,7 +30,7 @@ export function confidenceColor(c: ForecastConfidence, colors: any): string {
     case 'high':
       return colors.accent;
     case 'medium':
-      return colors.orange;
+      return colors.yellow;
     case 'low':
       return colors.red;
   }

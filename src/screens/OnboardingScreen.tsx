@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -12,16 +12,17 @@ import { getZoneCountries } from '../data/spots';
 import { SurferLevel, WaveHeightPref } from '../types';
 import Logo from '../components/Logo';
 import LanguageSelect from '../components/LanguageSelect';
+import TrustBadges from '../components/TrustBadges';
 import { countryLabel } from '../utils/countries';
 import ScoreBadge from '../components/ScoreBadge';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
 
 const hapticLight = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 
-const LEVEL_OPTIONS: { key: SurferLevel; icon: MCIName; labelFr: string; labelEn: string }[] = [
-  { key: 'beginner', icon: ICONS.surf, labelFr: 'Débutant', labelEn: 'Beginner' },
-  { key: 'intermediate', icon: ICONS.swell, labelFr: 'Intermédiaire', labelEn: 'Intermediate' },
-  { key: 'expert', icon: ICONS.bolt, labelFr: 'Expert', labelEn: 'Expert' },
+const LEVEL_OPTIONS: { key: SurferLevel; icon: MCIName; labelKey: 'levelBeginner' | 'levelIntermediate' | 'levelExpert' }[] = [
+  { key: 'beginner', icon: ICONS.surf, labelKey: 'levelBeginner' },
+  { key: 'intermediate', icon: ICONS.swell, labelKey: 'levelIntermediate' },
+  { key: 'expert', icon: ICONS.bolt, labelKey: 'levelExpert' },
 ];
 
 const HEIGHT_OPTIONS: { key: WaveHeightPref; label: string }[] = [
@@ -34,8 +35,8 @@ const DURATION_OPTIONS = [1, 1.5, 2, 2.5, 3];
 
 const ZONE_COUNTRIES = getZoneCountries(3, 20);
 
-type Step = 0 | 1 | 2 | 3 | 4;
-const TOTAL_STEPS = 5;
+type Step = 0 | 1 | 2 | 3;
+const TOTAL_STEPS = 4;
 
 interface Props {
   onComplete: () => void;
@@ -45,11 +46,10 @@ export default function OnboardingScreen({ onComplete }: Props) {
   const { colors } = useTheme();
   const { t, locale } = useI18n();
   const { profile, updateProfile } = useProfile();
-  const { location, loading: locLoading, denied: locDenied, refresh: refreshLoc } = useLocation();
+  const { refresh: refreshLoc } = useLocation();
   const insets = useSafeAreaInsets();
 
   const [step, setStep] = useState<Step>(0);
-  const [requestingLoc, setRequestingLoc] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState<SurferLevel>(profile.level);
   const [selectedHeights, setSelectedHeights] = useState<WaveHeightPref[]>(profile.preferredHeight);
   const [selectedDuration, setSelectedDuration] = useState<number>(profile.sessionDuration);
@@ -80,11 +80,12 @@ export default function OnboardingScreen({ onComplete }: Props) {
     persistAndComplete();
   }, [persistAndComplete]);
 
-  const handleEnableLocation = useCallback(async () => {
+  // The user opted into location ("Ma position"): trigger the OS permission
+  // prompt now, contextually, instead of nagging at app startup.
+  const chooseMyLocation = useCallback(() => {
     hapticLight();
-    setRequestingLoc(true);
-    await refreshLoc();
-    setRequestingLoc(false);
+    setSelectedZone(undefined);
+    refreshLoc(true).catch(() => {});
   }, [refreshLoc]);
 
   const toggleHeight = (h: WaveHeightPref) => {
@@ -98,65 +99,28 @@ export default function OnboardingScreen({ onComplete }: Props) {
     });
   };
 
-  const fr = locale === 'fr';
-
   return (
     <View style={[s.root, { backgroundColor: colors.bg, paddingTop: insets.top + spacing.xl }]}>
-      {/* ─── Step 0 : Welcome (language auto-detected, overridable) ─── */}
+      {/* ─── Step 0 : Welcome (language auto-detected from the device, kept here
+          only as a discreet override — it is also changeable in Profile) ─── */}
       {step === 0 && (
         <View style={s.slide}>
           <View style={s.logoWrap}>
-            <Logo size={60} color={colors.accent} />
+            <Logo size={60} />
           </View>
           <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.onboardWelcome}</Text>
           <Text style={[s.sub, { color: colors.textMuted }]}>{t.onboardWelcomeSub}</Text>
           <View style={s.langWrap}>
-            <LanguageSelect />
+            <LanguageSelect compact />
+          </View>
+          <View style={s.trustWrap}>
+            <TrustBadges />
           </View>
         </View>
       )}
 
-      {/* ─── Step 1 : Location permission ─── */}
+      {/* ─── Step 1 : Level ─── */}
       {step === 1 && (
-        <View style={s.slide}>
-          <MaterialCommunityIcons name={ICONS.location} size={48} color={colors.accent} style={s.stepEmoji} accessibilityElementsHidden />
-          <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.onboardLocation}</Text>
-          <Text style={[s.sub, { color: colors.textMuted }]}>{t.onboardLocationSub}</Text>
-
-          {location ? (
-            <View style={[s.locStatus, { backgroundColor: colors.accentDim, borderColor: colors.accent }]}>
-              <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
-              <Text style={[s.locStatusTxt, { color: colors.accent }]}>{t.onboardLocationGranted}</Text>
-            </View>
-          ) : locDenied ? (
-            <View style={[s.locStatus, { backgroundColor: colors.orangeDim, borderColor: colors.orange }]}>
-              <Ionicons name="alert-circle" size={24} color={colors.orange} />
-              <Text style={[s.locStatusTxt, { color: colors.orange }]}>{t.onboardLocationDenied}</Text>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={[s.locBtn, { backgroundColor: colors.accent }]}
-              onPress={handleEnableLocation}
-              activeOpacity={0.8}
-              disabled={requestingLoc || locLoading}
-              accessibilityRole="button"
-              accessibilityLabel={t.onboardLocationEnable}
-            >
-              {requestingLoc || locLoading ? (
-                <ActivityIndicator size="small" color="#000" />
-              ) : (
-                <>
-                  <Ionicons name="location" size={20} color="#000" />
-                  <Text style={s.locBtnTxt}>{t.onboardLocationEnable}</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-
-      {/* ─── Step 2 : Level ─── */}
-      {step === 2 && (
         <View style={s.slide}>
           <MaterialCommunityIcons name={ICONS.surf} size={48} color={colors.accent} style={s.stepEmoji} accessibilityElementsHidden />
           <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.onboardProfile}</Text>
@@ -165,7 +129,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
           <View style={s.options}>
             {LEVEL_OPTIONS.map(opt => {
               const active = selectedLevel === opt.key;
-              const label = fr ? opt.labelFr : opt.labelEn;
+              const label = t[opt.labelKey];
               return (
                 <TouchableOpacity
                   key={opt.key}
@@ -185,8 +149,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
         </View>
       )}
 
-      {/* ─── Step 3 : Preferences (height + duration) ─── */}
-      {step === 3 && (
+      {/* ─── Step 2 : Preferences (height + duration + zone) ─── */}
+      {step === 2 && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={s.slideScrollContent} showsVerticalScrollIndicator={false}>
           <MaterialCommunityIcons name={ICONS.swell} size={48} color={colors.accent} style={s.stepEmoji} accessibilityElementsHidden />
           <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.onboardPrefs}</Text>
@@ -237,7 +201,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
             <TouchableOpacity
               style={[s.chip, { backgroundColor: !selectedZone ? colors.accentDim : colors.card, borderColor: !selectedZone ? colors.accent : colors.border }]}
-              onPress={() => { hapticLight(); setSelectedZone(undefined); }}
+              onPress={chooseMyLocation}
               activeOpacity={0.7}
               accessibilityRole="radio"
               accessibilityState={{ selected: !selectedZone }}
@@ -265,8 +229,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
         </ScrollView>
       )}
 
-      {/* ─── Step 4 : Demo - how to read a spot score ─── */}
-      {step === 4 && (
+      {/* ─── Step 3 : Demo - how to read a spot score ─── */}
+      {step === 3 && (
         <View style={s.slide}>
           <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.onboardDemo}</Text>
           <Text style={[s.sub, { color: colors.textMuted }]}>{t.onboardDemoSub}</Text>
@@ -356,6 +320,7 @@ const s = StyleSheet.create({
   slideScrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xxl, paddingBottom: spacing.xl },
   logoWrap: { alignItems: 'center', marginBottom: spacing.xxl },
   langWrap: { alignItems: 'center', marginTop: spacing.xl },
+  trustWrap: { alignItems: 'center', marginTop: spacing.xxl },
   stepEmoji: { fontSize: 48, textAlign: 'center', marginBottom: spacing.lg },
   title: { ...typography.display, textAlign: 'center', marginBottom: spacing.sm },
   sub: { ...typography.body, fontSize: 15, textAlign: 'center', marginBottom: spacing.xxl, lineHeight: 22 },
@@ -398,27 +363,6 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   chipTxt: { ...typography.body, fontWeight: '600' },
-
-  locStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xl,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-  },
-  locStatusTxt: { ...typography.h3, fontSize: 14, fontWeight: '700' },
-  locBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm + 2,
-    borderRadius: radius.lg,
-    paddingVertical: spacing.lg + 2,
-    minHeight: touchTarget.min + 8,
-  },
-  locBtnTxt: { color: '#000', ...typography.h3, fontSize: 16, fontWeight: '800' },
 
   demoCard: {
     borderRadius: radius.lg,

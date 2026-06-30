@@ -51,7 +51,7 @@ const TAB_ICONS: Record<string, { active: string; inactive: string }> = {
 };
 
 function MainTabs() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = Dimensions.get('window');
@@ -65,16 +65,28 @@ function MainTabs() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.card,
+          backgroundColor: colors.tabBar,
           borderTopColor: colors.border,
-          borderTopWidth: 0.5,
+          borderTopWidth: StyleSheet.hairlineWidth,
           height: tabBarHeight,
           paddingTop: isSmallDevice ? 4 : 6,
           paddingBottom: tabBarPaddingBottom,
-          elevation: 0,
+          // Lift the bar off the content: in light mode card (#FFF) is nearly the
+          // same value as the sand bg, so a subtle upward shadow gives the
+          // separation the hairline alone can't (avoids "white-on-white").
+          ...Platform.select({
+            android: { elevation: isDark ? 0 : 8 },
+            ios: {
+              shadowColor: '#0E3A45',
+              shadowOffset: { width: 0, height: -2 },
+              shadowOpacity: isDark ? 0 : 0.08,
+              shadowRadius: 8,
+            },
+            default: {},
+          }),
         },
         tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarLabelStyle: {
           ...typography.micro,
           fontSize: isSmallDevice ? 10 : 11,

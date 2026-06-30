@@ -22,6 +22,8 @@ export const DARK = {
   bg: '#0B0F1A',
   card: '#151A2D',
   cardLight: '#1C2340',
+  // Bottom-nav surface. In dark, card already separates from bg.
+  tabBar: '#151A2D',
 
   text: '#EAEEF6',
   textSecondary: 'rgba(234,238,246,0.78)',
@@ -38,56 +40,60 @@ export const DARK = {
   white15: 'rgba(234,238,246,0.18)',
   white08: 'rgba(234,238,246,0.08)',
 
-  accent: '#00D4AA',
-  accentDim: 'rgba(0,212,170,0.18)',
-  orange: '#FF8A50',
-  orangeDim: 'rgba(255,138,80,0.18)',
+  accent: '#23C7C2',
+  accentDim: 'rgba(35,199,194,0.18)',
   red: '#FF5A5A',
   redDim: 'rgba(255,90,90,0.15)',
   yellow: '#FFD060',
   yellowDim: 'rgba(255,208,96,0.15)',
-  blue: '#4A90FF',
-  blueDim: 'rgba(74,144,255,0.18)',
+  blue: '#2BA8DC',
+  blueDim: 'rgba(43,168,220,0.18)',
   statusBar: 'light' as 'light' | 'dark',
   mapTile: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
   mapFilter: 'contrast(1.15) brightness(1.1) saturate(1.4)',
   mapSea: '#0B0F1A',
 };
 
+// ── Lagoon Classic (default light theme) ───────────────────────────────
+// Tightened palette: warm-sand bg + deep teal ink, turquoise brand accent
+// (all interaction), logo blue for water/tide only, gold as the single warm
+// "caution/secondary", red for danger only. Score gradient = its own scale.
 export const LIGHT: ThemePalette = {
-  bg: '#F2F4F8',
+  bg: '#FBF8F2',
   card: '#FFFFFF',
-  cardLight: '#E8EBF0',
+  cardLight: '#F1ECE2',
+  // Bottom-nav surface (M3 "tonal surface"): a faint cool tint that reads as a
+  // distinct plane against both white content (#FFF) and the warm sand bg, and
+  // subtly nods to the turquoise brand. Fixes the "white-on-white" blend.
+  tabBar: '#F4F8F7',
 
-  text: '#1A1D2E',
-  textSecondary: 'rgba(26,29,46,0.78)',
-  textMuted: 'rgba(26,29,46,0.62)',
-  textFaint: 'rgba(26,29,46,0.42)',
-  border: 'rgba(26,29,46,0.14)',
-  borderStrong: 'rgba(26,29,46,0.22)',
-  bgSubtle: 'rgba(26,29,46,0.05)',
+  text: '#0E3A45',
+  textSecondary: 'rgba(14,58,69,0.80)',
+  textMuted: 'rgba(14,58,69,0.60)',
+  textFaint: 'rgba(14,58,69,0.42)',
+  border: 'rgba(14,58,69,0.14)',
+  borderStrong: 'rgba(14,58,69,0.24)',
+  bgSubtle: 'rgba(14,58,69,0.05)',
 
   // Legacy aliases mapped to light-theme equivalents.
-  white: '#1A1D2E',
-  white70: 'rgba(26,29,46,0.78)',
-  white40: 'rgba(26,29,46,0.62)',
-  white15: 'rgba(26,29,46,0.14)',
-  white08: 'rgba(26,29,46,0.05)',
+  white: '#0E3A45',
+  white70: 'rgba(14,58,69,0.80)',
+  white40: 'rgba(14,58,69,0.60)',
+  white15: 'rgba(14,58,69,0.14)',
+  white08: 'rgba(14,58,69,0.05)',
 
-  accent: '#00B894',
-  accentDim: 'rgba(0,184,148,0.15)',
-  orange: '#E67E4A',
-  orangeDim: 'rgba(230,126,74,0.15)',
-  red: '#E04848',
-  redDim: 'rgba(224,72,72,0.12)',
-  yellow: '#D4A840',
-  yellowDim: 'rgba(212,168,64,0.12)',
-  blue: '#3A7BDB',
-  blueDim: 'rgba(58,123,219,0.15)',
+  accent: '#0E9488',
+  accentDim: 'rgba(14,148,136,0.14)',
+  red: '#E0524C',
+  redDim: 'rgba(224,82,76,0.12)',
+  yellow: '#E0982C',
+  yellowDim: 'rgba(224,152,44,0.14)',
+  blue: '#1488B5',
+  blueDim: 'rgba(20,136,181,0.14)',
   statusBar: 'dark',
   mapTile: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  mapFilter: 'contrast(1.08) saturate(1.3)',
-  mapSea: '#F2F4F8',
+  mapFilter: 'contrast(1.06) saturate(1.25)',
+  mapSea: '#DCEFEA',
 };
 
 export type ThemePalette = typeof DARK;
@@ -99,17 +105,19 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  isDark: true,
-  colors: DARK,
+  isDark: false,
+  colors: LIGHT,
   toggleTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [isDark, setIsDark] = useState(true);
+  // Lagoon Classic (light) is the default; dark is opt-in.
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem(THEME_KEY).then((v) => {
-      if (v === 'light') setIsDark(false);
+      if (v === 'dark') setIsDark(true);
+      else if (v === 'light') setIsDark(false);
     }).catch((e) => log.warn('Theme load error:', e));
   }, []);
 
