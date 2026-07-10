@@ -19,9 +19,11 @@ import { FavoritesScreenProps } from '../navigation/types';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { scoreColor, scoreBg, scoreLabel, scoreShort, windLabel } from '../theme';
 import { scoreIcon, weatherMCIcon, ICONS } from '../utils/icons';
-import * as Haptics from 'expo-haptics';
+import { hapticLight, hapticMedium } from '../utils/haptics';
 import { useI18n } from '../i18n';
-import { spacing, radius, typography, touchTarget } from '../utils/tokens';
+import { spacing, radius, typography, touchTarget, elevation } from '../utils/tokens';
+import PressableScale from '../components/PressableScale';
+import { useWebLayout, webCenter, WEB_CONTENT_MAX, isWebPlatform, webTabBarClearance } from '../utils/webLayout';
 
 type SortFav = 'score' | 'distance' | 'name';
 
@@ -32,6 +34,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   const { location } = useLocation();
   const { show: showToast } = useToast();
   const insets = useSafeAreaInsets();
+  const { isWide, columns } = useWebLayout();
 
   const [favIds, setFavIds] = useState<string[]>([]);
   const [forecasts, setForecasts] = useState<SpotForecast[]>([]);
@@ -121,7 +124,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   }, [forecasts, sortBy, distanceMap]);
 
   const handleRemoveFav = useCallback(async (spotId: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    hapticMedium();
     const removedForecast = forecasts.find(f => f.spot.id === spotId);
     const next = await toggleFavorite(spotId);
     setFavIds(next);
@@ -139,7 +142,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   }, [forecasts, showToast, t]);
 
   const navigateToSpot = useCallback((forecast: SpotForecast) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    hapticLight();
     setStoredForecasts(sortedForecasts);
     navigation.navigate('SpotDetail', { forecast });
   }, [navigation, sortedForecasts]);
@@ -149,9 +152,8 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
     const wl = cc ? windLabel(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : '';
     const dist = distanceMap.get(f.spot.id);
     return (
-      <TouchableOpacity
-        style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}
-        activeOpacity={0.7}
+      <PressableScale
+        style={[s.card, isWide && columns > 1 && s.cardGrid, { backgroundColor: colors.card, borderColor: colors.border }]}
         onPress={() => navigateToSpot(f)}
         accessibilityLabel={`${f.spot.name}, score ${f.currentScore.toFixed(1)}`}
         accessibilityRole="button"
@@ -202,19 +204,22 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
             </Text>
           </View>
         )}
-      </TouchableOpacity>
+      </PressableScale>
     );
-  }, [colors, distanceMap, handleRemoveFav, navigateToSpot, t, locale]);
+  }, [colors, distanceMap, handleRemoveFav, navigateToSpot, t, locale, isWide, columns]);
 
   const keyExtractor = useCallback((f: SpotForecast) => f.spot.id, []);
 
   return (
     <FlatList
-      style={{ flex: 1, backgroundColor: colors.bg }}
+      key={isWide ? `grid-${columns}` : 'list'}
+      style={[{ flex: 1, backgroundColor: colors.bg }, webCenter(WEB_CONTENT_MAX, isWide)]}
       data={sortedForecasts}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
-      contentContainerStyle={{ paddingBottom: 100 }}
+      numColumns={isWide ? columns : 1}
+      columnWrapperStyle={isWide && columns > 1 ? { gap: spacing.md, paddingHorizontal: spacing.lg } : undefined}
+      contentContainerStyle={{ paddingBottom: isWebPlatform ? webTabBarClearance(insets.bottom) : 100 }}
       showsVerticalScrollIndicator={false}
       initialNumToRender={6}
       maxToRenderPerBatch={4}
@@ -246,7 +251,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
                       key={key}
                       style={[s.sortBtn, { backgroundColor: active ? colors.accentDim : 'transparent' }]}
                       onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                        hapticLight();
                         setSortBy(key);
                       }}
                       accessibilityLabel={label}
@@ -309,7 +314,9 @@ const s = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.lg,
     borderWidth: StyleSheet.hairlineWidth,
+    ...elevation.sm,
   },
+  cardGrid: { flex: 1, marginHorizontal: 0 },
   cardHead: { flexDirection: 'row', alignItems: 'center' },
   cardInfo: { flex: 1, marginLeft: spacing.md },
   cardName: { ...typography.h2, fontSize: 17, flexShrink: 1 },

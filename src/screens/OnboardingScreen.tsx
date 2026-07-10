@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { ICONS, MCIName } from '../utils/icons';
 import { useTheme } from '../context/ThemeContext';
 import { useProfile } from '../context/ProfileContext';
@@ -16,8 +15,7 @@ import TrustBadges from '../components/TrustBadges';
 import { countryLabel } from '../utils/countries';
 import ScoreBadge from '../components/ScoreBadge';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
-
-const hapticLight = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+import { hapticLight } from '../utils/haptics';
 
 const LEVEL_OPTIONS: { key: SurferLevel; icon: MCIName; labelKey: 'levelBeginner' | 'levelIntermediate' | 'levelExpert' }[] = [
   { key: 'beginner', icon: ICONS.surf, labelKey: 'levelBeginner' },

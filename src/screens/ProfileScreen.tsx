@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Animated, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { ICONS, MCIName } from '../utils/icons';
+import { hapticLight } from '../utils/haptics';
 import { useProfile } from '../context/ProfileContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLocation } from '../context/LocationContext';
@@ -14,7 +14,8 @@ import { requestNotifPermission, getAlertsEnabled, setAlertsEnabled as setAlerts
 import { getStoredForecasts } from '../context/ForecastStore';
 import { useToast } from '../components/Toast';
 import { getZoneCountries } from '../data/spots';
-import { spacing, radius, typography, touchTarget } from '../utils/tokens';
+import { spacing, radius, typography, touchTarget, elevation } from '../utils/tokens';
+import { useWebLayout, webCenter, WEB_READ_MAX, isWebPlatform, webTabBarClearance } from '../utils/webLayout';
 import LanguageSelect from '../components/LanguageSelect';
 import SuggestSpotModal from '../components/SuggestSpotModal';
 import { PLAY_STORE_URL, PLAY_STORE_MARKET, SUPPORT_URL } from '../utils/constants';
@@ -38,11 +39,10 @@ const HEIGHTS: { key: WaveHeightPref; label: string }[] = [
 
 const SESSION_DURATIONS = [1, 1.5, 2, 2.5, 3];
 
-const hapticLight = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 // Small double tap used to confirm an instant save (sync badge).
 const hapticDouble = () => {
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-  setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}), 110);
+  hapticLight();
+  setTimeout(hapticLight, 110);
 };
 
 function toggle<T>(arr: T[], item: T): T[] {
@@ -176,6 +176,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { refresh: refreshLoc } = useLocation();
   const { show: showToast } = useToast();
   const insets = useSafeAreaInsets();
+  const { isWide } = useWebLayout();
   const [form, setForm] = useState<SurferProfile>({ ...profile });
   const [alertsOn, setAlertsOn] = useState(false);
   const [suggestOpen, setSuggestOpen] = useState(false);
@@ -233,7 +234,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[{ flex: 1, backgroundColor: colors.bg }, webCenter(WEB_READ_MAX, isWide)]} contentContainerStyle={isWebPlatform ? { paddingBottom: webTabBarClearance(insets.bottom) } : undefined} showsVerticalScrollIndicator={false}>
       <View style={[s.header, { paddingTop: insets.top + spacing.md }]}>
         <View style={s.headerLeft}>
           <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.profileTitle}</Text>
@@ -339,7 +340,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       {/* Preferred zone — GPS (priorité) fusionné avec la zone manuelle. Sauvé instantanément. */}
       <View style={s.settingsSection}>
         <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{t.profilePreferredZone}</Text>
-        <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, padding: spacing.md }]}>
+        <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, padding: spacing.md }]}>
           <Text style={[s.hoursSummary, { color: colors.textMuted, marginBottom: spacing.md }]}>{t.profilePreferredZoneDesc}</Text>
           <TouchableOpacity
             style={[s.chip, { backgroundColor: !form.preferredZone ? colors.accentDim : colors.bgSubtle, borderColor: !form.preferredZone ? colors.accent : 'transparent', marginBottom: spacing.sm }]}
@@ -374,7 +375,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
       <View style={s.settingsSection}>
         <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{t.profileAppearance}</Text>
-        <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
+        <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth }]}>
           <SettingRow
             icon={isDark ? 'moon' : 'sunny'}
             iconColor={colors.accent}
@@ -391,24 +392,28 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             title={t.profileLanguage}
             subtitle={LANG_LABELS[locale]}
             colors={colors}
+            isLast={isWebPlatform}
             right={<LanguageSelect compact />}
           />
-          <SettingRow
-            icon="notifications"
-            iconColor={colors.yellow}
-            iconBg={colors.yellowDim}
-            title={t.profileAlertsTitle}
-            subtitle={t.profileAlertsSub}
-            colors={colors}
-            isLast
-            right={<ToggleSwitch value={alertsOn} onToggle={handleToggleAlerts} accentColor={colors.accent} trackBg={colors.border} />}
-          />
+          {/* Push alerts don't exist on the PWA (no service-worker push here) — hide the row on web. */}
+          {!isWebPlatform && (
+            <SettingRow
+              icon="notifications"
+              iconColor={colors.yellow}
+              iconBg={colors.yellowDim}
+              title={t.profileAlertsTitle}
+              subtitle={t.profileAlertsSub}
+              colors={colors}
+              isLast
+              right={<ToggleSwitch value={alertsOn} onToggle={handleToggleAlerts} accentColor={colors.accent} trackBg={colors.border} />}
+            />
+          )}
         </View>
       </View>
 
       <View style={s.settingsSection}>
         <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{t.profileCommunity}</Text>
-        <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
+        <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth }]}>
           <SettingRow
             icon="add-circle"
             iconColor={colors.accent}
@@ -425,7 +430,20 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
       <View style={s.settingsSection}>
         <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{t.profileAbout}</Text>
-        <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>
+        <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth }]}>
+          {/* PWA users don't have the native app — offer the Play Store download. */}
+          {isWebPlatform && (
+            <SettingRow
+              icon="logo-google-playstore"
+              iconColor={colors.accent}
+              iconBg={colors.accentDim}
+              title={t.profileGetAndroid}
+              subtitle={t.profileGetAndroidSub}
+              colors={colors}
+              onPress={() => { hapticLight(); Linking.openURL(PLAY_STORE_URL).catch(() => {}); }}
+              right={<Ionicons name="open-outline" size={18} color={colors.textMuted} />}
+            />
+          )}
           <SettingRow
             icon="star"
             iconColor={colors.yellow}
@@ -488,7 +506,7 @@ function Section({ label, children, colors }: { label: string; children: React.R
   return (
     <View style={s.section}>
       <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{label}</Text>
-      <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 }]}>{children}</View>
+      <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth }]}>{children}</View>
     </View>
   );
 }
@@ -518,8 +536,8 @@ const s = StyleSheet.create({
 
   section: { marginTop: spacing.xl, paddingHorizontal: spacing.lg },
   settingsSection: { marginTop: spacing.xxl, paddingHorizontal: spacing.lg },
-  secLabel: { ...typography.tiny, letterSpacing: 1, marginBottom: spacing.md - 2, marginHorizontal: spacing.xs },
-  secCard: { borderRadius: radius.md, padding: spacing.md + 2 },
+  secLabel: { ...typography.sectionLabel, marginBottom: spacing.md - 2, marginHorizontal: spacing.xs },
+  secCard: { borderRadius: radius.md, padding: spacing.md + 2, ...elevation.sm },
 
   levelRow: { flexDirection: 'row', gap: spacing.sm },
   levelBtn: {

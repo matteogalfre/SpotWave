@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { SpotConfig, HourlyCondition, SpotForecast } from '../types';
+import { SpotConfig, HourlyCondition, SpotForecast, SurferLevel } from '../types';
 import { RATING_FORM_ACTION, RATING_FORM_ENTRY } from '../utils/constants';
 import { postGoogleForm } from './googleForm';
 
@@ -30,6 +30,7 @@ export interface RatingPayload {
   appVersion: string;
   locale: string;
   day: string;              // spot-local day (YYYY-MM-DD) for dedup
+  level: SurferLevel;       // surfer level at rating time — dedup is per level
 }
 
 interface StoredRating extends RatingPayload { sent: boolean }
@@ -45,6 +46,7 @@ export function buildRatingPayload(
   userScore: number,
   locale: string,
   day: string,
+  level: SurferLevel,
 ): RatingPayload {
   const f = cond?.factors;
   return {
@@ -76,6 +78,7 @@ export function buildRatingPayload(
     appVersion: appVersion(),
     locale,
     day,
+    level,
   };
 }
 
@@ -90,10 +93,14 @@ async function saveAll(list: StoredRating[]): Promise<void> {
   try { await AsyncStorage.setItem(STORE_KEY, JSON.stringify(list.slice(-MAX_STORED))); } catch { /* ignore */ }
 }
 
-/** True if this spot was already rated today (spot-local day). */
-export async function hasRatedToday(spotId: string, day: string): Promise<boolean> {
+/**
+ * True if this spot was already rated today (spot-local day) AT THIS LEVEL.
+ * Dedup is per level, so a user can rate the same spot once as beginner, once
+ * as intermediate and once as expert on the same day.
+ */
+export async function hasRatedToday(spotId: string, day: string, level: SurferLevel): Promise<boolean> {
   const list = await loadAll();
-  return list.some(r => r.spotId === spotId && r.day === day);
+  return list.some(r => r.spotId === spotId && r.day === day && r.level === level);
 }
 
 /** Fire-and-forget anonymous POST to the configured Google Form. */

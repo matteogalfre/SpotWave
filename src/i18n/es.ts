@@ -33,6 +33,7 @@ export default {
   spotsNoConditions: 'Sin buenas condiciones hoy',
   spotsNextSlot: (day: string, spot: string) => `Próxima buena ventana: ${day} en ${spot}`,
   spotsNoSlotWeek: 'Sin buena ventana esta semana',
+  spotsSeeBestWeek: 'Ver la mejor ventana de la semana',
   spotsNightTitle: 'Es de noche en estos spots',
   spotsNightSub: (day: string, spot: string) => `Próxima buena ventana: ${day} en ${spot}`,
   spotsNightNoSlot: 'Vuelve al amanecer para ver las condiciones',
@@ -364,6 +365,8 @@ export default {
   // ── Rate the app (store) ────────────────────────────────────────
   profileRateApp: 'Puntuar la app',
   profileRateAppSub: '¿Te gusta SpotWave? Deja una reseña',
+  profileGetAndroid: 'Descargar la app Android',
+  profileGetAndroidSub: 'Instala la app nativa desde Google Play',
   profileSupport: 'Apoyar SpotWave',
   profileSupportSub: 'Ayuda al desarrollo de la app',
 

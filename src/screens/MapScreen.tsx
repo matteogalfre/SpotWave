@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { WebView } from 'react-native-webview';
+import AppWebView, { AppWebViewHandle } from '../components/AppWebView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { useLocation } from '../context/LocationContext';
@@ -13,6 +13,7 @@ import { getFavorites } from '../services/favorites';
 import SPOTS from '../data/spots';
 import { SpotForecast } from '../types';
 import { scoreColor, scoreShort } from '../theme';
+import { useWebLayout, isWebPlatform, webTabBarClearance } from '../utils/webLayout';
 import { MapScreenProps } from '../navigation/types';
 import { log } from '../utils/logger';
 import { useI18n } from '../i18n';
@@ -256,7 +257,14 @@ function sendMsg(action, id) {
     var btn = document.getElementById('btn-' + id);
     if (btn) { btn.disabled = true; btn.textContent = LABELS.loading; }
   }
-  window.ReactNativeWebView.postMessage(JSON.stringify({action: action, id: id}));
+  var payload = JSON.stringify({action: action, id: id});
+  // Native: react-native-webview bridge. Web: posted to the parent window
+  // (the iframe shim listens for it). See AppWebView.web.tsx.
+  if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+    window.ReactNativeWebView.postMessage(payload);
+  } else if (window.parent && window.parent !== window) {
+    window.parent.postMessage(payload, '*');
+  }
 }
 
 // Star badge shown on favorite spots so they pop out without zooming in.
@@ -361,8 +369,13 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
   const [mapLoading, setMapLoading] = useState(true);
   const [loadingSpot, setLoadingSpot] = useState<string | null>(null);
   const [loadedCount, setLoadedCount] = useState(() => getStoredForecasts().length);
-  const webviewRef = useRef<WebView>(null);
+  const webviewRef = useRef<AppWebViewHandle>(null);
   const insets = useSafeAreaInsets();
+  const { isWide } = useWebLayout();
+  // On mobile web the bottom tab bar floats (frosted glass) over content. The
+  // map has no scroll, so keep it fully above the bar to avoid the recenter
+  // button hiding underneath it.
+  const mapBottomInset = isWebPlatform && !isWide ? webTabBarClearance(insets.bottom) : 0;
   const forecastsRef = useRef<SpotForecast[]>(getStoredForecasts());
   // null = not loaded yet; we gate the map build on it so favorites are drawn
   // on first paint (no WebView reload flash).
@@ -551,9 +564,9 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
           </Text>
         </View>
       </View>
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingBottom: mapBottomInset }}>
         {favIds !== null && (
-          <WebView
+          <AppWebView
             ref={webviewRef}
             source={{ html }}
             style={{ flex: 1, backgroundColor: colors.bg }}

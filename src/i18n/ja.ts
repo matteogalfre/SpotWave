@@ -33,6 +33,7 @@ export default {
   spotsNoConditions: '今日は良いコンディションがありません',
   spotsNextSlot: (day: string, spot: string) => `次のベストタイミング：${day}・${spot}`,
   spotsNoSlotWeek: '今週は良いタイミングがありません',
+  spotsSeeBestWeek: '今週のベストタイミングを見る',
   spotsNightTitle: 'これらのスポットは夜です',
   spotsNightSub: (day: string, spot: string) => `次のベストタイミング：${day}・${spot}`,
   spotsNightNoSlot: '夜明けにまたコンディションを確認してください',
@@ -364,6 +365,8 @@ export default {
   // ── Rate the app (store) ────────────────────────────────────────
   profileRateApp: 'アプリを評価',
   profileRateAppSub: 'SpotWave は気に入りましたか？レビューを書く',
+  profileGetAndroid: 'Android アプリを入手',
+  profileGetAndroidSub: 'Google Play からネイティブアプリをインストール',
   profileSupport: 'SpotWave を応援',
   profileSupportSub: 'アプリの開発を支援',
 

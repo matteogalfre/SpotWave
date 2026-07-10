@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { useTheme } from '../context/ThemeContext';
 import { useI18n, Locale } from '../i18n';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
-
-const hapticLight = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+import { hapticLight } from '../utils/haptics';
 
 const LANGS: { locale: Locale; label: string; flag: string }[] = [
   { locale: 'fr', label: 'Français', flag: '🇫🇷' },

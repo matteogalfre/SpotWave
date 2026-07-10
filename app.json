@@ -3,8 +3,8 @@
     "name": "SpotWave",
     "slug": "SpotWave",
     "scheme": "spotwave",
-    "version": "1.0.5",
-    "orientation": "portrait",
+    "version": "1.0.9",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -21,7 +21,7 @@
         "backgroundColor": "#FBF2DF"
       },
       "package": "com.spotwave.app",
-      "versionCode": 29,
+      "versionCode": 33,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",

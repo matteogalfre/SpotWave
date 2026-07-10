@@ -24,6 +24,7 @@ import { setStoredForecasts } from '../context/ForecastStore';
 import SPOTS from '../data/spots';
 import ScoreBadge from '../components/ScoreBadge';
 import SkeletonCard from '../components/SkeletonCard';
+import PressableScale from '../components/PressableScale';
 import Logo from '../components/Logo';
 import { SpotConfig, SpotForecast, HourlyCondition, SurferLevel, BreakType } from '../types';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -31,7 +32,7 @@ import { scoreColor, scoreBg, scoreLabel, scoreShort, windLabel, windConditionKe
 import { scoreIcon, weatherMCIcon, ICONS, MCIName } from '../utils/icons';
 import { SurferProfile } from '../types';
 import { SpotsScreenProps } from '../navigation/types';
-import * as Haptics from 'expo-haptics';
+import { hapticLight, hapticMedium } from '../utils/haptics';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToast } from '../components/Toast';
@@ -39,8 +40,9 @@ import { useI18n } from '../i18n';
 import { scheduleGoodConditionAlerts } from '../services/notifications';
 import { getLevelBadge, getLevelLabel, fmtDayLabel, fmtRange } from '../utils/constants';
 import { countryLabel } from '../utils/countries';
-import { spacing, radius, typography, touchTarget } from '../utils/tokens';
+import { spacing, radius, typography, touchTarget, elevation } from '../utils/tokens';
 import { getConfidenceForDate, confidenceColor, confidenceLabel } from '../utils/confidence';
+import { useWebLayout, webCenter, chunk, WEB_CONTENT_MAX, WEB_HOME_MAX, isWebPlatform, webTabBarClearance } from '../utils/webLayout';
 
 interface BestPick {
   spotName: string;
@@ -129,6 +131,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   const { show: showToast } = useToast();
   const { t, locale } = useI18n();
   const insets = useSafeAreaInsets();
+  const { isWide, columns } = useWebLayout();
 
   const [mode, setMode] = useState<Mode>('today');
   const [forecasts, setForecasts] = useState<SpotForecast[]>([]);
@@ -202,7 +205,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   useEffect(() => { getFavorites().then(setFavs); }, []);
 
   const handleToggleFav = useCallback(async (spotId: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    hapticLight();
     const wasFav = favs.includes(spotId);
     const next = await toggleFavorite(spotId);
     setFavs(next);
@@ -329,7 +332,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   }, [locale, forecasts.length, loadData]);
 
   const onRefresh = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    hapticMedium();
     setRefreshing(true);
     await loadData(true);
     setRefreshing(false);
@@ -383,7 +386,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
 
   const hasActiveFilters = levelFilter !== 'all' || breakFilter !== 'all' || minScoreFilter > 0;
   const resetFilters = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    hapticLight();
     setLevelFilter('all');
     setBreakFilter('all');
     setMinScoreFilter(0);
@@ -400,13 +403,20 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     return Array.from(map.entries()).map(([title, data]) => ({ title, data }));
   }, [filteredForecasts, t.spotsRegionOther]);
 
+  // Desktop web: pack each region's spots into rows of `columns` so the
+  // SectionList (which has no numColumns) renders a real multi-column grid.
+  const displaySections = useMemo(() => {
+    if (!isWide) return regionSections.map(s => ({ title: s.title, data: s.data as any[] }));
+    return regionSections.map(s => ({ title: s.title, data: chunk(s.data, columns) as any[] }));
+  }, [regionSections, isWide, columns]);
+
   useEffect(() => {
     if (sortedForecasts.length > 0) setStoredForecasts(sortedForecasts);
     else if (forecasts.length > 0) setStoredForecasts(forecasts);
   }, [sortedForecasts, forecasts]);
 
   const navigateToSpot = useCallback((forecast: SpotForecast) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    hapticLight();
     const allList = sortedForecasts.length > 0 ? sortedForecasts : forecasts;
     setStoredForecasts(allList);
     navigation.navigate('SpotDetail', { forecast });
@@ -445,7 +455,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   );
 
   const renderHeader = () => (
-    <View style={[ss.header, { paddingTop: insets.top + spacing.md }]}>
+    <View style={[ss.header, { paddingTop: insets.top + (isWide ? 28 : spacing.md) }]}>
       <View style={ss.headerLeft}>
         <View style={ss.logoRow}>
           <Logo size={26} />
@@ -486,7 +496,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
             key={m}
             style={[ss.tabPill, active && { backgroundColor: colors.card }]}
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+              hapticLight();
               setMode(m);
               if (m === 'today') setSearchQuery('');
             }}
@@ -647,7 +657,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   // ─── Loading state ───
   if (isLoading || !hasEnoughData) {
     return (
-      <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[{ flex: 1, backgroundColor: colors.bg }, webCenter(WEB_HOME_MAX, isWide)]} showsVerticalScrollIndicator={false}>
         {renderHeader()}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: spacing.lg }}>
           <ActivityIndicator size="small" color={colors.accent} />
@@ -664,7 +674,8 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   if (mode === 'today') {
     return (
       <ScrollView
-        style={{ flex: 1, backgroundColor: colors.bg }}
+        style={[{ flex: 1, backgroundColor: colors.bg }, webCenter(WEB_HOME_MAX, isWide)]}
+        contentContainerStyle={isWebPlatform ? { paddingBottom: webTabBarClearance(insets.bottom) } : undefined}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
@@ -688,11 +699,12 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
               </View>
             )}
 
+            <View style={isWide ? ss.homeRow : undefined}>
+            <View style={isWide ? ss.homeColMain : undefined}>
             {/* HERO simplifié */}
             {bestToday ? (
-              <TouchableOpacity
-                style={[ss.hero, { backgroundColor: colors.card, borderColor: colors.border }]}
-                activeOpacity={0.8}
+              <PressableScale
+                style={[ss.hero, isWide && ss.heroWide, { backgroundColor: colors.card, borderColor: colors.border }]}
                 onPress={() => navigateToPick(bestToday)}
                 accessibilityRole="button"
                 accessibilityLabel={`${t.spotsWhereToSurf} ${bestToday.spotName} ${bestToday.timeRange}`}
@@ -714,15 +726,16 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                   <MiniStat icon={ICONS.wind} value={windLabel(bestToday.cond.windSpeed, bestToday.cond.windDirection, bestToday.beachOrientation)} sub={`${bestToday.cond.windSpeed.toFixed(0)} km/h`} colors={colors} />
                   <MiniStat icon={ICONS.seaTemp} value={`${bestToday.cond.seaTemp.toFixed(0)}°`} sub={t.spotsSeaTemp} colors={colors} />
                 </View>
-              </TouchableOpacity>
+              </PressableScale>
             ) : (
-              <View style={[ss.emptyHero, { backgroundColor: colors.card }]}>
-                <MaterialCommunityIcons
-                  name={nightNow ? 'weather-night' : outsideHoursNow ? 'clock-outline' : ICONS.swell}
-                  size={32}
-                  color={colors.textMuted}
-                  style={ss.emptyEmoji}
-                />
+              <View style={[ss.emptyHero, isWide && ss.heroWide, { backgroundColor: colors.card }]}>
+                <View style={[ss.emptyIconWrap, { backgroundColor: colors.bgSubtle }]}>
+                  <MaterialCommunityIcons
+                    name={nightNow ? 'weather-night' : outsideHoursNow ? 'clock-outline' : ICONS.swell}
+                    size={30}
+                    color={colors.textSecondary}
+                  />
+                </View>
                 <Text style={[ss.emptyTitle, { color: colors.white }]}>
                   {nightNow ? t.spotsNightTitle : outsideHoursNow ? t.spotsOutsideHours : t.spotsNoConditions}
                 </Text>
@@ -731,21 +744,32 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                     ? (bestWeek.length > 0 ? t.spotsNightSub(bestWeek[0].dayLabel, bestWeek[0].spotName) : t.spotsNightNoSlot)
                     : (bestWeek.length > 0 ? t.spotsNextSlot(bestWeek[0].dayLabel, bestWeek[0].spotName) : t.spotsNoSlotWeek)}
                 </Text>
+                {bestWeek.length > 0 && (
+                  <PressableScale
+                    style={[ss.emptyCta, { backgroundColor: scoreBg(bestWeek[0].cond.score), borderColor: scoreColor(bestWeek[0].cond.score) }]}
+                    onPress={() => navigateToPick(bestWeek[0])}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t.spotsSeeBestWeek} ${bestWeek[0].dayLabel} ${bestWeek[0].spotName}`}
+                  >
+                    <MaterialCommunityIcons name={ICONS.bestTime} size={14} color={scoreColor(bestWeek[0].cond.score)} />
+                    <Text style={[ss.emptyCtaTxt, { color: scoreColor(bestWeek[0].cond.score) }]}>{t.spotsSeeBestWeek}</Text>
+                  </PressableScale>
+                )}
               </View>
             )}
+            </View>
 
             {/* Best week */}
             {bestWeek.length > 0 && (
-              <View style={ss.weekSection}>
-                <Text style={[ss.weekTitle, { color: colors.white }]} accessibilityRole="header">{t.spotsBestWeek}</Text>
+              <View style={[ss.weekSection, isWide && ss.weekWide]}>
+                <Text style={[ss.weekTitle, { color: colors.textSecondary }]} accessibilityRole="header">{t.spotsBestWeek}</Text>
                 {bestWeek.map((pick, idx) => {
                   const conf = getConfidenceForDate(pick.cond.time);
                   const confCol = confidenceColor(conf, colors);
                   return (
-                    <TouchableOpacity
+                    <PressableScale
                       key={`${pick.spotId}-${pick.cond.time}`}
                       style={[ss.weekCard, { backgroundColor: colors.card }, idx === 0 && { borderColor: scoreColor(pick.cond.score), borderWidth: 1 }]}
-                      activeOpacity={0.7}
                       onPress={() => navigateToPick(pick)}
                       accessibilityRole="button"
                       accessibilityLabel={`${pick.dayLabel} ${pick.spotName} ${pick.timeRange}`}
@@ -773,11 +797,12 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                         <ScoreBadge score={pick.cond.score} size="md" />
                         <Text style={[ss.weekLabel, { color: scoreColor(pick.cond.score) }]} numberOfLines={1}>{scoreShort(pick.cond.score, t)}</Text>
                       </View>
-                    </TouchableOpacity>
+                    </PressableScale>
                   );
                 })}
               </View>
             )}
+            </View>
 
             <View style={{ height: 24 }} />
           </>
@@ -790,8 +815,10 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <SectionList
-        sections={regionSections}
-        keyExtractor={(item) => item.spot.id}
+        key={isWide ? `grid-${columns}` : 'list'}
+        style={webCenter(WEB_CONTENT_MAX, isWide) || undefined}
+        sections={displaySections}
+        keyExtractor={(item, index) => isWide ? `row-${index}-${(item as SpotForecast[]).map(f => f.spot.id).join('_')}` : (item as SpotForecast).spot.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
         ListHeaderComponent={
           <>
@@ -830,20 +857,45 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
             </View>
           ) : null
         }
-        ListFooterComponent={<View style={{ height: 100 }} />}
+        ListFooterComponent={<View style={{ height: isWebPlatform ? webTabBarClearance(insets.bottom) : 100 }} />}
         renderSectionHeader={searchQuery.length > 0 ? undefined : ({ section }) => (
-          <Text style={[ss.secTitle, { color: colors.white, backgroundColor: colors.bg }]} accessibilityRole="header">{section.title}</Text>
+          <Text style={[ss.secTitle, { color: colors.textSecondary, backgroundColor: colors.bg }]} accessibilityRole="header">{section.title}</Text>
         )}
-        renderItem={searchQuery.length > 0 ? () => null : ({ item }: ListRenderItemInfo<SpotForecast>) => (
-          <SpotCard
-            forecast={item}
-            isFav={favSet.has(item.spot.id)}
-            distance={distanceMap.get(item.spot.id)}
-            onPress={navigateToSpot}
-            onToggleFav={handleToggleFav}
-            colors={colors}
-          />
-        )}
+        renderItem={searchQuery.length > 0 ? () => null : ({ item }: ListRenderItemInfo<any>) => {
+          if (isWide) {
+            const row = item as SpotForecast[];
+            return (
+              <View style={ss.gridRow}>
+                {row.map(f => (
+                  <SpotCard
+                    key={f.spot.id}
+                    grid
+                    forecast={f}
+                    isFav={favSet.has(f.spot.id)}
+                    distance={distanceMap.get(f.spot.id)}
+                    onPress={navigateToSpot}
+                    onToggleFav={handleToggleFav}
+                    colors={colors}
+                  />
+                ))}
+                {row.length < columns && Array.from({ length: columns - row.length }).map((_, i) => (
+                  <View key={`filler-${i}`} style={{ flex: 1 }} />
+                ))}
+              </View>
+            );
+          }
+          const f = item as SpotForecast;
+          return (
+            <SpotCard
+              forecast={f}
+              isFav={favSet.has(f.spot.id)}
+              distance={distanceMap.get(f.spot.id)}
+              onPress={navigateToSpot}
+              onToggleFav={handleToggleFav}
+              colors={colors}
+            />
+          );
+        }}
         keyboardShouldPersistTaps="handled"
         stickySectionHeadersEnabled
         showsVerticalScrollIndicator={false}
@@ -857,21 +909,26 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
 }
 
 const SpotCard = memo(function SpotCard({
-  forecast: f, isFav, distance, onPress, onToggleFav, colors,
+  forecast: f, isFav, distance, onPress, onToggleFav, colors, grid,
 }: {
-  forecast: SpotForecast; isFav: boolean; distance?: number; onPress: (f: SpotForecast) => void; onToggleFav: (id: string) => void; colors: any;
+  forecast: SpotForecast; isFav: boolean; distance?: number; onPress: (f: SpotForecast) => void; onToggleFav: (id: string) => void; colors: any; grid?: boolean;
 }) {
   const { t, locale } = useI18n();
   const handlePress = useCallback(() => onPress(f), [onPress, f]);
-  const handleFav = useCallback(() => onToggleFav(f.spot.id), [onToggleFav, f.spot.id]);
+  // On web the card and the star both render as clickable elements; stop the
+  // star's click from bubbling up to the card (which would also open the spot).
+  // Harmless on native (GestureResponderEvent.stopPropagation is a no-op there).
+  const handleFav = useCallback((e?: { stopPropagation?: () => void }) => {
+    e?.stopPropagation?.();
+    onToggleFav(f.spot.id);
+  }, [onToggleFav, f.spot.id]);
   const cc = f.currentCondition;
   const condKey = cc ? windConditionKey(cc.windSpeed, cc.windDirection, f.spot.beachOrientation) : 'clean';
   const condLabel = condKey === 'glassy' ? t.windGlassy : condKey === 'choppy' ? t.windChoppy : t.windClean;
   const condColor = condKey === 'choppy' ? colors.yellow : condKey === 'glassy' ? colors.accent : colors.blue;
   return (
-    <TouchableOpacity
-      style={[ss.spot, { backgroundColor: colors.card, borderColor: colors.border }]}
-      activeOpacity={0.7}
+    <PressableScale
+      style={[ss.spot, grid && ss.spotGrid, { backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={handlePress}
       accessibilityLabel={`${f.spot.name}, score ${f.currentScore.toFixed(1)}`}
       accessibilityRole="button"
@@ -933,7 +990,7 @@ const SpotCard = memo(function SpotCard({
           </Text>
         </View>
       )}
-    </TouchableOpacity>
+    </PressableScale>
   );
 });
 
@@ -941,7 +998,7 @@ function FilterChip({ label, active, onPress, colors }: { label: string; active:
   return (
     <TouchableOpacity
       onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        hapticLight();
         onPress();
       }}
       style={[
@@ -1091,15 +1148,36 @@ const ss = StyleSheet.create({
     alignItems: 'center',
   },
   emptyEmoji: { fontSize: 32, marginBottom: spacing.md },
+  emptyIconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
   emptyTitle: { ...typography.h2, fontSize: 17, textAlign: 'center' },
   emptySubtitle: { ...typography.caption, fontSize: 13, marginTop: spacing.xs, textAlign: 'center' },
+  emptyCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.lg,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    minHeight: touchTarget.min,
+  },
+  emptyCtaTxt: { ...typography.bodyBold, fontSize: 13 },
 
   hero: {
     margin: spacing.lg,
     marginBottom: spacing.md,
     borderRadius: radius.xl,
     padding: spacing.xl,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
+    ...elevation.md,
   },
   heroQ: { ...typography.tiny, marginBottom: spacing.md },
   heroMain: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, gap: spacing.lg },
@@ -1115,11 +1193,11 @@ const ss = StyleSheet.create({
   },
   ms: { flex: 1, alignItems: 'center' },
   msIcon: { fontSize: 14, marginBottom: spacing.xs },
-  msVal: { ...typography.bodyBold, fontWeight: '800' },
+  msVal: { ...typography.bodyBold, fontWeight: '800', fontVariant: ['tabular-nums'] },
   msSub: { ...typography.tiny, fontSize: 10, marginTop: 2 },
 
   weekSection: { marginHorizontal: spacing.lg, marginBottom: spacing.sm },
-  weekTitle: { ...typography.h2, marginBottom: spacing.md },
+  weekTitle: { ...typography.sectionLabel, marginBottom: spacing.md, marginLeft: spacing.xs },
   weekCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1127,6 +1205,7 @@ const ss = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.sm,
+    ...elevation.sm,
   },
   weekLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   weekRank: {
@@ -1137,20 +1216,19 @@ const ss = StyleSheet.create({
     alignItems: 'center',
     marginRight: spacing.md,
   },
-  weekRankTxt: { ...typography.caption, fontWeight: '800' },
+  weekRankTxt: { ...typography.caption, fontWeight: '800', fontVariant: ['tabular-nums'] },
   weekInfo: { flex: 1 },
   weekDayRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   weekDay: { ...typography.h3, fontSize: 15 },
-  confDot: { width: 7, height: 7, borderRadius: 4 },
+  confDot: { width: 6, height: 6, borderRadius: 3 },
   weekSpot: { ...typography.caption, marginTop: 2 },
   weekStats: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xs },
-  weekStat: { ...typography.micro, fontWeight: '500' },
+  weekStat: { ...typography.micro, fontWeight: '500', fontVariant: ['tabular-nums'] },
   weekRight: { alignItems: 'center', justifyContent: 'center', marginLeft: spacing.md, width: 62 },
   weekLabel: { ...typography.tiny, marginTop: spacing.xs, textAlign: 'center' },
 
   secTitle: {
-    ...typography.h2,
-    fontSize: 18,
+    ...typography.sectionLabel,
     paddingLeft: spacing.xl,
     paddingTop: spacing.xl,
     paddingBottom: spacing.md,
@@ -1162,7 +1240,23 @@ const ss = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.lg,
     borderWidth: StyleSheet.hairlineWidth,
+    ...elevation.sm,
   },
+  spotGrid: { flex: 1, marginHorizontal: 0, marginBottom: 0 },
+  gridRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    alignItems: 'stretch',
+  },
+  // Desktop home: single centered vertical column (hero, then best-week below).
+  homeRow: {
+    paddingHorizontal: spacing.lg,
+  },
+  homeColMain: {},
+  heroWide: { marginHorizontal: 0, marginTop: spacing.md, marginBottom: spacing.md },
+  weekWide: { marginHorizontal: 0, marginTop: 0 },
   spotHead: { flexDirection: 'row', alignItems: 'center' },
   spotInfo: { flex: 1, marginLeft: spacing.md },
   spotNameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
@@ -1182,10 +1276,11 @@ const ss = StyleSheet.create({
     flexWrap: 'wrap',
     marginTop: spacing.md,
     paddingLeft: spacing.xs,
-    gap: 2,
+    rowGap: spacing.xs,
+    columnGap: spacing.xs,
   },
-  spotStat: { ...typography.caption, fontWeight: '500' },
-  spotDot: { fontSize: 12, marginHorizontal: spacing.xs },
+  spotStat: { ...typography.caption, fontWeight: '500', fontVariant: ['tabular-nums'] },
+  spotDot: { fontSize: 12 },
   spotBest: {
     marginTop: spacing.md,
     borderRadius: radius.sm,

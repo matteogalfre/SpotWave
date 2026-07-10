@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserLocation, requestLocation } from '../services/location';
 import { log } from '../utils/logger';
@@ -82,10 +83,11 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Silent on startup: use an already-granted permission, but never pop the
-    // OS dialog here. The prompt is triggered later when the user opts into
-    // location (e.g. choosing "Ma position" over a country).
-    fetchLocation(false);
+    // Native: silent on startup (use an already-granted permission, never pop
+    // the OS dialog here — the prompt is deferred to "Ma position").
+    // Web (PWA): prompt on arrival so the browser asks for location right away
+    // (there's no ambient "ma position" entry point that fits the desktop flow).
+    fetchLocation(Platform.OS === 'web');
   }, [fetchLocation]);
 
   return (

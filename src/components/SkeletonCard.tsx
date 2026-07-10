@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
-const useSharedShimmer = () => {
+export const useSharedShimmer = () => {
   const anim = useRef(new Animated.Value(0.3)).current;
   useEffect(() => {
     const loop = Animated.loop(
@@ -17,7 +17,7 @@ const useSharedShimmer = () => {
   return anim;
 };
 
-function Shimmer({ w, h, r = 8, anim }: { w: number | `${number}%`; h: number; r?: number; anim: Animated.Value }) {
+export function Shimmer({ w, h, r = 8, anim }: { w: number | `${number}%`; h: number; r?: number; anim: Animated.Value }) {
   const { colors } = useTheme();
   return (
     <Animated.View

@@ -97,8 +97,25 @@ function piecewise(x: number, points: [number, number][]): number {
 // we return null = "unknown" so callers stay neutral instead of punishing.
 
 function effectivePeriod(swellPeriod: number, peakPeriod: number): number | null {
-  const p = Math.max(swellPeriod || 0, peakPeriod || 0);
-  return p > 0.5 ? p : null;
+  const sp = swellPeriod || 0;
+  const pp = peakPeriod || 0;
+  if (sp <= 0.5 && pp <= 0.5) return null;
+  // Isolated bad swell-period reading (Open-Meteo drops it to ~0 for an hour)
+  // even though there's a real long-period swell → trust the peak period.
+  if (sp <= 0.5) return pp;
+  if (pp <= sp) return sp;
+  // Both readings healthy and the peak is LONGER than the mean swell period.
+  // A raw max() let a long peak fully mask a genuinely short mean period, which
+  // over-scored small short-period summer surf (buoy shows a 6-7s mean but a
+  // long peak, and surfers consistently rate those days weak). Let the peak lift
+  // the (more representative) mean period only partway — and LESS when the mean
+  // is genuinely short (short mean + long peak = mostly short-period energy).
+  // Real user ratings (userScore < appScore on small summer days) showed a flat
+  // midpoint lift still over-scored them. The lift ramps continuously in `sp`
+  // (0.28 for a short 5 s mean → 0.5 for a real 12 s+ mean) so neighbouring hours
+  // never jump. Groundswell (peak ≈ swell) is unaffected.
+  const lift = piecewise(sp, [[5, 0.28], [8, 0.38], [12, 0.5]]);
+  return sp + (pp - sp) * lift;
 }
 
 // ── level-dependent ideal ranges ────────────────────────────────────────────
@@ -192,19 +209,35 @@ function periodFactor(period: number | null, profile: SurferProfile): number {
   if (period == null) return 0.55;
   // Short period is weak, gutless surf even when the buoy shows size, so the
   // low end is deliberately firm; the long end (real groundswell) is rewarded.
+  // Intermediates/experts need real groundswell: short, gutless period is
+  // heavily discounted and long period rewarded.
   const base = piecewise(period, [
     [3, 0.05],
     [5, 0.14],
-    [7, 0.30],
-    [9, 0.50],
-    [11, 0.68],
+    [7, 0.26],
+    [9, 0.44],
+    [11, 0.66],
     [13, 0.80],
     [15, 0.90],
     [18, 0.96],
     [22, 0.98],
   ]);
-  // Very long period adds little for beginners (waves break harder/faster).
-  if (profile.level === 'beginner' && period > 16) return Math.min(base, 0.86);
+  // Beginners ride reforms and whitewater, so short-period, weak waves bother
+  // them far less than intermediates/experts. Real user ratings confirmed this:
+  // the app was OVER-rating small short-period days for intermediates but
+  // UNDER-rating the very same days for beginners. Give the low end a higher
+  // floor for beginners; the reward naturally plateaus (long period is wasted on
+  // them since the waves break harder/faster).
+  if (profile.level === 'beginner') {
+    return piecewise(period, [
+      [3, 0.14],
+      [5, 0.34],
+      [7, 0.50],
+      [9, 0.62],
+      [11, 0.72],
+      [14, 0.82],
+    ]);
+  }
   return base;
 }
 
@@ -533,6 +566,23 @@ function effectiveSwellHeight(swellHeight: number, waveHeight: number): { height
   return { height: 0, isWindSwellOnly: false };
 }
 
+// ── SMALL / SHORT-PERIOD SURF DAMP (level-aware) ─────────────────────────────
+// Real user ratings (logged userScore vs appScore) showed the model still
+// slightly over-scores small, short-period summer surf, and by level: beginners
+// happily ride knee-high reforms while intermediates/experts get little out of
+// gutless waves. This applies ONE gentle, continuous, level-aware trim. It fades
+// to 1.0 (no effect) as soon as there is real size (~1.1 m) OR real groundswell
+// period (~11 s), so genuine surf is untouched and there are no cliffs.
+function smallSurfDamp(height: number, period: number | null, profile: SurferProfile): number {
+  if (period == null) return 1.0;
+  const smallness = clamp01((1.1 - height) / 0.7); // 0 at ≥1.1 m, 1 at ≤0.4 m
+  const shortness = clamp01((11 - period) / 6);     // 0 at ≥11 s, 1 at ≤5 s
+  const severity = smallness * shortness;
+  const maxTrim =
+    profile.level === 'beginner' ? 0.06 : profile.level === 'intermediate' ? 0.13 : 0.20;
+  return 1 - maxTrim * severity;
+}
+
 // ── DEAL-BREAKERS (continuous ceilings) ──────────────────────────────────────
 // Each deal-breaker is now a CONTINUOUS ceiling (max achievable score) instead
 // of a hard step. The final cap is the lowest ceiling. Because every ceiling is
@@ -685,8 +735,11 @@ export function computeHourlyScore(
   // can't see it (swellHeight≈0) so we apply it here once, not three times.
   const windSwellPenalty = isWindSwellOnly ? 0.78 : 1.0;
 
+  // Gentle, level-aware trim for small short-period surf (user-rating calibration).
+  const smallDamp = smallSurfDamp(effectiveHeight, period, profile);
+
   const adjusted = base * tide * level * pMatch * clean * weather_
-    * consistency * windTrend * current * windSwellPenalty;
+    * consistency * windTrend * current * windSwellPenalty * smallDamp;
   const rawScore = adjusted * 10;
 
   const { capped, caps } = applyDealBreakers(

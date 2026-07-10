@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import * as Location from 'expo-location';
 import { SpotConfig } from '../types';
 
@@ -16,6 +17,30 @@ const LOCATION_TIMEOUT_MS = 8000;
  *                prompt is deferred until the user explicitly picks "Ma position".
  */
 export async function requestLocation(prompt = true): Promise<UserLocation | null> {
+  // Web (PWA): expo-location is unreliable here (no getLastKnownPositionAsync,
+  // permissions read differently), so talk to the browser's Geolocation API
+  // directly. The browser shows its own permission prompt the first time
+  // getCurrentPosition is called.
+  if (Platform.OS === 'web') {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return null;
+    // Silent mode: don't trigger the browser prompt unless already granted.
+    if (!prompt) {
+      try {
+        const st = await (navigator as any).permissions?.query({ name: 'geolocation' });
+        if (!st || st.state !== 'granted') return null;
+      } catch {
+        return null;
+      }
+    }
+    return await new Promise<UserLocation | null>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        () => resolve(null),
+        { enableHighAccuracy: false, timeout: LOCATION_TIMEOUT_MS, maximumAge: 5 * 60 * 1000 },
+      );
+    });
+  }
+
   try {
     let granted = false;
     try {

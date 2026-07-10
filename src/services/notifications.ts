@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { SpotForecast, HourlyCondition } from '../types';
@@ -6,10 +7,14 @@ import { log } from '../utils/logger';
 import { getSpotAlerts } from './alerts';
 import { spotLocalNowKey } from '../utils/scoring';
 
+// Push notifications are native-only. On web we keep Notifications null so every
+// guard below short-circuits and no scheduling / permission code ever runs.
 let Notifications: any = null;
-try {
-  Notifications = require('expo-notifications');
-} catch {}
+if (Platform.OS !== 'web') {
+  try {
+    Notifications = require('expo-notifications');
+  } catch {}
+}
 
 const ALERTS_KEY = '@spotwave_alerts';
 const GOOD_SCORE_THRESHOLD = 6.5;

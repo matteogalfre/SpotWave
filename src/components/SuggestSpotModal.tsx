@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, StyleSheet, TextInput, TouchableOpacity, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticSuccess } from '../utils/haptics';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useI18n } from '../i18n';
@@ -38,7 +38,7 @@ export default function SuggestSpotModal({ visible, onClose }: Props) {
     const ok = await submitSpotSuggestion({ name, country, level, webcam });
     setSending(false);
     if (ok) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      hapticSuccess();
       showToast(t.suggestThanks, 'success');
       reset();
       onClose();

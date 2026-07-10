@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useCallback, useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Linking, RefreshControl, Animated, ActivityIndicator, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Linking, RefreshControl, Animated, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { LineChart } from 'react-native-chart-kit';
@@ -9,6 +9,7 @@ import RateSpotModal from '../components/RateSpotModal';
 import AlertSpotModal from '../components/AlertSpotModal';
 import { buildRatingPayload, submitRating, hasRatedToday } from '../services/ratings';
 import { getSpotAlert, setSpotAlert, removeSpotAlert } from '../services/alerts';
+import { requestReviewOnPositiveMoment } from '../services/review';
 import { requestNotifPermission, rescheduleSpotAlert } from '../services/notifications';
 import { useTheme } from '../context/ThemeContext';
 import { useProfile } from '../context/ProfileContext';
@@ -27,10 +28,17 @@ import { scoreIcon, weatherMCIcon, ICONS, MCIName } from '../utils/icons';
 import { SpotDetailScreenProps } from '../navigation/types';
 import { getLevelLabel, getBreakLabel, getTideLabel, fmtDayLabelShort, fmtRange, fmtH } from '../utils/constants';
 import { spotDescription, spotDangers } from '../utils/spotI18n';
-import * as Haptics from 'expo-haptics';
+import { elevationIOS, typography } from '../utils/tokens';
+import { Shimmer, useSharedShimmer } from '../components/SkeletonCard';
+import { hapticLight, hapticSuccess } from '../utils/haptics';
 import { log } from '../utils/logger';
 import { useI18n } from '../i18n';
-const W = Dimensions.get('window').width;
+import { useWebLayout, webCenter, WEB_DETAIL_MAX, WEB_CHART_MAX, isWebPlatform } from '../utils/webLayout';
+// On desktop web the raw window width can be huge; cap the base used for chart
+// sizing so charts stay readable inside the centered detail column.
+const W = isWebPlatform
+  ? Math.min(Dimensions.get('window').width, WEB_CHART_MAX)
+  : Dimensions.get('window').width;
 
 function getDaySlice(conditions: HourlyCondition[], nowKey: string, from = 7, to = 20): HourlyCondition[] {
   let nowIdx = 0;
@@ -292,6 +300,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
   const [refreshing, setRefreshing] = useState(false);
   const [dailyData, setDailyData] = useState<DailyData | null>(null);
   const [ready, setReady] = useState(false);
+  const shimmerAnim = useSharedShimmer();
   const [isFav, setIsFav] = useState(false);
   const [rateOpen, setRateOpen] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -303,6 +312,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
   const { profile } = useProfile();
   const { location } = useLocation();
   const insets = useSafeAreaInsets();
+  const { isWide } = useWebLayout();
   const spotDistance = useMemo(() => {
     if (!location) return null;
     return haversineDistance(location.latitude, location.longitude, spot.latitude, spot.longitude);
@@ -329,8 +339,17 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     getSpotAlert(spot.id).then(a => setAlertScore(a ? a.minScore : null)).catch(() => {});
   }, [spot.id]);
 
+  useEffect(() => {
+    // Positive moment: the user is looking at genuinely good conditions (the
+    // "go" score). Much higher intent than a raw launch count — best place to
+    // surface the native review prompt. Deferred so it never fights first paint.
+    if (forecast.currentScore < 7) return;
+    const timer = setTimeout(() => { requestReviewOnPositiveMoment(); }, 3500);
+    return () => clearTimeout(timer);
+  }, [forecast.currentScore]);
+
   const handleToggleFav = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    hapticLight();
     const next = await toggleFavorite(spot.id);
     const nowFav = next.includes(spot.id);
     setIsFav(nowFav);
@@ -338,7 +357,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
   }, [spot.id, showToast, t]);
 
   const openAlert = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    hapticLight();
     setAlertOpen(true);
   }, []);
 
@@ -351,7 +370,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     }
     await setSpotAlert(spot.id, { minScore });
     setAlertScore(minScore);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    hapticSuccess();
     showToast(t.alertEnabled, 'success');
     // Additively (re)schedule just this spot — leaves other spots' alerts intact.
     rescheduleSpotAlert(forecast, locale).catch(() => {});
@@ -361,7 +380,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     setAlertOpen(false);
     await removeSpotAlert(spot.id);
     setAlertScore(null);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    hapticLight();
     showToast(t.alertDisabled, 'success');
     rescheduleSpotAlert(forecast, locale).catch(() => {});
   }, [spot.id, forecast, locale, showToast, t]);
@@ -372,21 +391,21 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
   const spotTodayStr = nowKey.slice(0, 10);
 
   const openRate = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    if (await hasRatedToday(spot.id, spotTodayStr)) {
+    hapticLight();
+    if (await hasRatedToday(spot.id, spotTodayStr, profile.level)) {
       showToast(t.rateAlready, 'info');
       return;
     }
     setRateOpen(true);
-  }, [spot.id, spotTodayStr, showToast, t]);
+  }, [spot.id, spotTodayStr, profile.level, showToast, t]);
 
   const handleSubmitRating = useCallback(async (score: number) => {
     setRateOpen(false);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    const payload = buildRatingPayload(spot, forecast, currentCondition, score, locale, spotTodayStr);
+    hapticSuccess();
+    const payload = buildRatingPayload(spot, forecast, currentCondition, score, locale, spotTodayStr, profile.level);
     const sent = await submitRating(payload).catch(() => false);
     showToast(sent ? t.rateThanks : t.rateQueued, 'success');
-  }, [spot, forecast, currentCondition, locale, spotTodayStr, showToast, t]);
+  }, [spot, forecast, currentCondition, locale, spotTodayStr, profile.level, showToast, t]);
   const slice = useMemo(() => getDaySlice(forecast.hourlyConditions, nowKey, profile.availableFrom, profile.availableTo), [forecast.hourlyConditions, nowKey, profile.availableFrom, profile.availableTo]);
   const scrollRef = useRef<ScrollView>(null);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
@@ -545,7 +564,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
       <Text style={[s.stickyName, { color: colors.white }]} numberOfLines={1}>{spot.name}</Text>
       <ScoreBadge score={forecast.currentScore} size="sm" />
     </Animated.View>
-    <ScrollView ref={scrollRef} style={{ flex: 1 }} showsVerticalScrollIndicator={false} scrollEventThrottle={16} onScroll={onScroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
+    <ScrollView ref={scrollRef} style={[{ flex: 1 }, webCenter(WEB_DETAIL_MAX, isWide)]} showsVerticalScrollIndicator={false} scrollEventThrottle={16} onScroll={onScroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
       {/* Header */}
       <View style={[s.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={[s.back, { backgroundColor: colors.cardLight }]} accessibilityLabel={t.back} accessibilityRole="button">
@@ -740,7 +759,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
         return (
           <FadeInView delay={170}>
             <View style={s.sec}>
-              <Text style={[s.secT, { color: colors.white }]}>{t.detailComfort}</Text>
+              <Text style={[s.secT, { color: colors.textSecondary }]}>{t.detailComfort}</Text>
               <View style={[s.comfortBox, { backgroundColor: colors.card }]}>
                 <View style={s.comfortTop}>
                   <MaterialCommunityIcons name={ICONS.wetsuit} size={20} color={colors.blue} style={{ marginRight: 10 }} />
@@ -782,15 +801,27 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
 
       {/* Deferred heavy content */}
       {!ready ? (
-        <View style={s.deferredLoading}>
-          <ActivityIndicator size="small" color={colors.accent} />
+        <View style={s.deferredSkeleton}>
+          <Shimmer w={160} h={16} r={6} anim={shimmerAnim} />
+          <View style={[s.chartBox, { backgroundColor: colors.card, height: 200, padding: 16, justifyContent: 'flex-end', gap: 10 }]}>
+            <Shimmer w="90%" h={90} r={12} anim={shimmerAnim} />
+            <Shimmer w="60%" h={12} r={6} anim={shimmerAnim} />
+          </View>
+          <Shimmer w={140} h={16} r={6} anim={shimmerAnim} />
+          <View style={[s.info, { backgroundColor: colors.card, gap: 12 }]}>
+            <Shimmer w="80%" h={14} r={6} anim={shimmerAnim} />
+            <Shimmer w="95%" h={14} r={6} anim={shimmerAnim} />
+            <Shimmer w="70%" h={14} r={6} anim={shimmerAnim} />
+          </View>
         </View>
       ) : (
         <>
+          <View>
+          <View>
           {/* Combined chart: Houle vs Vent */}
           <FadeInView delay={50}>
             <View style={s.sec}>
-              <Text style={[s.secT, { color: colors.white }]}>{t.detailSwellWind}</Text>
+              <Text style={[s.secT, { color: colors.textSecondary }]}>{t.detailSwellWind}</Text>
               <View style={[s.chartBox, { backgroundColor: colors.card }]}>
                 <ScrollView horizontal showsHorizontalScrollIndicator>
                   <View>
@@ -826,11 +857,12 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
               </View>
             </View>
           </FadeInView>
-
+          </View>
+          <View>
           {/* Tide chart */}
           <FadeInView delay={150}>
             <View style={s.sec}>
-              <Text style={[s.secT, { color: colors.white }]}>{t.detailTideChart}</Text>
+              <Text style={[s.secT, { color: colors.textSecondary }]}>{t.detailTideChart}</Text>
               <View style={[s.chartBox, { backgroundColor: colors.card }]}>
                 <ScrollView horizontal showsHorizontalScrollIndicator>
                   <View>
@@ -870,6 +902,8 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
               )}
             </View>
           </FadeInView>
+          </View>
+          </View>
 
           {/* Hourly rows */}
           <FadeInView delay={250}>
@@ -879,7 +913,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
           {/* Spot info */}
           <FadeInView delay={350}>
             <View style={s.sec}>
-              <Text style={[s.secT, { color: colors.white }]}>{t.detailSpotInfo}</Text>
+              <Text style={[s.secT, { color: colors.textSecondary }]}>{t.detailSpotInfo}</Text>
               <View style={[s.info, { backgroundColor: colors.card }]}>
                 <Text style={[s.desc, { color: colors.white70 }]}>{spotDescription(spot, locale)}</Text>
 
@@ -980,7 +1014,7 @@ function HourlySection({ slice, renderRow, colors, t }: { slice: HourlyCondition
 
   return (
     <View style={s.sec}>
-      <Text style={[s.secT, { color: colors.white }]}>{t.detailHourly}</Text>
+      <Text style={[s.secT, { color: colors.textSecondary }]}>{t.detailHourly}</Text>
       {visible.map(renderRow)}
       {hasMore && !expanded && (
         <TouchableOpacity
@@ -1031,14 +1065,17 @@ const s = StyleSheet.create({
   hMetaRow: { gap: 2, marginTop: 3 },
   hTemp: { fontSize: 12 },
 
-  bestCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: 16, marginBottom: 6, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16, borderWidth: 1 },
+  // No elevation here: the "today" variant uses a translucent scoreBg fill, and
+  // Android's elevation shadow shows through it as an ugly rectangle. The colored
+  // fill + border already make this card pop.
+  bestCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: 16, marginBottom: 6, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth },
   bestCardLeft: { flex: 1, marginRight: 12 },
   bestCardLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
   bestCardTime: { fontSize: 17, fontWeight: '800' },
   bestCardDesc: { fontSize: 12, marginTop: 3 },
-  deferredLoading: { paddingVertical: 60, alignItems: 'center' },
+  deferredSkeleton: { paddingHorizontal: 16, paddingTop: 10, gap: 12 },
 
-  summaryBox: { marginHorizontal: 16, marginTop: 10, marginBottom: 6, borderRadius: 14, padding: 16, borderWidth: 1 },
+  summaryBox: { marginHorizontal: 16, marginTop: 10, marginBottom: 6, borderRadius: 14, padding: 16, borderWidth: StyleSheet.hairlineWidth, ...elevationIOS.sm },
   summaryTitle: { fontSize: 15, fontWeight: '800', marginBottom: 8 },
   summaryTxt: { fontSize: 14, lineHeight: 22 },
 
@@ -1062,7 +1099,9 @@ const s = StyleSheet.create({
   webcamGoTxt: { color: '#fff', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
 
   sec: { marginTop: 18, paddingHorizontal: 12 },
-  secT: { fontSize: 16, fontWeight: '800', marginBottom: 10, marginLeft: 4 },
+  chartRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
+  chartCol: { flex: 1, minWidth: 0 },
+  secT: { ...typography.sectionLabel, marginBottom: 10, marginLeft: 4 },
   chartBox: { borderRadius: 16, overflow: 'hidden', paddingTop: 10, paddingBottom: 4 },
   chart: { borderRadius: 16, marginLeft: -8 },
 
@@ -1081,7 +1120,7 @@ const s = StyleSheet.create({
   rWind: { fontSize: 11, fontWeight: '500' },
   rGust: { fontSize: 9, fontWeight: '700', marginTop: 1 },
 
-  info: { borderRadius: 16, padding: 18 },
+  info: { borderRadius: 16, padding: 18, ...elevationIOS.sm },
   desc: { fontSize: 14, lineHeight: 21, marginBottom: 12 },
   infoGroupTitle: { fontSize: 13, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
   idealGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -1090,7 +1129,7 @@ const s = StyleSheet.create({
   idealTitle: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   idealValue: { fontSize: 14, fontWeight: '800', marginTop: 4 },
   idealSub: { fontSize: 11, marginTop: 2 },
-  comfortBox: { borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14 },
+  comfortBox: { borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, ...elevationIOS.sm },
   comfortTop: { flexDirection: 'row', alignItems: 'center' },
   comfortLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   comfortVal: { fontSize: 15, fontWeight: '800', marginTop: 1 },
