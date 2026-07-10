@@ -1,0 +1,11 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "composite": false,
+    "noEmit": true,
+    "lib": ["ES2020"],
+    "types": []
+  },
+  "include": ["src/**/*.ts"]
+}

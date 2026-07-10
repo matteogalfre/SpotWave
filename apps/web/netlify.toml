@@ -1,0 +1,14 @@
+# Netlify config for the SpotWave DESKTOP web app (Next.js, SSR).
+# This is a SEPARATE Netlify site from the PWA (which uses the repo-root
+# netlify.toml). Set this site's "base directory" to `apps/web` in Netlify.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Next.js runtime (SSR + on-demand rendering + image optimization). Netlify
+# auto-installs this plugin when it detects Next, declared here for clarity.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

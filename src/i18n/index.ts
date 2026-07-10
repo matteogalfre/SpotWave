@@ -1,21 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform, NativeModules } from 'react-native';
-import fr from './fr';
-import en from './en';
-import pt from './pt';
-import es from './es';
-import de from './de';
-import it from './it';
-import ja from './ja';
+import { translations, type Locale, type Translations } from '@spotwave/core/i18n';
 
-export type Locale = 'fr' | 'en' | 'pt' | 'es' | 'de' | 'it' | 'ja';
-type DeepString<T> = {
-  [K in keyof T]: T[K] extends (...args: infer A) => infer R ? (...args: A) => R : string;
-};
-export type Translations = DeepString<typeof fr>;
-
-const translations: Record<Locale, Translations> = { fr, en, pt, es, de, it, ja };
+// The translation tables + shape now live in @spotwave/core so the web app can
+// reuse them. This module keeps only the React/native glue (device-locale
+// detection, persistence, provider, hook).
+export type { Locale, Translations } from '@spotwave/core/i18n';
+export { fr, en, pt, es, de, it, ja, getTranslations, LOCALES } from '@spotwave/core/i18n';
 
 const STORAGE_KEY = '@spotwave_locale';
 
@@ -59,7 +51,7 @@ interface I18nContextType {
 
 const I18nContext = createContext<I18nContextType>({
   locale: 'en',
-  t: en,
+  t: translations.en,
   setLocale: () => {},
   ready: false,
 });

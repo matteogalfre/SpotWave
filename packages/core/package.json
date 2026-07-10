@@ -1,0 +1,9 @@
+{
+  "name": "@spotwave/core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Platform-agnostic SpotWave logic (scoring, spot data, i18n, types) shared by the native app and the web app.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "sideEffects": false
+}

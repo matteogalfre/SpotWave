@@ -2,6 +2,10 @@
   "name": "spotwave",
   "version": "1.0.0",
   "main": "index.ts",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
