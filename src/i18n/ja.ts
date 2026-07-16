@@ -273,6 +273,15 @@ export default {
   onboardDemoLabel: '分かりやすいラベル：「行こう！」「普通」など',
   onboardDemoStats: '各カードの下にスウェル・風・周期',
 
+  // Onboarding — notifications opt-in
+  onboardNotifTitle: '良いセッションを見逃さない',
+  onboardNotifSub: 'お気に入りスポットがグリーンになったら朝に通知します。',
+  onboardNotifPoint1: 'コンディションが良くなり次第お知らせ',
+  onboardNotifPoint2: 'スポットとレベルに合わせて最適化',
+  onboardNotifPoint3: 'プロフィールでいつでもオフにできます',
+  onboardNotifEnable: '通知をオンにする',
+  onboardNotifLater: 'あとで',
+
   // ── Confidence / source (P0) ────────────────────────────────────
   detailDataAccuracy: '精度',
   detailConfidenceHigh: '高',

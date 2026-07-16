@@ -273,6 +273,15 @@ export default {
   onboardDemoLabel: 'Clear label: "Let\'s go!", "Average", etc.',
   onboardDemoStats: 'Swell, wind, period below each card',
 
+  // Onboarding — notifications opt-in
+  onboardNotifTitle: 'Never miss a good session',
+  onboardNotifSub: 'Get a morning alert when your spots turn green.',
+  onboardNotifPoint1: 'Notified as soon as conditions are good',
+  onboardNotifPoint2: 'Tuned to your spot and your level',
+  onboardNotifPoint3: 'Turn it off anytime in your profile',
+  onboardNotifEnable: 'Enable alerts',
+  onboardNotifLater: 'Later',
+
   // ── Confidence / source (P0) ────────────────────────────────────
   detailDataAccuracy: 'Accuracy',
   detailConfidenceHigh: 'High',

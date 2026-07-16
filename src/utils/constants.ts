@@ -126,35 +126,58 @@ const DAY_NAMES_SHORT: Record<string, string[]> = {
 const TODAY_LABEL: Record<string, string> = { fr: "Aujourd'hui", en: 'Today', es: 'Hoy', pt: 'Hoje', de: 'Heute', it: 'Oggi', ja: '今日' };
 const TOMORROW_LABEL: Record<string, string> = { fr: 'Demain', en: 'Tomorrow', es: 'Mañana', pt: 'Amanhã', de: 'Morgen', it: 'Domani', ja: '明日' };
 
-export function fmtDayLabel(iso: string, now?: Date, t?: Translations, locale: string = 'fr'): string {
-  const d = new Date(iso);
-  const ref = now ?? new Date();
-  const todayStr = ref.toISOString().slice(0, 10);
-  const tomorrow = new Date(ref);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
-  const dateStr = d.toISOString().slice(0, 10);
-  const todayLabel = t?.timeToday ?? TODAY_LABEL[locale] ?? TODAY_LABEL.en;
-  const tomorrowLabel = t?.timeTomorrow ?? TOMORROW_LABEL[locale] ?? TOMORROW_LABEL.en;
-  if (dateStr === todayStr) return todayLabel;
-  if (dateStr === tomorrowStr) return tomorrowLabel;
-  const names = DAY_NAMES_FULL[locale] ?? DAY_NAMES_FULL.en;
-  return `${names[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
+// Open-Meteo hourly timestamps are spot-local wall-clock strings ("YYYY-MM-DDTHH")
+// with no timezone suffix. To label them "today/tomorrow" consistently with the
+// rest of the app (which anchors "now" to the SPOT's timezone), we compare on the
+// calendar-date PART of the string and take the spot-local "today" (todayStr,
+// e.g. from spotLocalNowKey) rather than the device clock. All date math is done
+// on the Y-M-D fields via UTC so it is timezone-independent (no device drift).
+
+/** Day of week (0=Sun) for a "YYYY-MM-DD" date, timezone-independent. */
+function dowOf(dateStr: string): number {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(Date.UTC(y, (m || 1) - 1, d || 1)).getUTCDay();
 }
 
-export function fmtDayLabelShort(iso: string, t?: Translations, locale: string = 'fr'): string {
-  const d = new Date(iso);
-  const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const dateStr = d.toISOString().slice(0, 10);
-  const todayLabel = t?.timeToday ?? TODAY_LABEL[locale] ?? TODAY_LABEL.en;
-  const tomorrowLabel = t?.timeTomorrow ?? TOMORROW_LABEL[locale] ?? TOMORROW_LABEL.en;
-  if (dateStr === todayStr) return todayLabel;
-  if (dateStr === tomorrow.toISOString().slice(0, 10)) return tomorrowLabel;
-  const names = DAY_NAMES_SHORT[locale] ?? DAY_NAMES_SHORT.en;
-  return `${names[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
+/** "YYYY-MM-DD" one calendar day after `dateStr`, timezone-independent. */
+function nextDayStr(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const n = new Date(Date.UTC(y, (m || 1) - 1, (d || 1) + 1));
+  return `${n.getUTCFullYear()}-${String(n.getUTCMonth() + 1).padStart(2, '0')}-${String(n.getUTCDate()).padStart(2, '0')}`;
+}
+
+function fmtDayLabelWith(
+  iso: string,
+  todayStr: string | undefined,
+  names: string[],
+  todayLabel: string,
+  tomorrowLabel: string,
+): string {
+  const dateStr = iso.slice(0, 10);
+  // Fallback to a UTC "today" only when no spot-local day is provided.
+  const today = todayStr ?? new Date().toISOString().slice(0, 10);
+  if (dateStr === today) return todayLabel;
+  if (dateStr === nextDayStr(today)) return tomorrowLabel;
+  const [, m, d] = dateStr.split('-').map(Number);
+  return `${names[dowOf(dateStr)]} ${d}/${m}`;
+}
+
+export function fmtDayLabel(iso: string, todayStr?: string, t?: Translations, locale: string = 'fr'): string {
+  return fmtDayLabelWith(
+    iso, todayStr,
+    DAY_NAMES_FULL[locale] ?? DAY_NAMES_FULL.en,
+    t?.timeToday ?? TODAY_LABEL[locale] ?? TODAY_LABEL.en,
+    t?.timeTomorrow ?? TOMORROW_LABEL[locale] ?? TOMORROW_LABEL.en,
+  );
+}
+
+export function fmtDayLabelShort(iso: string, todayStr?: string, t?: Translations, locale: string = 'fr'): string {
+  return fmtDayLabelWith(
+    iso, todayStr,
+    DAY_NAMES_SHORT[locale] ?? DAY_NAMES_SHORT.en,
+    t?.timeToday ?? TODAY_LABEL[locale] ?? TODAY_LABEL.en,
+    t?.timeTomorrow ?? TOMORROW_LABEL[locale] ?? TOMORROW_LABEL.en,
+  );
 }
 
 export function fmtRange(iso: string, duration: number, maxH: number): string {

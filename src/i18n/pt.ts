@@ -273,6 +273,15 @@ export default {
   onboardDemoLabel: 'Etiqueta clara: «Vamos a isso!», «Médio», etc.',
   onboardDemoStats: 'Ondulação, vento, período no fundo de cada cartão',
 
+  // Onboarding — notifications opt-in
+  onboardNotifTitle: 'Nunca percas uma boa sessão',
+  onboardNotifSub: 'Recebe um aviso de manhã quando os teus spots ficarem verdes.',
+  onboardNotifPoint1: 'Avisado assim que as condições estiverem boas',
+  onboardNotifPoint2: 'Ajustado ao teu spot e ao teu nível',
+  onboardNotifPoint3: 'Podes desativar quando quiseres no perfil',
+  onboardNotifEnable: 'Ativar alertas',
+  onboardNotifLater: 'Mais tarde',
+
   // ── Confidence / source (P0) ────────────────────────────────────
   detailDataAccuracy: 'Precisão',
   detailConfidenceHigh: 'Elevada',

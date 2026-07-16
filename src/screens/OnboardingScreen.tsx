@@ -16,6 +16,7 @@ import { countryLabel } from '../utils/countries';
 import ScoreBadge from '../components/ScoreBadge';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
 import { hapticLight } from '../utils/haptics';
+import { requestNotifPermission, setAlertsEnabled } from '../services/notifications';
 
 const LEVEL_OPTIONS: { key: SurferLevel; icon: MCIName; labelKey: 'levelBeginner' | 'levelIntermediate' | 'levelExpert' }[] = [
   { key: 'beginner', icon: ICONS.surf, labelKey: 'levelBeginner' },
@@ -33,8 +34,8 @@ const DURATION_OPTIONS = [1, 1.5, 2, 2.5, 3];
 
 const ZONE_COUNTRIES = getZoneCountries(3, 20);
 
-type Step = 0 | 1 | 2 | 3;
-const TOTAL_STEPS = 4;
+type Step = 0 | 1 | 2 | 3 | 4;
+const TOTAL_STEPS = 5;
 
 interface Props {
   onComplete: () => void;
@@ -64,14 +65,29 @@ export default function OnboardingScreen({ onComplete }: Props) {
     onComplete();
   }, [profile, selectedLevel, selectedHeights, selectedDuration, selectedZone, updateProfile, onComplete]);
 
+  // Last step is the notifications opt-in: its primary CTA enables the global
+  // "good conditions" alert (the single biggest retention lever) after asking
+  // for the OS permission. Scheduling itself happens on the Spots tab once
+  // forecasts are loaded — here we only persist the preference. Never blocks
+  // completion, even if the user denies the OS prompt.
+  const enableAlertsAndComplete = useCallback(async () => {
+    try {
+      const granted = await requestNotifPermission();
+      if (granted) await setAlertsEnabled(true);
+    } catch {
+      // fail soft — onboarding must always be completable
+    }
+    persistAndComplete();
+  }, [persistAndComplete]);
+
   const handleNext = useCallback(() => {
     hapticLight();
     if (step < TOTAL_STEPS - 1) {
       setStep((step + 1) as Step);
     } else {
-      persistAndComplete();
+      enableAlertsAndComplete();
     }
-  }, [step, persistAndComplete]);
+  }, [step, enableAlertsAndComplete]);
 
   const handleSkip = useCallback(() => {
     hapticLight();
@@ -253,6 +269,22 @@ export default function OnboardingScreen({ onComplete }: Props) {
         </View>
       )}
 
+      {/* ─── Step 4 : Notifications opt-in (retention lever) ─── */}
+      {step === 4 && (
+        <View style={s.slide}>
+          <View style={[s.notifIconWrap, { backgroundColor: colors.accentDim }]}>
+            <Ionicons name="notifications" size={40} color={colors.accent} />
+          </View>
+          <Text style={[s.title, { color: colors.white }]} accessibilityRole="header">{t.onboardNotifTitle}</Text>
+          <Text style={[s.sub, { color: colors.textMuted }]}>{t.onboardNotifSub}</Text>
+          <View style={s.demoList}>
+            <DemoBullet color={colors.accent} icon="checkmark-circle" text={t.onboardNotifPoint1} colors={colors} />
+            <DemoBullet color={colors.accent} icon="person-circle" text={t.onboardNotifPoint2} colors={colors} />
+            <DemoBullet color={colors.accent} icon="settings" text={t.onboardNotifPoint3} colors={colors} />
+          </View>
+        </View>
+      )}
+
       <View style={[s.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={s.dots} accessibilityLabel={t.onboardStep(step + 1, TOTAL_STEPS)}>
           {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
@@ -278,22 +310,22 @@ export default function OnboardingScreen({ onComplete }: Props) {
             style={[s.nextBtn, { backgroundColor: colors.accent }]}
             onPress={handleNext}
             activeOpacity={0.8}
-            accessibilityLabel={step === TOTAL_STEPS - 1 ? t.onboardStart : t.onboardNext}
+            accessibilityLabel={step === TOTAL_STEPS - 1 ? t.onboardNotifEnable : t.onboardNext}
             accessibilityRole="button"
           >
-            <Text style={s.nextTxt}>{step === TOTAL_STEPS - 1 ? t.onboardStart : t.onboardNext}</Text>
+            <Text style={s.nextTxt}>{step === TOTAL_STEPS - 1 ? t.onboardNotifEnable : t.onboardNext}</Text>
           </TouchableOpacity>
         </View>
-        {step > 0 && step < TOTAL_STEPS - 1 && (
+        {step > 0 && (
           <TouchableOpacity
             onPress={handleSkip}
             style={s.skipBtn}
             activeOpacity={0.7}
-            accessibilityLabel={t.onboardSkip}
+            accessibilityLabel={step === TOTAL_STEPS - 1 ? t.onboardNotifLater : t.onboardSkip}
             accessibilityRole="button"
             hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
           >
-            <Text style={[s.skipTxt, { color: colors.textMuted }]}>{t.onboardSkip}</Text>
+            <Text style={[s.skipTxt, { color: colors.textMuted }]}>{step === TOTAL_STEPS - 1 ? t.onboardNotifLater : t.onboardSkip}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -373,6 +405,15 @@ const s = StyleSheet.create({
   demoSpotName: { ...typography.h3, fontSize: 16, fontWeight: '800' },
   demoSpotLabel: { ...typography.caption, fontSize: 13, marginTop: 3 },
   demoSpotMeta: { ...typography.micro, fontWeight: '500', marginTop: spacing.xs },
+  notifIconWrap: {
+    width: 84,
+    height: 84,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: spacing.xl,
+  },
   demoList: { gap: spacing.md },
   demoBullet: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   demoBulletDot: {

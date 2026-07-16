@@ -17,6 +17,11 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { purgeOldCache } from './src/services/api';
 import { maybeRequestReview } from './src/services/review';
 import { flushPendingRatings } from './src/services/ratings';
+import { initCrashReporter, sentryWrap } from './src/services/crashReporter';
+
+// Init Sentry (if a DSN is set) + local crash persistence before anything
+// renders, so an early crash is captured.
+initCrashReporter();
 
 // iOS PWA: with a black-translucent status bar, content draws under the Dynamic
 // Island. This frosted strip (height = top safe-area inset) keeps the clock /
@@ -89,7 +94,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function App() {
+function App() {
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
@@ -110,3 +115,7 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
+// Sentry.wrap adds the native crash/JS error hooks around the root component.
+// It's a no-op passthrough when Sentry has no DSN, so this is always safe.
+export default sentryWrap(App);

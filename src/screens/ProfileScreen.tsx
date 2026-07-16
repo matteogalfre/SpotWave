@@ -53,7 +53,7 @@ function toggle<T>(arr: T[], item: T): T[] {
   return [...arr, item];
 }
 
-function ToggleSwitch({ value, onToggle, accentColor, trackBg }: { value: boolean; onToggle: (v: boolean) => void; accentColor: string; trackBg: string }) {
+function ToggleSwitch({ value, onToggle, accentColor, trackBg, label }: { value: boolean; onToggle: (v: boolean) => void; accentColor: string; trackBg: string; label?: string }) {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -63,6 +63,7 @@ function ToggleSwitch({ value, onToggle, accentColor, trackBg }: { value: boolea
       }}
       style={[toggleS.track, { backgroundColor: value ? accentColor : trackBg }]}
       accessibilityRole="switch"
+      accessibilityLabel={label}
       accessibilityState={{ checked: value }}
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
     >
@@ -383,7 +384,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             title={isDark ? t.profileThemeDark : t.profileThemeLight}
             subtitle={t.profileThemeSub}
             colors={colors}
-            right={<ToggleSwitch value={isDark} onToggle={toggleTheme} accentColor={colors.accent} trackBg={colors.border} />}
+            right={<ToggleSwitch value={isDark} onToggle={toggleTheme} accentColor={colors.accent} trackBg={colors.border} label={isDark ? t.profileThemeDark : t.profileThemeLight} />}
           />
           <SettingRow
             icon="language"
@@ -405,7 +406,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               subtitle={t.profileAlertsSub}
               colors={colors}
               isLast
-              right={<ToggleSwitch value={alertsOn} onToggle={handleToggleAlerts} accentColor={colors.accent} trackBg={colors.border} />}
+              right={<ToggleSwitch value={alertsOn} onToggle={handleToggleAlerts} accentColor={colors.accent} trackBg={colors.border} label={t.profileAlertsTitle} />}
             />
           )}
         </View>

@@ -273,6 +273,15 @@ export default {
   onboardDemoLabel: 'Klarer Text: „Auf geht\'s!“, „Mittelmäßig“ usw.',
   onboardDemoStats: 'Swell, Wind, Periode unten auf jeder Karte',
 
+  // Onboarding — notifications opt-in
+  onboardNotifTitle: 'Verpasse keine gute Session mehr',
+  onboardNotifSub: 'Erhalte morgens eine Meldung, wenn deine Spots grün werden.',
+  onboardNotifPoint1: 'Benachrichtigt, sobald die Bedingungen gut sind',
+  onboardNotifPoint2: 'Abgestimmt auf deinen Spot und dein Level',
+  onboardNotifPoint3: 'Jederzeit im Profil deaktivierbar',
+  onboardNotifEnable: 'Meldungen aktivieren',
+  onboardNotifLater: 'Später',
+
   // ── Confidence / source (P0) ────────────────────────────────────
   detailDataAccuracy: 'Genauigkeit',
   detailConfidenceHigh: 'Hoch',

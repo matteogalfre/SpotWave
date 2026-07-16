@@ -1,11 +1,13 @@
 import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AppWebView, { AppWebViewHandle } from '../components/AppWebView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { useLocation } from '../context/LocationContext';
 import { useProfile } from '../context/ProfileContext';
+import { useNetwork } from '../context/NetworkContext';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getStoredForecasts, setStoredForecasts } from '../context/ForecastStore';
 import { fetchSpotData } from '../services/api';
 import { computeSpotForecast } from '../utils/scoring';
@@ -356,6 +358,11 @@ spots.forEach(function(s) {
 });
 
 map.addLayer(clusters);
+
+// Signal a successful init: if Leaflet/tiles failed to load (offline, blocked
+// CDN), the script above throws before reaching here and this never fires — the
+// RN layer then shows a retry state instead of a blank sea.
+sendMsg('ready', '');
 </script>
 </body>
 </html>`;
@@ -365,8 +372,13 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
   const { colors, isDark } = useTheme();
   const { profile } = useProfile();
   const { location } = useLocation();
+  const { offline } = useNetwork();
   const { t, locale } = useI18n();
   const [mapLoading, setMapLoading] = useState(true);
+  // The map lib + tiles come from a CDN, so a cold offline start would otherwise
+  // show a blank sea forever. We track a hard error and let the user retry.
+  const [mapError, setMapError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [loadingSpot, setLoadingSpot] = useState<string | null>(null);
   const [loadedCount, setLoadedCount] = useState(() => getStoredForecasts().length);
   const webviewRef = useRef<AppWebViewHandle>(null);
@@ -531,6 +543,10 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
         }
       } else if (msg.action === 'load') {
         loadSpotOnMap(msg.id);
+      } else if (msg.action === 'ready') {
+        // Leaflet initialised successfully — clear the loader/error state.
+        setMapLoading(false);
+        setMapError(false);
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Unknown error';
@@ -538,8 +554,28 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
     }
   }, [navigation, loadSpotOnMap]);
 
+  // Fallback: if the map never signals "ready" (blocked CDN / offline / tiles
+  // down), surface a retry state rather than leaving the user on a blank map.
+  useEffect(() => {
+    if (!mapLoading) return;
+    const timer = setTimeout(() => {
+      setMapLoading(false);
+      setMapError(true);
+    }, 12000);
+    return () => clearTimeout(timer);
+  }, [mapLoading, reloadKey]);
+
+  const retryMap = useCallback(() => {
+    setMapError(false);
+    setMapLoading(true);
+    // Remount the WebView so the CDN + tiles are re-requested from scratch.
+    setReloadKey((k) => k + 1);
+  }, []);
+
   const onWebViewLoaded = useCallback(() => {
-    setMapLoading(false);
+    // Note: the loader is cleared by the 'ready' message (which only fires when
+    // Leaflet actually initialised), not here — the inline HTML "loads" even
+    // when the CDN scripts fail, so onLoadEnd alone can't confirm a working map.
     // Make sure the pin is present even if the fix resolved before the page
     // finished loading (the earlier inject would have been a no-op).
     if (location) {
@@ -567,6 +603,7 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
       <View style={{ flex: 1, paddingBottom: mapBottomInset }}>
         {favIds !== null && (
           <AppWebView
+            key={reloadKey}
             ref={webviewRef}
             source={{ html }}
             style={{ flex: 1, backgroundColor: colors.bg }}
@@ -578,10 +615,32 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
             bounces={false}
           />
         )}
-        {mapLoading && (
+        {mapLoading && !mapError && (
           <View style={[s.loaderOverlay, { backgroundColor: colors.bg }]}>
             <ActivityIndicator size="large" color={colors.accent} />
             <Text style={[s.loaderTxt, { color: colors.white40 }]}>{t.mapLoadingMap}</Text>
+          </View>
+        )}
+        {mapError && (
+          <View style={[s.loaderOverlay, { backgroundColor: colors.bg }]}>
+            <MaterialCommunityIcons
+              name={offline ? 'wifi-off' : 'map-marker-alert-outline'}
+              size={44}
+              color={colors.white40}
+            />
+            <Text style={[s.errTxt, { color: colors.white }]}>
+              {offline ? t.offlineMsg : t.mapRetry}
+            </Text>
+            <TouchableOpacity
+              style={[s.retryBtn, { backgroundColor: colors.accent }]}
+              onPress={retryMap}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={t.retry}
+            >
+              <MaterialCommunityIcons name="reload" size={16} color="#06121F" />
+              <Text style={s.retryTxt}>{t.retry}</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -598,6 +657,12 @@ const s = StyleSheet.create({
   hCenter: { alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '800' },
   hSub: { fontSize: 11, fontWeight: '500', marginTop: 2 },
-  loaderOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' },
+  loaderOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
   loaderTxt: { marginTop: 12, fontSize: 13, fontWeight: '500' },
+  errTxt: { marginTop: 12, fontSize: 15, fontWeight: '700', textAlign: 'center' },
+  retryBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    marginTop: 20, paddingHorizontal: 22, height: 46, borderRadius: 14,
+  },
+  retryTxt: { color: '#06121F', fontSize: 15, fontWeight: '800' },
 });

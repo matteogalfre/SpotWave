@@ -19,8 +19,8 @@ const MARINE_PARAMS = [
 const WEATHER_PARAMS = ['wind_speed_10m', 'wind_direction_10m', 'wind_gusts_10m', 'temperature_2m', 'weather_code'].join(',');
 
 const PROFILE: SurferProfile = {
-  level: 'intermediate', preferredHeight: ['1-2', '2+'], breakType: ['beach', 'reef', 'point'],
-  windPref: 'any', sessionDuration: 2, availableFrom: 6, availableTo: 21,
+  level: 'intermediate', preferredHeight: ['1-2', '2+'],
+  sessionDuration: 2, availableFrom: 6, availableTo: 21,
 };
 
 // Spots with a Surfline reference captured 15 Jun 2026 ~14h WEST / 15h CEST.

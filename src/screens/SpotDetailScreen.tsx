@@ -443,7 +443,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
       setForecast(computeSpotForecast(spot, marine, weather, profile, locale));
       if (daily) setDailyData(daily);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Erreur inconnue';
+      const msg = e instanceof Error ? e.message : 'unknown error';
       log.warn('Refresh failed:', msg);
       showToast(t.detailRefreshError, 'error');
     }
@@ -498,7 +498,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     }
     return {
       today: bestTodayC ? { cond: bestTodayC, timeRange: fmtRange(bestTodayC.time, profile.sessionDuration, profile.availableTo) } : null,
-      next: bestNextC ? { cond: bestNextC, dayLabel: fmtDayLabelShort(bestNextC.time, t, locale), timeRange: fmtRange(bestNextC.time, profile.sessionDuration, profile.availableTo) } : null,
+      next: bestNextC ? { cond: bestNextC, dayLabel: fmtDayLabelShort(bestNextC.time, spotTodayStr, t, locale), timeRange: fmtRange(bestNextC.time, profile.sessionDuration, profile.availableTo) } : null,
     };
   }, [forecast.hourlyConditions, profile, t, locale, nowKey, spotTodayStr]);
 

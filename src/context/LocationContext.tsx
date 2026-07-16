@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserLocation, requestLocation } from '../services/location';
@@ -29,8 +29,14 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useState<UserLocation | null>(null);
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
+  // Monotonic token: only the most recent refresh() call is allowed to write
+  // state, so two overlapping calls (e.g. rapid "Ma position" taps) can't apply
+  // results out of order or leave `loading` stuck.
+  const genRef = useRef(0);
 
   const fetchLocation = useCallback(async (prompt = true) => {
+    const gen = ++genRef.current;
+    const isCurrent = () => gen === genRef.current;
     setLoading(true);
 
     let hasCache = false;
@@ -43,6 +49,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
           data && typeof data.latitude === 'number' && typeof data.longitude === 'number'
           && Number.isFinite(data.latitude) && Number.isFinite(data.longitude)
         ) {
+          if (!isCurrent()) return;
           setLocation(data);
           hasCache = true;
           if (Date.now() - ts < CACHE_TTL) {
@@ -55,10 +62,11 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       log.warn('Location cache read error:', e);
     }
 
-    if (hasCache) setLoading(false);
+    if (hasCache && isCurrent()) setLoading(false);
 
     try {
       const loc = await requestLocation(prompt);
+      if (!isCurrent()) return;
       if (loc) {
         setLocation(loc);
         setDenied(false);
@@ -74,11 +82,11 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (e) {
       log.warn('Location fetch error:', e);
-      if (!hasCache && prompt) setDenied(true);
+      if (isCurrent() && !hasCache && prompt) setDenied(true);
     } finally {
       // Always release the gate so screens can load data even if the GPS fix
       // never resolves (otherwise the app stays stuck on an empty screen).
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, []);
 

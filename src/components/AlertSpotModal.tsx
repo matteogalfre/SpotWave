@@ -89,6 +89,11 @@ export default function AlertSpotModal({ visible, spotName, initialScore, onClos
             accessibilityRole="adjustable"
             accessibilityLabel={t.alertMinScore}
             accessibilityValue={{ min: MIN, max: MAX, now: picked }}
+            accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+            onAccessibilityAction={(e) => {
+              const step = e.nativeEvent.actionName === 'increment' ? 0.5 : -0.5;
+              setPicked((p) => Math.max(MIN, Math.min(MAX, Math.round((p + step) * 2) / 2)));
+            }}
             {...pan.panHandlers}
           >
             <View pointerEvents="none" style={[s.trackBg, { backgroundColor: colors.white15 }]} />

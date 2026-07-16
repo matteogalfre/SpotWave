@@ -1,13 +1,10 @@
 export type SurferLevel = 'beginner' | 'intermediate' | 'expert';
 export type WaveHeightPref = '0.5-1' | '1-2' | '2+';
 export type BreakType = 'beach' | 'reef' | 'point';
-export type WindPref = 'offshore' | 'side-shore' | 'any';
 
 export interface SurferProfile {
   level: SurferLevel;
   preferredHeight: WaveHeightPref[];
-  breakType: BreakType[];
-  windPref: WindPref;
   sessionDuration: number;
   availableFrom: number;
   availableTo: number;
@@ -85,7 +82,7 @@ export interface ScoreFactors {
   windQuality: number;       // 0..1
   tideMatch: number;         // ~0.6..1.15
   levelFit: number;          // ~0.4..1.05
-  profileMatch: number;      // ~0.78..1.16 (height + break type + wind prefs)
+  profileMatch: number;      // ~0.95..1.06 (preferred wave height only)
   cleanFactor: number;       // ~0.25..1.0
   weatherPenalty: number;    // ~0.7..1.0
   consistency: number;       // ~0.85..1.05
@@ -133,8 +130,6 @@ export interface SpotForecast {
 export const DEFAULT_PROFILE: SurferProfile = {
   level: 'intermediate',
   preferredHeight: ['0.5-1', '1-2'],
-  breakType: ['beach'],
-  windPref: 'offshore',
   sessionDuration: 2,
   availableFrom: 8,
   availableTo: 19,

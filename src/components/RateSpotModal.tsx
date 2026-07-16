@@ -84,6 +84,11 @@ export default function RateSpotModal({ visible, spotName, appScore, onClose, on
             accessibilityRole="adjustable"
             accessibilityLabel={t.rateTitle}
             accessibilityValue={picked == null ? undefined : { min: 0, max: 10, now: picked }}
+            accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+            onAccessibilityAction={(e) => {
+              const step = e.nativeEvent.actionName === 'increment' ? 0.5 : -0.5;
+              setPicked((p) => Math.max(0, Math.min(10, Math.round(((p ?? 5) + step) * 10) / 10)));
+            }}
             {...pan.panHandlers}
           >
             <View pointerEvents="none" style={[s.trackBg, { backgroundColor: colors.white15 }]} />

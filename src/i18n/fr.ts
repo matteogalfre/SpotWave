@@ -273,6 +273,15 @@ export default {
   onboardDemoLabel: 'Libellé clair : « On fonce ! », « Moyen », etc.',
   onboardDemoStats: 'Houle, vent, période en bas de chaque card',
 
+  // Onboarding — notifications opt-in
+  onboardNotifTitle: 'Ne rate plus une bonne session',
+  onboardNotifSub: 'Reçois une alerte le matin quand tes spots passent au vert.',
+  onboardNotifPoint1: 'Prévenu dès que les conditions sont bonnes',
+  onboardNotifPoint2: 'Adapté à ton spot et à ton niveau',
+  onboardNotifPoint3: 'Désactivable à tout moment dans le profil',
+  onboardNotifEnable: 'Activer les alertes',
+  onboardNotifLater: 'Plus tard',
+
   // ── Confidence / source (P0) ────────────────────────────────────
   detailDataAccuracy: 'Précision',
   detailConfidenceHigh: 'Élevée',

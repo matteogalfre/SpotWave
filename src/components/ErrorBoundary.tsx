@@ -62,12 +62,13 @@ export default class ErrorBoundary extends Component<Props, State> {
       const c = Appearance.getColorScheme() === 'light' ? LIGHT : DARK;
       const lang = getDeviceLocale();
       const lbl = LABELS[lang];
-      const detail = this.state.error?.message ?? lbl.message;
+      // Show the friendly localized message, never the raw (often English /
+      // technical) error text — that stays in the log / crash reporter only.
       return (
         <View style={[s.root, { backgroundColor: c.bg }]} accessibilityRole="alert">
           <MaterialCommunityIcons name="alert-circle-outline" size={48} color={c.textDim} style={s.emoji} accessibilityElementsHidden />
           <Text style={[s.title, { color: c.text }]}>{lbl.title}</Text>
-          <Text style={[s.msg, { color: c.textDim }]}>{detail}</Text>
+          <Text style={[s.msg, { color: c.textDim }]}>{lbl.message}</Text>
           <TouchableOpacity
             style={[s.btn, { backgroundColor: c.accent }]}
             onPress={this.reset}

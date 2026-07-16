@@ -41,6 +41,9 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState<SortFav>('score');
+  // Monotonic token so an older overlapping load (profile/locale/refresh change)
+  // can't overwrite fresher favorites data.
+  const loadGen = useRef(0);
 
   const distanceMap = useMemo(() => {
     if (!location) return new Map<string, number>();
@@ -52,7 +55,10 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   }, [location]);
 
   const loadFavorites = useCallback(async (force = false) => {
+    const gen = ++loadGen.current;
+    const isCurrent = () => gen === loadGen.current;
     const ids = await getFavorites();
+    if (!isCurrent()) return;
     setFavIds(ids);
     if (ids.length === 0) { setLoading(false); setForecasts([]); return; }
 
@@ -80,6 +86,8 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
             return computeSpotForecast(spot, marine, weather, profile, locale);
           })
         );
+        // A newer load started while we awaited this batch: abandon this run.
+        if (!isCurrent()) return;
         let failCount = 0;
         for (const res of settled) {
           if (res.status === 'fulfilled') results.push(res.value);
@@ -88,9 +96,12 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
         if (failCount > 0) {
           showToast(t.favLoadFail(failCount), 'error');
         }
+        // Show results progressively as each batch lands (no long blank wait).
+        setForecasts([...results].sort((a, b) => b.currentScore - a.currentScore));
       }
     }
 
+    if (!isCurrent()) return;
     setForecasts(results.sort((a, b) => b.currentScore - a.currentScore));
     setLoading(false);
   }, [profile, showToast, t, locale]);

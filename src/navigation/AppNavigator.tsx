@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Platform, View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { Platform, View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer, DefaultTheme, LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -190,6 +190,10 @@ const tabStyles = StyleSheet.create({
   dot: { width: 4, height: 4, borderRadius: 2, marginTop: 4 },
 });
 
+const splash = StyleSheet.create({
+  root: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+});
+
 // Custom centered top navigation bar for desktop web.
 function WebTopNav({ state, descriptors, navigation, colors, isDark }: any) {
   return (
@@ -276,7 +280,15 @@ export default function AppNavigator() {
     },
   }), [colors, isDark]);
 
-  if (showOnboarding === null) return null;
+  // While the onboarding flag hydrates, show a themed splash instead of a blank
+  // white frame (avoids the cold-start flash before the first screen mounts).
+  if (showOnboarding === null) {
+    return (
+      <View style={[splash.root, { backgroundColor: colors.bg }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
+      </View>
+    );
+  }
 
   if (showOnboarding) {
     return <OnboardingScreen onComplete={handleOnboardingComplete} />;

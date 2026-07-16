@@ -33,8 +33,8 @@ const BEACH_W: SpotConfig = {
 };
 
 const INTER: SurferProfile = {
-  level: 'intermediate', preferredHeight: ['1-2'], breakType: ['beach'],
-  windPref: 'any', sessionDuration: 2, availableFrom: 7, availableTo: 20,
+  level: 'intermediate', preferredHeight: ['1-2'],
+  sessionDuration: 2, availableFrom: 7, availableTo: 20,
 };
 
 const OFFSHORE = (BEACH_W.beachOrientation + 180) % 360; // 90
@@ -124,7 +124,7 @@ const SCENARIOS: Scenario[] = [
     band: [4.5, 8.5],
     marine: { wave_height: [0.6], swell_wave_height: [0.6], swell_wave_period: [9], swell_wave_peak_period: [10], swell_wave_direction: [275], wind_wave_height: [0.12] },
     weather: { wind_speed_10m: [3], wind_direction_10m: [OFFSHORE], wind_gusts_10m: [5] },
-    profile: { level: 'beginner', preferredHeight: ['0.5-1'], breakType: ['beach'], windPref: 'any', sessionDuration: 2, availableFrom: 7, availableTo: 20 },
+    profile: { level: 'beginner', preferredHeight: ['0.5-1'], sessionDuration: 2, availableFrom: 7, availableTo: 20 },
   },
   {
     // Cross-shore moderate wind on a fair swell — "fair", workable.

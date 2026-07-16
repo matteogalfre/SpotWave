@@ -73,7 +73,6 @@ function findBestPicks(
   profile: SurferProfile,
   locale: string = 'fr',
 ): { bestToday: BestPick | null; bestWeek: BestPick[]; nightNow: boolean; outsideHoursNow: boolean } {
-  const now = new Date();
   const { sessionDuration, availableFrom, availableTo } = profile;
 
   let bestToday: BestPick | null = null;
@@ -89,7 +88,8 @@ function findBestPicks(
       const pick: BestPick = {
         spotName: f.spot.name, spotId: f.spot.id, forecast: f, cond: c,
         beachOrientation: f.spot.beachOrientation,
-        dayLabel: fmtDayLabel(c.time, now, undefined, locale),
+        // Label relative to the SPOT's local calendar day, not the device's.
+        dayLabel: fmtDayLabel(c.time, todayStr, undefined, locale),
         timeRange: fmtRange(c.time, sessionDuration, availableTo),
       };
       if (isToday && (!bestToday || c.score > bestToday.cond.score)) bestToday = pick;
