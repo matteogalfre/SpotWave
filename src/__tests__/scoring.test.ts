@@ -1,4 +1,4 @@
-import { computeHourlyScore, computeSpotForecast } from '../utils/scoring';
+import { computeHourlyScore, computeSpotForecast, RIDABLE_SCORE } from '../utils/scoring';
 import { SpotConfig, MarineData, WeatherData, SurferProfile } from '../types';
 
 const SPOT: SpotConfig = {
@@ -324,5 +324,88 @@ describe('computeSpotForecast', () => {
     expect(result.bestTime).toBeDefined();
     expect(result.bestTime.label).toBeTruthy();
     expect(result.hourlyConditions.length).toBe(24);
+  });
+});
+
+describe('fenêtre de houle qui traverse le nord', () => {
+  // Spot exposé au nord, fenêtre 320° → 30° : son centre géographique est 355°.
+  // Le calcul naïf (min + max) / 2 = 175° plaçait le centre plein sud, ce qui
+  // donnait la même note à toutes les directions de la fenêtre.
+  const NORTH: SpotConfig = {
+    ...SPOT,
+    id: 'north-spot',
+    beachOrientation: 355,
+    optimalSwellDirMin: 320,
+    optimalSwellDirMax: 30,
+  };
+
+  const swellAt = (dir: number, spot: SpotConfig) =>
+    computeHourlyScore(
+      0,
+      makeMarineData({ swell_wave_direction: [dir], wave_direction: [dir], wind_wave_direction: [dir] }),
+      makeWeatherData(),
+      spot,
+      PROFILE,
+    ).factors!.swellQuality;
+
+  it('note mieux la houle au centre de la fenêtre que sur ses bords', () => {
+    const centre = swellAt(355, NORTH);
+    expect(centre).toBeGreaterThan(swellAt(320, NORTH));
+    expect(centre).toBeGreaterThan(swellAt(30, NORTH));
+  });
+
+  it('reste symétrique de part et d\'autre du nord', () => {
+    expect(swellAt(340, NORTH)).toBeCloseTo(swellAt(10, NORTH), 5);
+  });
+
+  it('ne change rien pour une fenêtre classique', () => {
+    // 260° → 320° : centre 290°, comportement inchangé par la correction.
+    expect(swellAt(290, SPOT)).toBeGreaterThan(swellAt(260, SPOT));
+    expect(swellAt(270, SPOT)).toBeCloseTo(swellAt(310, SPOT), 5);
+  });
+});
+
+describe('petits jours propres (retours Aveiro, août 2026)', () => {
+  // Houle de 0,5 m pile dans l'axe, période courte, vent nul : les surfeurs ont
+  // noté ces matins autour de 1/10, l'app les affichait comme surfables.
+  const smallClean = (height: number, dir = 290) => makeMarineData({
+    wave_height: [height + 0.05],
+    swell_wave_height: [height],
+    swell_wave_direction: [dir],
+    swell_wave_period: [6.5],
+    swell_wave_peak_period: [9],
+    wind_wave_height: [0.05],
+    wind_wave_direction: [dir],
+  });
+  const glassy = makeWeatherData({ wind_speed_10m: [3], wind_gusts_10m: [6], wind_direction_10m: [90] });
+  const score = (marine: MarineData, profile: SurferProfile = PROFILE) =>
+    computeHourlyScore(0, marine, glassy, SPOT, profile).score;
+
+  it('ne présente plus un 0,5 m propre comme un créneau surfable pour un intermédiaire', () => {
+    expect(score(smallClean(0.5))).toBeLessThan(RIDABLE_SCORE);
+  });
+
+  it('garde un effet de la direction sur un petit jour', () => {
+    expect(score(smallClean(0.5, 290))).toBeGreaterThan(score(smallClean(0.5, 200)));
+  });
+
+  it('pénalise moins les débutants, qui surfent ces petites vagues', () => {
+    const beginner = { ...PROFILE, level: 'beginner' as const };
+    expect(score(smallClean(0.5), beginner)).toBeGreaterThan(score(smallClean(0.5)));
+  });
+
+  it('reste continu de 0,3 à 1 m, préférence de taille comprise', () => {
+    // PROFILE préfère 1-2 m : la préférence ne doit plus créer de saut à 0,9 m.
+    for (const level of ['beginner', 'intermediate', 'expert'] as const) {
+      const profile = { ...PROFILE, level };
+      let prev = score(smallClean(0.3), profile);
+      for (let h = 0.35; h <= 1.0; h += 0.05) {
+        const s = score(smallClean(h), profile);
+        // Scores are rounded to 0.1: 0.5 is the steepest continuous step here,
+        // the old size-preference step reached 0.6.
+        expect(Math.abs(s - prev)).toBeLessThanOrEqual(0.5 + 1e-9);
+        prev = s;
+      }
+    }
   });
 });

@@ -17,10 +17,10 @@ import SPOTS from '../data/spots';
 import { SpotConfig, SpotForecast } from '../types';
 import { FavoritesScreenProps } from '../navigation/types';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { scoreColor, scoreBg, scoreLabel, scoreShort, windLabel } from '../theme';
+import { scoreColor, scoreInk, scoreBg, scoreLabel, scoreShort, windLabel } from '../theme';
 import { scoreIcon, weatherMCIcon, ICONS } from '../utils/icons';
 import { hapticLight, hapticMedium } from '../utils/haptics';
-import { useI18n } from '../i18n';
+import { useI18n, fmtDec } from '../i18n';
 import { spacing, radius, typography, touchTarget, elevation } from '../utils/tokens';
 import PressableScale from '../components/PressableScale';
 import { useWebLayout, webCenter, WEB_CONTENT_MAX, isWebPlatform, webTabBarClearance } from '../utils/webLayout';
@@ -29,7 +29,7 @@ type SortFav = 'score' | 'distance' | 'name';
 
 export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   const { t, locale } = useI18n();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { profile } = useProfile();
   const { location } = useLocation();
   const { show: showToast } = useToast();
@@ -166,15 +166,15 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
       <PressableScale
         style={[s.card, isWide && columns > 1 && s.cardGrid, { backgroundColor: colors.card, borderColor: colors.border }]}
         onPress={() => navigateToSpot(f)}
-        accessibilityLabel={`${f.spot.name}, score ${f.currentScore.toFixed(1)}`}
+        accessibilityLabel={`${f.spot.name}, score ${fmtDec(f.currentScore)}`}
         accessibilityRole="button"
       >
         <View style={s.cardHead}>
           <ScoreBadge score={f.currentScore} size="lg" />
           <View style={s.cardInfo}>
             <Text style={[s.cardName, { color: colors.white }]} numberOfLines={1}>{f.spot.name}</Text>
-            <Text style={[s.cardLabel, { color: scoreColor(f.currentScore) }]}>
-              <MaterialCommunityIcons name={scoreIcon(f.currentScore)} size={13} color={scoreColor(f.currentScore)} /> {scoreLabel(f.currentScore, t)}
+            <Text style={[s.cardLabel, { color: scoreInk(f.currentScore, isDark) }]}>
+              <MaterialCommunityIcons name={scoreIcon(f.currentScore)} size={13} color={scoreInk(f.currentScore, isDark)} /> {scoreLabel(f.currentScore, t)}
             </Text>
             <View style={s.cardMeta}>
               <Text style={[s.cardCountry, { color: colors.textMuted }]}>{countryLabel(f.spot.country, locale)}</Text>
@@ -195,7 +195,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
           <View style={s.cardBar}>
             <MaterialCommunityIcons name={weatherMCIcon(cc.weatherCode)} size={13} color={colors.textSecondary} />
             <Text style={[s.dot, { color: colors.border }]}>·</Text>
-            <Text style={[s.stat, { color: colors.textSecondary }]}><MaterialCommunityIcons name={ICONS.swell} size={12} color={colors.textSecondary} /> {cc.swellHeight.toFixed(1)}m</Text>
+            <Text style={[s.stat, { color: colors.textSecondary }]}><MaterialCommunityIcons name={ICONS.swell} size={12} color={colors.textSecondary} /> {fmtDec(cc.swellHeight)}m</Text>
             <Text style={[s.dot, { color: colors.border }]}>·</Text>
             <Text style={[s.stat, { color: colors.textSecondary }]}>{cc.swellPeriod.toFixed(0)}s</Text>
             <Text style={[s.dot, { color: colors.border }]}>·</Text>
@@ -204,8 +204,8 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
         )}
         {f.bestTime.score >= RIDABLE_SCORE ? (
           <View style={[s.bestRow, { backgroundColor: scoreBg(f.bestTime.score) }]}>
-            <Text style={[s.bestTxt, { color: scoreColor(f.bestTime.score) }]}>
-              <MaterialCommunityIcons name={ICONS.bestTime} size={12} color={scoreColor(f.bestTime.score)} /> {bestTimeLabel(f, locale)} — {scoreShort(f.bestTime.score, t)} ({f.bestTime.score.toFixed(1)})
+            <Text style={[s.bestTxt, { color: scoreInk(f.bestTime.score, isDark) }]}>
+              <MaterialCommunityIcons name={ICONS.bestTime} size={12} color={scoreInk(f.bestTime.score, isDark)} /> {bestTimeLabel(f, locale)} — {scoreShort(f.bestTime.score, t)} ({fmtDec(f.bestTime.score)})
             </Text>
           </View>
         ) : (
@@ -288,7 +288,7 @@ export default function FavoritesScreen({ navigation }: FavoritesScreenProps) {
             title={t.favEmpty}
             subtitle={t.favEmptySub}
             actionLabel={t.favEmptyAction}
-            onAction={() => navigation.navigate('MapTab', undefined)}
+            onAction={() => navigation.navigate('SpotsTab', undefined)}
           />
         ) : null
       }

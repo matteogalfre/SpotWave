@@ -3,7 +3,7 @@
     "name": "SpotWave",
     "slug": "SpotWave",
     "scheme": "spotwave",
-    "version": "1.1.0",
+    "version": "1.3.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -20,7 +20,7 @@
         "backgroundColor": "#FBF2DF"
       },
       "package": "com.spotwave.app",
-      "versionCode": 34,
+      "versionCode": 36,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
@@ -47,14 +47,15 @@
           "backgroundColor": "#FBF2DF"
         }
       ],
-      "@sentry/react-native"
+      "expo-status-bar",
+      "expo-font"
     ],
-    "owner": "scrtymailer",
+    "owner": "matteogalfre",
     "extra": {
       "eas": {
-        "projectId": "068cc588-5389-4af2-a6b8-cf47df297fc3"
+        "projectId": "6502e0d2-178b-42ce-835e-fb60f71ef237"
       },
-      "sentryDsn": ""
+      "cartoApiKey": ""
     }
   }
 }

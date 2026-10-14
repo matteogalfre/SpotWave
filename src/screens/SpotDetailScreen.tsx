@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useCallback, useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Linking, RefreshControl, Animated, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Linking, RefreshControl, Animated, NativeSyntheticEvent, NativeScrollEvent, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { LineChart } from 'react-native-chart-kit';
@@ -15,13 +15,14 @@ import { useTheme } from '../context/ThemeContext';
 import { useProfile } from '../context/ProfileContext';
 import { useLocation } from '../context/LocationContext';
 import { fetchSpotData, fetchDailyData, DailyData } from '../services/api';
-import { computeSpotForecast, spotLocalNowKey } from '../utils/scoring';
+import { computeSpotForecast, spotLocalNowKey, isNightAtSpot } from '../utils/scoring';
 import { haversineDistance, formatDistance } from '../services/location';
 import { getFavorites, toggleFavorite } from '../services/favorites';
 import { useToast } from '../components/Toast';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SpotForecast, HourlyCondition } from '../types';
-import { scoreColor, scoreBg, scoreLabel, dirLabel, windLabel, windConditionKey, isDaytime } from '../theme';
+import SPOTS from '../data/spots';
+import { scoreColor, scoreInk, scoreBg, scoreLabel, dirLabel, windLabel, windConditionKey, isDaytime } from '../theme';
 import { wetsuitRecommendation, uvRiskKey } from '../utils/comfort';
 import { findTideExtrema, getNextTideExtrema, formatTideTime } from '../utils/tides';
 import { scoreIcon, weatherMCIcon, ICONS, MCIName } from '../utils/icons';
@@ -32,7 +33,7 @@ import { elevationIOS, typography } from '../utils/tokens';
 import { Shimmer, useSharedShimmer } from '../components/SkeletonCard';
 import { hapticLight, hapticSuccess } from '../utils/haptics';
 import { log } from '../utils/logger';
-import { useI18n } from '../i18n';
+import { useI18n, fmtDec } from '../i18n';
 import { useWebLayout, webCenter, WEB_DETAIL_MAX, WEB_CHART_MAX, isWebPlatform } from '../utils/webLayout';
 // On desktop web the raw window width can be huge; cap the base used for chart
 // sizing so charts stay readable inside the centered detail column.
@@ -49,6 +50,22 @@ function getDaySlice(conditions: HourlyCondition[], nowKey: string, from = 7, to
   const start = Math.max(0, nowIdx - pastHours);
   return conditions.slice(start, start + 49).filter(c => isDaytime(c.time, from, to));
 }
+
+// Charts run on a CONTINUOUS window, night included. The daytime-only slice
+// used to glue 20:00 to 07:00: the night high and low tide vanished and the
+// tide curve contradicted the tide times listed right under it.
+const CHART_HOURS = 36;
+function getChartSlice(conditions: HourlyCondition[], nowKey: string): HourlyCondition[] {
+  const nowIdx = Math.max(0, conditions.findIndex(c => c.time.slice(0, 13) >= nowKey));
+  const start = Math.max(0, nowIdx - 1);
+  return conditions.slice(start, start + CHART_HOURS);
+}
+
+// Same night definition as isNightAtSpot (scoring.ts).
+const isNightHour = (iso: string): boolean => {
+  const h = parseInt(iso.slice(11, 13), 10);
+  return h < 6 || h >= 21;
+};
 
 function buildCombinedChart(data: HourlyCondition[], accentColor: string, orangeColor: string) {
   if (data.length === 0) return { labels: [''], datasets: [{ data: [0] }], legend: [] as string[] };
@@ -73,7 +90,12 @@ function buildTideChart(data: HourlyCondition[], blueColor: string) {
 }
 
 
-function buildDaySummary(slice: HourlyCondition[], spot: any, todayStr: string, locale: string = 'fr'): string {
+// `best` is the very slot shown in the "best today" card, so the summary can't
+// name another hour than the card right above it.
+function buildDaySummary(
+  slice: HourlyCondition[], spot: any, todayStr: string, locale: string = 'fr',
+  best?: { range: string; score: number } | null,
+): string {
   const todaySlice = slice.filter(c => c.time.slice(0, 10) === todayStr);
   const data = todaySlice.length > 0 ? todaySlice : slice;
   if (data.length === 0) {
@@ -93,17 +115,21 @@ function buildDaySummary(slice: HourlyCondition[], spot: any, todayStr: string, 
   const avgWind = data.reduce((s, c) => s + c.windSpeed, 0) / data.length;
   const maxGusts = Math.max(...data.map(c => c.windGusts));
   const avgPeriod = data.reduce((s, c) => s + c.swellPeriod, 0) / data.length;
-  const bestHour = data.reduce((best, c) => c.score > best.score ? c : best, data[0]);
-  const bestTime = fmtH(bestHour.time);
+  const bestHour = data.reduce((b, c) => c.score > b.score ? c : b, data[0]);
+  const bestTime = best ? best.range : fmtH(bestHour.time);
+  const bestScore = best ? best.score : maxScore;
 
   const parts: string[] = [];
-  const sw = avgSwell.toFixed(1);
-  const mx = maxSwell.toFixed(1);
+  const sw = fmtDec(avgSwell);
+  const mx = fmtDec(maxSwell);
   const per = avgPeriod.toFixed(0);
   const wnd = avgWind.toFixed(0);
   const gst = maxGusts.toFixed(0);
-  const ms = maxScore.toFixed(1);
+  const ms = fmtDec(bestScore);
   const wll = windLabel(avgWind, bestHour.windDirection, spot.beachOrientation).toLowerCase();
+  // Same surface rule as the "Surface" tile: an offshore breeze grooms the
+  // waves, only onshore / strong cross wind makes them choppy.
+  const choppy = windConditionKey(avgWind, bestHour.windDirection, spot.beachOrientation) === 'choppy';
 
   if (locale === 'es') {
     if (avgSwell < 0.3) parts.push('Día muy tranquilo, casi plano.');
@@ -118,12 +144,13 @@ function buildDaySummary(slice: HourlyCondition[], spot: any, todayStr: string, 
 
     if (avgWind < 8) parts.push('Viento muy flojo, condiciones glassy.');
     else if (avgWind < 15) parts.push(`Viento moderado ${wll} (${wnd} km/h).`);
-    else parts.push(`Viento fuerte ${wll} (${wnd} km/h), superficie picada.`);
+    else if (choppy) parts.push(`Viento fuerte ${wll} (${wnd} km/h), superficie picada.`);
+    else parts.push(`Viento sostenido ${wll} (${wnd} km/h), superficie limpia.`);
 
     if (maxGusts > 30) parts.push(`Rachas de hasta ${gst} km/h.`);
-    if (maxScore >= 7) parts.push(`Mejor franja a las ${bestTime} (${ms}/10).`);
-    else if (maxScore >= 5) parts.push(`Franja más favorable a las ${bestTime} (${ms}/10).`);
-    else parts.push(`Puntuación máx ${ms}/10 a las ${bestTime} — día difícil.`);
+    if (bestScore >= 7) parts.push(`Mejor franja: ${bestTime} (${ms}/10).`);
+    else if (bestScore >= 5) parts.push(`Franja más favorable: ${bestTime} (${ms}/10).`);
+    else parts.push(`Puntuación máx ${ms}/10 (${bestTime}), día difícil.`);
     if (avgScore < 3) parts.push('No merece la pena desplazarse.');
   } else if (locale === 'pt') {
     if (avgSwell < 0.3) parts.push('Dia muito calmo, quase flat.');
@@ -138,12 +165,13 @@ function buildDaySummary(slice: HourlyCondition[], spot: any, todayStr: string, 
 
     if (avgWind < 8) parts.push('Vento muito fraco, condições glassy.');
     else if (avgWind < 15) parts.push(`Vento moderado ${wll} (${wnd} km/h).`);
-    else parts.push(`Vento forte ${wll} (${wnd} km/h), superfície picada.`);
+    else if (choppy) parts.push(`Vento forte ${wll} (${wnd} km/h), superfície picada.`);
+    else parts.push(`Vento sustentado ${wll} (${wnd} km/h), superfície limpa.`);
 
     if (maxGusts > 30) parts.push(`Rajadas até ${gst} km/h.`);
-    if (maxScore >= 7) parts.push(`Melhor janela às ${bestTime} (${ms}/10).`);
-    else if (maxScore >= 5) parts.push(`Janela mais favorável às ${bestTime} (${ms}/10).`);
-    else parts.push(`Pontuação máx ${ms}/10 às ${bestTime} — dia difícil.`);
+    if (bestScore >= 7) parts.push(`Melhor janela: ${bestTime} (${ms}/10).`);
+    else if (bestScore >= 5) parts.push(`Janela mais favorável: ${bestTime} (${ms}/10).`);
+    else parts.push(`Pontuação máx ${ms}/10 (${bestTime}), dia difícil.`);
     if (avgScore < 3) parts.push('Não vale a pena deslocar-se.');
   } else if (locale === 'fr') {
     if (avgSwell < 0.3) parts.push('Journée très calme, quasiment flat.');
@@ -158,12 +186,13 @@ function buildDaySummary(slice: HourlyCondition[], spot: any, todayStr: string, 
 
     if (avgWind < 8) parts.push('Vent très faible, conditions glassy.');
     else if (avgWind < 15) parts.push(`Vent modéré ${wll} (${wnd} km/h).`);
-    else parts.push(`Vent fort ${wll} (${wnd} km/h), surface hachée.`);
+    else if (choppy) parts.push(`Vent fort ${wll} (${wnd} km/h), surface hachée.`);
+    else parts.push(`Vent soutenu ${wll} (${wnd} km/h), surface propre.`);
 
     if (maxGusts > 30) parts.push(`Rafales jusqu'à ${gst} km/h.`);
-    if (maxScore >= 7) parts.push(`Meilleur créneau à ${bestTime} (${ms}/10).`);
-    else if (maxScore >= 5) parts.push(`Créneau le plus favorable à ${bestTime} (${ms}/10).`);
-    else parts.push(`Score max ${ms}/10 à ${bestTime} — journée difficile.`);
+    if (bestScore >= 7) parts.push(`Meilleur créneau : ${bestTime} (${ms}/10).`);
+    else if (bestScore >= 5) parts.push(`Créneau le plus favorable : ${bestTime} (${ms}/10).`);
+    else parts.push(`Score max ${ms}/10 (${bestTime}), journée difficile.`);
     if (avgScore < 3) parts.push('Pas la peine de se déplacer.');
   } else if (locale === 'de') {
     if (avgSwell < 0.3) parts.push('Sehr ruhiger Tag, fast flat.');
@@ -178,12 +207,13 @@ function buildDaySummary(slice: HourlyCondition[], spot: any, todayStr: string, 
 
     if (avgWind < 8) parts.push('Sehr schwacher Wind, glassy Bedingungen.');
     else if (avgWind < 15) parts.push(`Mäßiger Wind ${wll} (${wnd} km/h).`);
-    else parts.push(`Starker Wind ${wll} (${wnd} km/h), kabbelige Oberfläche.`);
+    else if (choppy) parts.push(`Starker Wind ${wll} (${wnd} km/h), kabbelige Oberfläche.`);
+    else parts.push(`Kräftiger Wind ${wll} (${wnd} km/h), saubere Oberfläche.`);
 
     if (maxGusts > 30) parts.push(`Böen bis ${gst} km/h.`);
-    if (maxScore >= 7) parts.push(`Bestes Fenster um ${bestTime} (${ms}/10).`);
-    else if (maxScore >= 5) parts.push(`Günstigstes Fenster um ${bestTime} (${ms}/10).`);
-    else parts.push(`Max. Bewertung ${ms}/10 um ${bestTime} — schwieriger Tag.`);
+    if (bestScore >= 7) parts.push(`Bestes Fenster: ${bestTime} (${ms}/10).`);
+    else if (bestScore >= 5) parts.push(`Günstigstes Fenster: ${bestTime} (${ms}/10).`);
+    else parts.push(`Max. Bewertung ${ms}/10 (${bestTime}), schwieriger Tag.`);
     if (avgScore < 3) parts.push('Die Fahrt lohnt sich nicht.');
   } else if (locale === 'it') {
     if (avgSwell < 0.3) parts.push('Giornata molto calma, quasi flat.');
@@ -198,12 +228,13 @@ function buildDaySummary(slice: HourlyCondition[], spot: any, todayStr: string, 
 
     if (avgWind < 8) parts.push('Vento molto debole, condizioni glassy.');
     else if (avgWind < 15) parts.push(`Vento moderato ${wll} (${wnd} km/h).`);
-    else parts.push(`Vento forte ${wll} (${wnd} km/h), superficie mossa.`);
+    else if (choppy) parts.push(`Vento forte ${wll} (${wnd} km/h), superficie mossa.`);
+    else parts.push(`Vento sostenuto ${wll} (${wnd} km/h), superficie pulita.`);
 
     if (maxGusts > 30) parts.push(`Raffiche fino a ${gst} km/h.`);
-    if (maxScore >= 7) parts.push(`Migliore finestra alle ${bestTime} (${ms}/10).`);
-    else if (maxScore >= 5) parts.push(`Finestra più favorevole alle ${bestTime} (${ms}/10).`);
-    else parts.push(`Punteggio max ${ms}/10 alle ${bestTime} — giornata difficile.`);
+    if (bestScore >= 7) parts.push(`Migliore finestra: ${bestTime} (${ms}/10).`);
+    else if (bestScore >= 5) parts.push(`Finestra più favorevole: ${bestTime} (${ms}/10).`);
+    else parts.push(`Punteggio max ${ms}/10 (${bestTime}), giornata difficile.`);
     if (avgScore < 3) parts.push('Non vale la pena spostarsi.');
   } else if (locale === 'ja') {
     if (avgSwell < 0.3) parts.push('とても穏やかな日、ほぼフラット。');
@@ -218,12 +249,13 @@ function buildDaySummary(slice: HourlyCondition[], spot: any, todayStr: string, 
 
     if (avgWind < 8) parts.push('風が非常に弱く、グラッシーなコンディション。');
     else if (avgWind < 15) parts.push(`中程度の風 ${wll}（${wnd} km/h）。`);
-    else parts.push(`強い風 ${wll}（${wnd} km/h）、海面はチョッピー。`);
+    else if (choppy) parts.push(`強い風 ${wll}（${wnd} km/h）、海面はチョッピー。`);
+    else parts.push(`やや強い風 ${wll}（${wnd} km/h）、海面はクリーン。`);
 
     if (maxGusts > 30) parts.push(`最大 ${gst} km/h の突風。`);
-    if (maxScore >= 7) parts.push(`ベストタイミングは ${bestTime}（${ms}/10）。`);
-    else if (maxScore >= 5) parts.push(`最も良いタイミングは ${bestTime}（${ms}/10）。`);
-    else parts.push(`最高スコア ${ms}/10、${bestTime} — 厳しい一日。`);
+    if (bestScore >= 7) parts.push(`ベストタイミングは ${bestTime}（${ms}/10）。`);
+    else if (bestScore >= 5) parts.push(`最も良いタイミングは ${bestTime}（${ms}/10）。`);
+    else parts.push(`最高スコア ${ms}/10（${bestTime}）、厳しい一日。`);
     if (avgScore < 3) parts.push('わざわざ行く価値はありません。');
   } else {
     if (avgSwell < 0.3) parts.push('Very calm day, almost flat.');
@@ -238,12 +270,13 @@ function buildDaySummary(slice: HourlyCondition[], spot: any, todayStr: string, 
 
     if (avgWind < 8) parts.push('Very light wind, glassy conditions.');
     else if (avgWind < 15) parts.push(`Moderate ${wll} wind (${wnd} km/h).`);
-    else parts.push(`Strong ${wll} wind (${wnd} km/h), choppy surface.`);
+    else if (choppy) parts.push(`Strong ${wll} wind (${wnd} km/h), choppy surface.`);
+    else parts.push(`Steady ${wll} wind (${wnd} km/h), clean surface.`);
 
     if (maxGusts > 30) parts.push(`Gusts up to ${gst} km/h.`);
-    if (maxScore >= 7) parts.push(`Best slot at ${bestTime} (${ms}/10).`);
-    else if (maxScore >= 5) parts.push(`Most favorable slot at ${bestTime} (${ms}/10).`);
-    else parts.push(`Max score ${ms}/10 at ${bestTime} — tough day.`);
+    if (bestScore >= 7) parts.push(`Best slot: ${bestTime} (${ms}/10).`);
+    else if (bestScore >= 5) parts.push(`Most favorable slot: ${bestTime} (${ms}/10).`);
+    else parts.push(`Max score ${ms}/10 (${bestTime}), tough day.`);
     if (avgScore < 3) parts.push('Not worth the trip.');
   }
 
@@ -293,7 +326,57 @@ function FadeInView({ children, delay = 0 }: { children: React.ReactNode; delay?
   return <Animated.View style={{ opacity }}>{children}</Animated.View>;
 }
 
-export default function SpotDetailScreen({ route, navigation }: SpotDetailScreenProps) {
+// On the web the route lives in the URL. The forecast param is reduced to the
+// spot id there ("/spot/<id>", see linking in AppNavigator), so after a reload
+// or a shared link it comes back as a string: rebuild the forecast from the
+// API instead of rendering "[object Object]" data.
+export default function SpotDetailScreen(props: SpotDetailScreenProps) {
+  const raw = props.route.params?.forecast as unknown;
+  if (raw && typeof raw === 'object' && 'spot' in raw) return <SpotDetailContent {...props} />;
+  return <SpotDetailLoader {...props} spotId={typeof raw === 'string' ? raw : ''} />;
+}
+
+function SpotDetailLoader({ navigation, spotId }: SpotDetailScreenProps & { spotId: string }) {
+  const { colors } = useTheme();
+  const { t, locale } = useI18n();
+  const { profile } = useProfile();
+  const insets = useSafeAreaInsets();
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const spot = SPOTS.find(sp => sp.id === spotId);
+    if (!spot) { setFailed(true); return; }
+    let cancelled = false;
+    fetchSpotData(spot.latitude, spot.longitude)
+      .then(({ marine, weather }) => {
+        if (!cancelled) navigation.setParams({ forecast: computeSpotForecast(spot, marine, weather, profile, locale) });
+      })
+      .catch(() => { if (!cancelled) setFailed(true); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spotId]);
+
+  return (
+    <View style={[s.loaderWrap, { backgroundColor: colors.bg, paddingTop: insets.top + 60 }]}>
+      {failed ? (
+        <>
+          <Text style={[s.loaderTxt, { color: colors.white }]}>{t.detailLoadFailed}</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('MainTabs', { screen: 'SpotsTab' })}
+            style={[s.loaderBtn, { backgroundColor: colors.cardLight }]}
+            accessibilityRole="button"
+          >
+            <Text style={[s.loaderBtnTxt, { color: colors.accent }]}>{t.back}</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <ActivityIndicator size="large" color={colors.accent} />
+      )}
+    </View>
+  );
+}
+
+function SpotDetailContent({ route, navigation }: SpotDetailScreenProps) {
   const initialForecast: SpotForecast = route.params.forecast;
 
   const [forecast, setForecast] = useState<SpotForecast>(initialForecast);
@@ -392,12 +475,18 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
 
   const openRate = useCallback(async () => {
     hapticLight();
+    // A rating describes the conditions "right now"; at night nobody is in the
+    // water, so it can't be compared with the score (a 9.8 was logged at 22:40).
+    if (isNightAtSpot(forecast.utcOffsetSeconds)) {
+      showToast(t.rateNight, 'info');
+      return;
+    }
     if (await hasRatedToday(spot.id, spotTodayStr, profile.level)) {
       showToast(t.rateAlready, 'info');
       return;
     }
     setRateOpen(true);
-  }, [spot.id, spotTodayStr, profile.level, showToast, t]);
+  }, [spot.id, spotTodayStr, profile.level, showToast, t, forecast.utcOffsetSeconds]);
 
   const handleSubmitRating = useCallback(async (score: number) => {
     setRateOpen(false);
@@ -450,11 +539,28 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     setRefreshing(false);
   }, [spot, profile, locale, t]);
 
-  const chartWidth = Math.max(W - 24, slice.length * 38);
+  const chartSlice = useMemo(() => getChartSlice(forecast.hourlyConditions, nowKey), [forecast.hourlyConditions, nowKey]);
+  const chartWidth = Math.max(W - 24, chartSlice.length * 38);
   const chartH = 180;
 
-  const combinedData = useMemo(() => buildCombinedChart(slice, colors.accent, colors.yellow), [slice, colors.accent, colors.yellow]);
-  const tideData = useMemo(() => buildTideChart(slice, colors.blue), [slice, colors.blue]);
+  const combinedData = useMemo(() => buildCombinedChart(chartSlice, colors.accent, colors.yellow), [chartSlice, colors.accent, colors.yellow]);
+  const tideData = useMemo(() => buildTideChart(chartSlice, colors.blue), [chartSlice, colors.blue]);
+
+  // Shaded night spans, so the hours you can't surf still show but read as night.
+  const nightBands = useMemo(() => {
+    const bands: { left: number; width: number }[] = [];
+    let i = 0;
+    while (i < chartSlice.length) {
+      if (!isNightHour(chartSlice[i].time)) { i++; continue; }
+      let j = i;
+      while (j + 1 < chartSlice.length && isNightHour(chartSlice[j + 1].time)) j++;
+      const x1 = getNowLineX(Math.max(0, i - 0.5), chartSlice.length, chartWidth);
+      const x2 = getNowLineX(Math.min(chartSlice.length - 1, j + 0.5), chartSlice.length, chartWidth);
+      if (x1 != null && x2 != null) bands.push({ left: x1, width: x2 - x1 });
+      i = j + 1;
+    }
+    return bands;
+  }, [chartSlice, chartWidth]);
 
   // Next high/low tide times — computed from the FULL hourly series (tides happen
   // at night too) and anchored to the spot's local "now".
@@ -466,18 +572,13 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     return getNextTideExtrema(extrema, Number.isNaN(ref.getTime()) ? new Date() : ref, 4);
   }, [forecast.hourlyConditions, nowKey]);
 
-  const summary = useMemo(() => buildDaySummary(slice, spot, spotTodayStr, locale), [slice, spot, spotTodayStr, locale]);
 
-  const currentIdx = useMemo(() => {
-    return Math.max(0, slice.findIndex(c => c.time.slice(0, 13) >= nowKey));
-  }, [slice, nowKey]);
 
-  const nowFractionalIdx = useMemo(() => {
-    const minutes = new Date().getMinutes();
-    return currentIdx + minutes / 60;
-  }, [currentIdx]);
-
-  const nowX = useMemo(() => getNowLineX(nowFractionalIdx, slice.length, chartWidth), [nowFractionalIdx, slice.length, chartWidth]);
+  const chartNowIdx = useMemo(() => {
+    const i = chartSlice.findIndex(c => c.time.slice(0, 13) >= nowKey);
+    return i < 0 ? -1 : i + new Date().getMinutes() / 60;
+  }, [chartSlice, nowKey]);
+  const nowX = useMemo(() => getNowLineX(chartNowIdx, chartSlice.length, chartWidth), [chartNowIdx, chartSlice.length, chartWidth]);
 
   const sunTimes = useMemo(() => getSunTimes(dailyData, spotTodayStr), [dailyData, spotTodayStr]);
 
@@ -502,6 +603,11 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     };
   }, [forecast.hourlyConditions, profile, t, locale, nowKey, spotTodayStr]);
 
+  const summary = useMemo(() => buildDaySummary(
+    slice, spot, spotTodayStr, locale,
+    spotBests.today ? { range: spotBests.today.timeRange, score: spotBests.today.cond.score } : null,
+  ), [slice, spot, spotTodayStr, locale, spotBests.today]);
+
 
   const chartCfg = useMemo(() => ({
     backgroundGradientFrom: colors.card,
@@ -510,7 +616,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     color: (o = 1) => `rgba(0,212,170,${o})`,
     labelColor: () => colors.white70,
     propsForDots: { r: '2.5', strokeWidth: '0', fill: colors.accent },
-    propsForLabels: { fontSize: 11, fontWeight: '600' },
+    propsForLabels: { fontSize: 12, fontWeight: '600' },
     fillShadowGradientFrom: colors.accent,
     fillShadowGradientTo: 'transparent',
     fillShadowGradientFromOpacity: 0.35,
@@ -533,14 +639,14 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
     const wl = windLabel(c.windSpeed, c.windDirection, spot.beachOrientation);
     const isGust = c.windGusts > 25;
     return (
-      <View key={c.time} style={[s.row, { backgroundColor: rowBg(c.score) }]} accessibilityLabel={`${fmtH(c.time)} · ${t.a11yScore(c.score.toFixed(1))} · ${t.spotsSwell} ${c.swellHeight.toFixed(1)}m · ${wl} ${c.windSpeed.toFixed(0)} km/h`}>
+      <View key={c.time} style={[s.row, { backgroundColor: rowBg(c.score) }]} accessibilityLabel={`${fmtH(c.time)} · ${t.a11yScore(fmtDec(c.score))} · ${t.spotsSwell} ${fmtDec(c.swellHeight)}m · ${wl} ${c.windSpeed.toFixed(0)} km/h`}>
         <Text style={[s.rTime, { color: colors.white70 }]}>{fmtH(c.time)}</Text>
         <MaterialCommunityIcons name={weatherMCIcon(c.weatherCode)} size={14} color={colors.white70} style={s.rWeather} />
         <View style={[s.rBadge, { backgroundColor: scoreBg(c.score) }]}>
-          <Text style={[s.rScore, { color: scoreColor(c.score) }]}>{c.score.toFixed(1)}</Text>
+          <Text style={[s.rScore, { color: scoreInk(c.score, isDark) }]}>{fmtDec(c.score)}</Text>
         </View>
         <Text style={[s.rMain, { color: colors.white }]}>
-          {c.swellHeight.toFixed(1)}m · {c.swellPeriod.toFixed(0)}s · {dirLabel(c.swellDirection)}
+          {fmtDec(c.swellHeight)}m · {c.swellPeriod.toFixed(0)}s · {dirLabel(c.swellDirection)}
         </Text>
         <View style={s.rWindCol}>
           <Text style={[s.rWind, { color: colors.white40 }, isGust && { color: colors.yellow }]}>{wl} {c.windSpeed.toFixed(0)}</Text>
@@ -565,33 +671,13 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
       <ScoreBadge score={forecast.currentScore} size="sm" />
     </Animated.View>
     <ScrollView ref={scrollRef} style={[{ flex: 1 }, webCenter(WEB_DETAIL_MAX, isWide)]} showsVerticalScrollIndicator={false} scrollEventThrottle={16} onScroll={onScroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
-      {/* Header */}
+      {/* Header: actions on their own row, so the name gets the full width
+          and the current score reads as THE score (labelled "now"). */}
       <View style={[s.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={[s.back, { backgroundColor: colors.cardLight }]} accessibilityLabel={t.back} accessibilityRole="button">
-          <Text style={[s.backTxt, { color: colors.white }]}>‹</Text>
-        </TouchableOpacity>
-        <View style={s.hCenter}>
-          <Text style={[s.hName, { color: colors.white }]} numberOfLines={1}>{spot.name}</Text>
-          <Text style={[s.hRegion, { color: colors.accent }]}>
-            {spot.region} · {spot.country}
-            {spotDistance != null ? (
-              <Text>{'  '}<MaterialCommunityIcons name={ICONS.location} size={11} color={colors.accent} /> {formatDistance(spotDistance)}</Text>
-            ) : ''}
-          </Text>
-          <View style={s.hMetaRow}>
-            {currentCondition && (
-              <Text style={[s.hTemp, { color: colors.white40 }]}>
-                <MaterialCommunityIcons name={weatherMCIcon(currentCondition.weatherCode)} size={12} color={colors.white40} /> {currentCondition.temperature.toFixed(0)}° · {currentCondition.seaTemp.toFixed(0)}° {t.spotsSeaTemp}
-              </Text>
-            )}
-            {sunTimes && (
-              <Text style={[s.hTemp, { color: colors.white40 }]}>
-                <MaterialCommunityIcons name={ICONS.sunrise} size={12} color={colors.white40} /> {sunTimes.sunrise} · <MaterialCommunityIcons name={ICONS.sunset} size={12} color={colors.white40} /> {sunTimes.sunset}
-              </Text>
-            )}
-          </View>
-        </View>
-        <View style={s.hRight}>
+        <View style={s.hTopRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={[s.back, { backgroundColor: colors.cardLight }]} accessibilityLabel={t.back} accessibilityRole="button">
+            <Text style={[s.backTxt, { color: colors.white }]}>‹</Text>
+          </TouchableOpacity>
           <View style={s.hRightBtns}>
             <TouchableOpacity
               onPress={openAlert}
@@ -618,7 +704,33 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
               <Ionicons name={isFav ? 'star' : 'star-outline'} size={20} color={isFav ? colors.yellow : colors.white40} />
             </TouchableOpacity>
           </View>
-          <ScoreBadge score={forecast.currentScore} size="lg" animated />
+        </View>
+        <View style={s.hBody}>
+          <View style={s.hCenter}>
+            <Text style={[s.hName, { color: colors.white }]} numberOfLines={2}>{spot.name}</Text>
+            <Text style={[s.hRegion, { color: colors.accent }]}>
+              {spot.region} · {spot.country}
+              {spotDistance != null ? (
+                <Text>{'  '}<MaterialCommunityIcons name={ICONS.location} size={11} color={colors.accent} /> {formatDistance(spotDistance)}</Text>
+              ) : ''}
+            </Text>
+            <View style={s.hMetaRow}>
+              {currentCondition && (
+                <Text style={[s.hTemp, { color: colors.white40 }]}>
+                  <MaterialCommunityIcons name={weatherMCIcon(currentCondition.weatherCode)} size={12} color={colors.white40} /> {currentCondition.temperature.toFixed(0)}° · {currentCondition.seaTemp.toFixed(0)}° {t.spotsSeaTemp}
+                </Text>
+              )}
+              {sunTimes && (
+                <Text style={[s.hTemp, { color: colors.white40 }]}>
+                  <MaterialCommunityIcons name={ICONS.sunrise} size={12} color={colors.white40} /> {sunTimes.sunrise} · <MaterialCommunityIcons name={ICONS.sunset} size={12} color={colors.white40} /> {sunTimes.sunset}
+                </Text>
+              )}
+            </View>
+          </View>
+          <View style={s.hNow}>
+            <ScoreBadge score={forecast.currentScore} size="lg" animated />
+            <Text style={[s.hNowTxt, { color: colors.white40 }]}>{t.detailNow}</Text>
+          </View>
         </View>
       </View>
 
@@ -627,12 +739,12 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
         <View style={[s.bestCard, { backgroundColor: scoreBg(spotBests.today.cond.score), borderColor: scoreColor(spotBests.today.cond.score) }]}>
           <View style={s.bestCardLeft}>
             <Text style={[s.bestCardLabel, { color: colors.white40 }]}>{t.detailBestToday}</Text>
-            <Text style={[s.bestCardTime, { color: scoreColor(spotBests.today.cond.score) }]}>
-              <MaterialCommunityIcons name={scoreIcon(spotBests.today.cond.score)} size={16} color={scoreColor(spotBests.today.cond.score)} />  {spotBests.today.timeRange}
+            <Text style={[s.bestCardTime, { color: scoreInk(spotBests.today.cond.score, isDark) }]}>
+              <MaterialCommunityIcons name={scoreIcon(spotBests.today.cond.score)} size={16} color={scoreInk(spotBests.today.cond.score, isDark)} />  {spotBests.today.timeRange}
             </Text>
             <Text style={[s.bestCardDesc, { color: colors.white70 }]}>{scoreLabel(spotBests.today.cond.score, t)}</Text>
           </View>
-          <ScoreBadge score={spotBests.today.cond.score} size="lg" animated />
+          <ScoreBadge score={spotBests.today.cond.score} size="md" />
         </View>
       )}
       {spotBests.next && (
@@ -640,7 +752,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
           <View style={s.bestCardLeft}>
             <Text style={[s.bestCardLabel, { color: colors.white40 }]}>{t.detailBestNext}</Text>
             <Text style={[s.bestCardTime, { color: colors.white }]}>
-              <MaterialCommunityIcons name={scoreIcon(spotBests.next.cond.score)} size={16} color={scoreColor(spotBests.next.cond.score)} />  {spotBests.next.dayLabel} · {spotBests.next.timeRange}
+              <MaterialCommunityIcons name={scoreIcon(spotBests.next.cond.score)} size={16} color={scoreInk(spotBests.next.cond.score, isDark)} />  {spotBests.next.dayLabel} · {spotBests.next.timeRange}
             </Text>
             <Text style={[s.bestCardDesc, { color: colors.white70 }]}>{scoreLabel(spotBests.next.cond.score, t)}</Text>
           </View>
@@ -684,7 +796,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
             <View style={s.tideItem}>
               <MaterialCommunityIcons name={ICONS.swell} size={16} color={colors.white70} style={s.tideIcon} />
               <Text style={[s.tideLabel, { color: colors.white40 }]}>{t.spotsSwell}</Text>
-              <Text style={[s.tideVal, { color: colors.white }]}>{currentCondition.swellHeight.toFixed(1)} m</Text>
+              <Text style={[s.tideVal, { color: colors.white }]}>{fmtDec(currentCondition.swellHeight)} m</Text>
             </View>
             <View style={[s.tideSep, { backgroundColor: colors.white15 }]} />
             <View style={s.tideItem}>
@@ -837,6 +949,9 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
                       withOuterLines={false}
                       segments={4}
                     />
+                    {nightBands.map((b) => (
+                      <View key={b.left} pointerEvents="none" style={[s.nightBand, { left: b.left, width: b.width, height: chartH - 24, backgroundColor: colors.white08 }]} />
+                    ))}
                     {nowX != null && <NowLine x={nowX} height={chartH} color={colors.white} />}
                   </View>
                 </ScrollView>
@@ -852,6 +967,10 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
                   <View style={s.legendItem}>
                     <View style={[s.legendDot, { backgroundColor: colors.white40, width: 1.5, height: 14, borderRadius: 0 }]} />
                     <Text style={[s.legendTxt, { color: colors.white40 }]}>{t.detailNow}</Text>
+                  </View>
+                  <View style={s.legendItem}>
+                    <View style={[s.legendDot, { backgroundColor: colors.white15, width: 12, height: 10, borderRadius: 2 }]} />
+                    <Text style={[s.legendTxt, { color: colors.white40 }]}>{t.detailNight}</Text>
                   </View>
                 </View>
               </View>
@@ -878,6 +997,9 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
                       segments={4}
                       yAxisSuffix=" m"
                     />
+                    {nightBands.map((b) => (
+                      <View key={b.left} pointerEvents="none" style={[s.nightBand, { left: b.left, width: b.width, height: chartH - 24, backgroundColor: colors.white08 }]} />
+                    ))}
                     {nowX != null && <NowLine x={nowX} height={chartH} color={colors.white} />}
                   </View>
                 </ScrollView>
@@ -891,11 +1013,11 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
                         size={15}
                         color={e.type === 'high' ? colors.blue : colors.accent}
                       />
-                      <Text style={[s.tideTimeType, { color: colors.white40 }]} numberOfLines={1}>
+                      <Text style={[s.tideTimeType, { color: colors.white40 }]} numberOfLines={2}>
                         {e.type === 'high' ? t.tideHigh : t.tideLow}
                       </Text>
                       <Text style={[s.tideTimeVal, { color: colors.white }]}>{formatTideTime(e.time)}</Text>
-                      <Text style={[s.tideTimeLvl, { color: colors.white40 }]}>{e.level.toFixed(1)} m</Text>
+                      <Text style={[s.tideTimeLvl, { color: colors.white40 }]}>{fmtDec(e.level)} m</Text>
                     </View>
                   ))}
                 </View>
@@ -927,7 +1049,7 @@ export default function SpotDetailScreen({ route, navigation }: SpotDetailScreen
                   />
                   <IdealCard
                     icon={ICONS.swell} title={t.detailSwellHeight}
-                    value={`${spot.optimalSwellHeightMin} – ${spot.optimalSwellHeightMax}m`}
+                    value={`${fmtDec(spot.optimalSwellHeightMin)} – ${fmtDec(spot.optimalSwellHeightMax)} m`}
                     colors={colors}
                   />
                   <IdealCard
@@ -1049,17 +1171,24 @@ const s = StyleSheet.create({
   stickyHeader: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, overflow: 'hidden' },
   stickyBack: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   stickyName: { flex: 1, fontSize: 16, fontWeight: '800' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingTop: 8, paddingHorizontal: 16, paddingBottom: 12 },
+  header: { paddingTop: 8, paddingHorizontal: 16, paddingBottom: 12 },
+  loaderWrap: { flex: 1, alignItems: 'center', paddingHorizontal: 32 },
+  loaderTxt: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
+  loaderBtn: { marginTop: 16, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 22 },
+  loaderBtnTxt: { fontSize: 15, fontWeight: '700' },
+  hTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  hBody: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
+  hNow: { alignItems: 'center', marginLeft: 12 },
+  hNowTxt: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 },
   back: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   backTxt: { fontSize: 24, fontWeight: '300', marginTop: -2 },
-  hCenter: { flex: 1, marginHorizontal: 12 },
-  hRight: { alignItems: 'center', gap: 8 },
+  hCenter: { flex: 1 },
   hRightBtns: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   favBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   rateSection: { marginHorizontal: 16, marginTop: 18 },
   rateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: 14, borderWidth: 1 },
   rateBtnTxt: { fontSize: 14, fontWeight: '700' },
-  rateSectionHint: { fontSize: 11, fontWeight: '500', textAlign: 'center', marginTop: 8, lineHeight: 15 },
+  rateSectionHint: { fontSize: 12, fontWeight: '500', textAlign: 'center', marginTop: 8, lineHeight: 15 },
   hName: { fontSize: 21, fontWeight: '800' },
   hRegion: { fontSize: 12, fontWeight: '600', marginTop: 1 },
   hMetaRow: { gap: 2, marginTop: 3 },
@@ -1070,7 +1199,7 @@ const s = StyleSheet.create({
   // fill + border already make this card pop.
   bestCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: 16, marginBottom: 6, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth },
   bestCardLeft: { flex: 1, marginRight: 12 },
-  bestCardLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  bestCardLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
   bestCardTime: { fontSize: 17, fontWeight: '800' },
   bestCardDesc: { fontSize: 12, marginTop: 3 },
   deferredSkeleton: { paddingHorizontal: 16, paddingTop: 10, gap: 12 },
@@ -1082,21 +1211,21 @@ const s = StyleSheet.create({
   tideRow: { flexDirection: 'row', marginHorizontal: 16, marginTop: 10, marginBottom: 6, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 10 },
   tideItem: { flex: 1, alignItems: 'center' },
   tideIcon: { fontSize: 16, marginBottom: 4 },
-  tideLabel: { fontSize: 9, fontWeight: '600', textTransform: 'uppercase', textAlign: 'center' },
+  tideLabel: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase', textAlign: 'center' },
   tideVal: { fontSize: 13, fontWeight: '800', marginTop: 4 },
   tideSep: { width: 1, marginVertical: 4 },
   tideTimesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   tideTimeChip: { flex: 1, minWidth: 70, alignItems: 'center', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 6 },
-  tideTimeType: { fontSize: 9, fontWeight: '700', textTransform: 'uppercase', marginTop: 3 },
+  tideTimeType: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', marginTop: 3, textAlign: 'center' },
   tideTimeVal: { fontSize: 15, fontWeight: '800', marginTop: 2 },
-  tideTimeLvl: { fontSize: 10, fontWeight: '600', marginTop: 1 },
+  tideTimeLvl: { fontSize: 11, fontWeight: '600', marginTop: 1 },
 
   webcamBtn: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, marginBottom: 6, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16, borderWidth: 1.5 },
   webcamIcon: { fontSize: 22, marginRight: 12 },
   webcamTxt: { fontSize: 16, fontWeight: '800' },
-  webcamSub: { fontSize: 11, marginTop: 2 },
+  webcamSub: { fontSize: 12, marginTop: 2 },
   webcamGo: { borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
-  webcamGoTxt: { color: '#fff', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
+  webcamGoTxt: { color: '#fff', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
 
   sec: { marginTop: 18, paddingHorizontal: 12 },
   chartRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
@@ -1105,20 +1234,21 @@ const s = StyleSheet.create({
   chartBox: { borderRadius: 16, overflow: 'hidden', paddingTop: 10, paddingBottom: 4 },
   chart: { borderRadius: 16, marginLeft: -8 },
 
-  legendRow: { flexDirection: 'row', justifyContent: 'center', gap: 16, paddingBottom: 10 },
+  legendRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', columnGap: 16, rowGap: 6, paddingBottom: 10, paddingHorizontal: 8 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
-  legendTxt: { fontSize: 11, fontWeight: '600' },
+  nightBand: { position: 'absolute', top: 8 },
+  legendTxt: { fontSize: 12, fontWeight: '600' },
 
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, marginBottom: 1 },
   rTime: { width: 40, fontSize: 12, fontWeight: '700' },
   rWeather: { fontSize: 12, width: 22 },
   rBadge: { width: 36, borderRadius: 6, paddingVertical: 2, alignItems: 'center', marginRight: 8 },
-  rScore: { fontSize: 11, fontWeight: '800' },
+  rScore: { fontSize: 12, fontWeight: '800' },
   rMain: { fontSize: 12, fontWeight: '600', flex: 1 },
   rWindCol: { alignItems: 'flex-end' },
-  rWind: { fontSize: 11, fontWeight: '500' },
-  rGust: { fontSize: 9, fontWeight: '700', marginTop: 1 },
+  rWind: { fontSize: 12, fontWeight: '500' },
+  rGust: { fontSize: 10, fontWeight: '700', marginTop: 1 },
 
   info: { borderRadius: 16, padding: 18, ...elevationIOS.sm },
   desc: { fontSize: 14, lineHeight: 21, marginBottom: 12 },
@@ -1126,12 +1256,12 @@ const s = StyleSheet.create({
   idealGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   idealCard: { flexBasis: '46%', flexGrow: 1, borderRadius: 12, padding: 12 },
   idealIcon: { fontSize: 18, marginBottom: 6 },
-  idealTitle: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  idealTitle: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   idealValue: { fontSize: 14, fontWeight: '800', marginTop: 4 },
-  idealSub: { fontSize: 11, marginTop: 2 },
+  idealSub: { fontSize: 12, marginTop: 2 },
   comfortBox: { borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, ...elevationIOS.sm },
   comfortTop: { flexDirection: 'row', alignItems: 'center' },
-  comfortLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  comfortLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   comfortVal: { fontSize: 15, fontWeight: '800', marginTop: 1 },
   comfortSub: { fontSize: 12, fontWeight: '600' },
   comfortTempPill: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginLeft: 8 },

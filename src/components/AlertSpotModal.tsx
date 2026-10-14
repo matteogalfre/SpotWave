@@ -3,8 +3,8 @@ import { Modal, View, Text, StyleSheet, TouchableOpacity, Pressable, PanResponde
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { useI18n } from '../i18n';
-import { scoreColor } from '../theme';
+import { useI18n, fmtDec } from '../i18n';
+import { scoreColor, scoreInk } from '../theme';
 import { ICONS } from '../utils/icons';
 import { DEFAULT_ALERT_SCORE } from '../services/alerts';
 
@@ -23,7 +23,7 @@ const MIN = 3;
 const MAX = 9;
 
 export default function AlertSpotModal({ visible, spotName, initialScore, onClose, onSave, onDisable }: Props) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const [picked, setPicked] = useState(DEFAULT_ALERT_SCORE);
@@ -68,6 +68,7 @@ export default function AlertSpotModal({ visible, spotName, initialScore, onClos
   const thumbLeft = Math.max(0, Math.min(trackW - THUMB, ratio * trackW - THUMB / 2));
   const fillW = ratio * trackW;
   const c = scoreColor(picked);
+  const ink = scoreInk(picked, isDark);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -80,7 +81,7 @@ export default function AlertSpotModal({ visible, spotName, initialScore, onClos
           <Text style={[s.spot, { color: colors.accent }]}>{spotName}</Text>
           <Text style={[s.sub, { color: colors.white40 }]}>{t.alertSubtitle}</Text>
 
-          <Text style={[s.bigNum, { color: c }]}>{picked.toFixed(1)}<Text style={[s.bigNumMax, { color: colors.white40 }]}>/10</Text></Text>
+          <Text style={[s.bigNum, { color: ink }]}>{fmtDec(picked)}<Text style={[s.bigNumMax, { color: colors.white40 }]}>/10</Text></Text>
 
           <View
             ref={trackRef}
@@ -106,7 +107,7 @@ export default function AlertSpotModal({ visible, spotName, initialScore, onClos
             ))}
           </View>
 
-          <Text style={[s.hint, { color: colors.white40 }]}>{t.alertPreview(picked.toFixed(1))}</Text>
+          <Text style={[s.hint, { color: colors.white40 }]}>{t.alertPreview(fmtDec(picked))}</Text>
 
           <TouchableOpacity
             onPress={() => onSave(picked)}
@@ -115,8 +116,8 @@ export default function AlertSpotModal({ visible, spotName, initialScore, onClos
             accessibilityLabel={t.alertSave}
             style={[s.send, { backgroundColor: colors.accent }]}
           >
-            <MaterialCommunityIcons name={ICONS.bell} size={16} color="#06121F" />
-            <Text style={[s.sendTxt, { color: '#06121F' }]}>{isActive ? t.alertUpdate : t.alertSave}</Text>
+            <MaterialCommunityIcons name={ICONS.bell} size={16} color={colors.onAccent} />
+            <Text style={[s.sendTxt, { color: colors.onAccent }]}>{isActive ? t.alertUpdate : t.alertSave}</Text>
           </TouchableOpacity>
 
           {isActive ? (
@@ -149,7 +150,7 @@ const s = StyleSheet.create({
   trackFill: { position: 'absolute', left: 0, height: 6, borderRadius: 3 },
   thumb: { position: 'absolute', width: THUMB, height: THUMB, borderRadius: THUMB / 2, borderWidth: 3 },
   scaleRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  scaleTxt: { fontSize: 11, fontWeight: '600' },
+  scaleTxt: { fontSize: 12, fontWeight: '600' },
   hint: { fontSize: 12, fontWeight: '500', textAlign: 'center', marginTop: 16, lineHeight: 17 },
   send: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 50, borderRadius: 14, marginTop: 16 },
   sendTxt: { fontSize: 15, fontWeight: '800' },

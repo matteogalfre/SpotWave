@@ -88,7 +88,7 @@ export default function SuggestSpotModal({ visible, onClose }: Props) {
                     activeOpacity={0.8}
                     style={[s.seg, { backgroundColor: active ? colors.accent : colors.card, borderColor: active ? colors.accent : colors.white15 }]}
                   >
-                    <Text style={[s.segTxt, { color: active ? '#06121F' : colors.white70 }]}>{levelLabel(l)}</Text>
+                    <Text style={[s.segTxt, { color: active ? colors.onAccent : colors.white70 }]}>{levelLabel(l)}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -114,8 +114,8 @@ export default function SuggestSpotModal({ visible, onClose }: Props) {
               style={[s.send, { backgroundColor: colors.accent, opacity: sending ? 0.7 : 1 }]}
             >
               {sending
-                ? <ActivityIndicator size="small" color="#06121F" />
-                : <><MaterialCommunityIcons name="send" size={16} color="#06121F" /><Text style={s.sendTxt}>{t.suggestSend}</Text></>}
+                ? <ActivityIndicator size="small" color={colors.onAccent} />
+                : <><MaterialCommunityIcons name="send" size={16} color={colors.onAccent} /><Text style={[s.sendTxt, { color: colors.onAccent }]}>{t.suggestSend}</Text></>}
             </TouchableOpacity>
 
             <TouchableOpacity onPress={close} style={s.cancel} accessibilityRole="button">
@@ -141,7 +141,7 @@ const s = StyleSheet.create({
   seg: { flex: 1, height: 42, borderRadius: 12, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
   segTxt: { fontSize: 13, fontWeight: '700' },
   send: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 50, borderRadius: 14, marginTop: 18 },
-  sendTxt: { fontSize: 15, fontWeight: '800', color: '#06121F' },
+  sendTxt: { fontSize: 15, fontWeight: '800' },
   cancel: { alignItems: 'center', paddingVertical: 12, marginTop: 2 },
   cancelTxt: { fontSize: 13, fontWeight: '600' },
 });

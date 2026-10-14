@@ -1,7 +1,7 @@
 const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 
 /**
- * Pluggable crash/error reporter. A real backend (Sentry, Crashlytics…) can be
+ * Pluggable crash/error reporter. A real backend (Crashlytics…) can be
  * attached at app startup via `setCrashReporter` without touching any call site.
  * Until then, production errors are still surfaced to the platform log (visible
  * in `adb logcat` and, for fatal cases, the Play Console "Crashes & ANRs"),

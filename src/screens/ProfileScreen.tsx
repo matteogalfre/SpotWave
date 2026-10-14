@@ -378,13 +378,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <Text style={[s.secLabel, { color: colors.textSecondary }]} accessibilityRole="header">{t.profileAppearance}</Text>
         <View style={[s.secCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth }]}>
           <SettingRow
-            icon={isDark ? 'moon' : 'sunny'}
+            icon="moon"
             iconColor={colors.accent}
             iconBg={colors.accentDim}
-            title={isDark ? t.profileThemeDark : t.profileThemeLight}
+            title={t.profileThemeDark}
             subtitle={t.profileThemeSub}
             colors={colors}
-            right={<ToggleSwitch value={isDark} onToggle={toggleTheme} accentColor={colors.accent} trackBg={colors.border} label={isDark ? t.profileThemeDark : t.profileThemeLight} />}
+            right={<ToggleSwitch value={isDark} onToggle={toggleTheme} accentColor={colors.accent} trackBg={colors.border} label={t.profileThemeDark} />}
           />
           <SettingRow
             icon="language"

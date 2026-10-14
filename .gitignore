@@ -58,3 +58,6 @@ tools/reddit-testers/.venv/
 # generated native folders
 /ios
 /android
+
+# Artefact de build, ne doit pas etre versionne
+deploy.zip

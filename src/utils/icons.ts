@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react';
 import type { MaterialCommunityIcons } from '@expo/vector-icons';
+import { scoreBand } from '../theme';
 
 export type MCIName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -13,7 +14,7 @@ export const ICONS = {
   swell: 'waves',
   period: 'timer-sand',
   wind: 'weather-windy',
-  gust: 'flash',
+  gust: 'weather-windy-variant',
   seaTemp: 'thermometer',
   location: 'map-marker',
   webcam: 'video-outline',
@@ -42,13 +43,9 @@ export const ICONS = {
   cloud: 'weather-cloudy',
 } as const;
 
+/** Same bands as the verdict labels (see SCORE_BANDS in theme.ts). */
 export function scoreIcon(score: number): MCIName {
-  if (score >= 8.0) return 'fire';
-  if (score >= 6.5) return 'thumb-up';
-  if (score >= 5.0) return 'thumb-up-outline';
-  if (score >= 3.5) return 'emoticon-neutral-outline';
-  if (score >= 2.0) return 'thumb-down-outline';
-  return 'sleep';
+  return scoreBand(score).icon;
 }
 
 export function weatherMCIcon(code: number): MCIName {

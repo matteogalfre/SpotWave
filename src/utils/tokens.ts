@@ -28,6 +28,8 @@ export const radius = {
 } as const;
 
 export const typography = {
+  // Floor raised to 11-12 px (Oct 2026): half the home screen text was 10-11 px,
+  // hard to read on a phone in full sun at the beach.
   // Slightly less shouty than before (900/800 everywhere read "AI template"):
   // a couple of anchor weights + subtle negative tracking on large headings.
   display: { fontSize: 28, fontWeight: '800' as const, letterSpacing: -0.6 },
@@ -36,10 +38,10 @@ export const typography = {
   h3: { fontSize: 15, fontWeight: '700' as const },
   body: { fontSize: 14, fontWeight: '500' as const },
   bodyBold: { fontSize: 14, fontWeight: '700' as const },
-  caption: { fontSize: 12, fontWeight: '600' as const },
-  micro: { fontSize: 11, fontWeight: '600' as const },
+  caption: { fontSize: 13, fontWeight: '600' as const },
+  micro: { fontSize: 12, fontWeight: '600' as const },
   tiny: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700' as const,
     textTransform: 'uppercase' as const,
     letterSpacing: 0.5,

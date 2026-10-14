@@ -1,0 +1,20 @@
+# Fichiers inutiles au build natif : ils gonflaient l'archive envoyee a EAS
+# (292 Mo, plus de 2 minutes d'upload) sans jamais servir a la compilation.
+
+# Captures et visuels de la fiche Play Store (149 Mo)
+marketing/
+
+# Artefact de build web
+deploy.zip
+
+# Site public de politique de confidentialite (repo separe)
+public/
+
+# Outils et harnais de calibration hors app
+tools/
+scripts/
+src/__tests__/
+
+# Deploiement web
+.netlify/
+netlify.toml

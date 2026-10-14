@@ -30,6 +30,14 @@ export default {
   spotsSearchLoading: 'A carregar condições…',
   spotsSearchError: 'Não foi possível carregar as condições',
   spotsWhereToSurf: 'Onde surfar hoje?',
+  spotsPickZoneTitle: 'Onde surfas?',
+  spotsPickZoneSub: 'Sem a tua localização, a app mostra uma seleção mundial de spots. Escolhe um país (podes mudar no perfil).',
+  spotsWorldPick: 'O melhor da seleção mundial',
+  spotsUpdating: 'A atualizar condições…',
+  spotsSlowLoading: 'Está a demorar mais do que o normal: o serviço meteorológico está lento. Continuamos a tentar.',
+  spotsWeekTop: 'Melhor',
+  spotsConfLegend: 'Ponto amarelo ou vermelho: previsão menos fiável a partir do dia 3',
+  spotsGustShort: 'raj.',
   spotsNoConditions: 'Sem boas condições hoje',
   spotsNextSlot: (day: string, spot: string) => `Próxima boa janela: ${day} em ${spot}`,
   spotsNoSlotWeek: 'Sem boa janela esta semana',
@@ -77,11 +85,11 @@ export default {
   favRemoved: 'Removido dos favoritos',
   favRemovedUndo: 'Removido · Anular',
   favLoadFail: (n: number) => `${n} favorito${n > 1 ? 's' : ''} não carregado${n > 1 ? 's' : ''}`,
-  favEmptyAction: 'Explorar o mapa',
+  favEmptyAction: 'Ver os spots',
 
   // Map screen
   mapTitle: 'Mapa mundial',
-  mapLoaded: (total: number, loaded: number) => `${total} spots · ${loaded} carregados`,
+  mapLoaded: (total: number, loaded: number) => loaded > 0 ? `${total} spots · previsão para ${loaded}` : `${total} spots`,
   mapLoadingSpot: 'A carregar…',
   mapLoadingMap: 'A carregar mapa…',
   mapViewDetails: 'Ver detalhes',
@@ -123,6 +131,8 @@ export default {
   detailSwellM: 'Ondulação (m)',
   detailWindDiv: 'Vento (÷10 km/h)',
   detailNow: 'Agora',
+  detailNight: 'Noite',
+  detailLoadFailed: 'Não foi possível carregar este spot.',
   // Profile screen
   profileTitle: 'Perfil',
   profileSub: 'Personalize as suas recomendações',
@@ -197,7 +207,8 @@ export default {
   // Short tags (badges, compact lists)
   scoreShortPerfect: 'Perfeito',
   scoreShortVeryGood: 'Top',
-  scoreShortOk: 'Bom',
+  scoreShortGo: 'Bom',
+  scoreShortOk: 'Razoável',
   scoreShortAverage: 'Médio',
   scoreShortMediocre: 'Fraco',
   scoreShortBad: 'Mau',
@@ -355,6 +366,8 @@ export default {
   rateQueued: 'Nota guardada, será enviada mais tarde 🙏',
   rateAlready: 'Já avaliaste este spot hoje',
   rateHint: 'A tua nota ajuda a melhorar o algoritmo de pontuação para todos.',
+  rateTapToRate: 'Toca na barra para dares a tua nota',
+  rateNight: 'É de noite no spot: volta para avaliar as condições de dia.',
 
   // ── In-app spot suggestion ──────────────────────────────────────
   suggestTitle: 'Sugerir um spot',

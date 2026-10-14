@@ -21,14 +21,14 @@ import { computeSpotForecast, RIDABLE_SCORE, bestTimeLabel } from '../utils/scor
 import { getFavorites, toggleFavorite } from '../services/favorites';
 import { getNearbySpotsWithFallback, getGlobalShowcase, haversineDistance, formatDistance } from '../services/location';
 import { setStoredForecasts } from '../context/ForecastStore';
-import SPOTS from '../data/spots';
+import SPOTS, { getZoneCountries } from '../data/spots';
 import ScoreBadge from '../components/ScoreBadge';
 import SkeletonCard from '../components/SkeletonCard';
 import PressableScale from '../components/PressableScale';
 import Logo from '../components/Logo';
 import { SpotConfig, SpotForecast, HourlyCondition, SurferLevel, BreakType } from '../types';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { scoreColor, scoreBg, scoreLabel, scoreShort, windLabel, windConditionKey, isDaytime } from '../theme';
+import { scoreColor, scoreInk, scoreBg, scoreLabel, scoreShort, windLabel, windConditionKey, isDaytime } from '../theme';
 import { scoreIcon, weatherMCIcon, ICONS, MCIName } from '../utils/icons';
 import { SurferProfile } from '../types';
 import { SpotsScreenProps } from '../navigation/types';
@@ -36,7 +36,7 @@ import { hapticLight, hapticMedium } from '../utils/haptics';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToast } from '../components/Toast';
-import { useI18n } from '../i18n';
+import { useI18n, fmtDec } from '../i18n';
 import { scheduleGoodConditionAlerts } from '../services/notifications';
 import { getLevelBadge, getLevelLabel, fmtDayLabel, fmtRange } from '../utils/constants';
 import { countryLabel } from '../utils/countries';
@@ -58,6 +58,9 @@ interface BestPick {
 // "today's recommendation" follows the SPOT's calendar — not the device's. For a
 // surfer in France looking at Hawaii this is the difference between "rien
 // aujourd'hui" and the right answer.
+// Countries offered when the app has neither a position nor a chosen zone.
+const ZONE_SHORTLIST = getZoneCountries(3, 8);
+
 function localKeys(f: SpotForecast): { nowKey: string; todayStr: string } {
   const offset = f.utcOffsetSeconds;
   const d = typeof offset === 'number' ? new Date(Date.now() + offset * 1000) : new Date();
@@ -124,8 +127,8 @@ type BreakFilter = 'all' | BreakType;
 type MinScoreFilter = 0 | 4 | 6;
 
 export default function SpotsScreen({ navigation }: SpotsScreenProps) {
-  const { profile, version, isLoading: profileLoading } = useProfile();
-  const { colors } = useTheme();
+  const { profile, version, isLoading: profileLoading, updateProfile } = useProfile();
+  const { colors, isDark } = useTheme();
   const { location, loading: locLoading } = useLocation();
   const { offline } = useNetwork();
   const { show: showToast } = useToast();
@@ -354,6 +357,12 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   }, [debouncedQuery]);
 
   const { bestToday, bestWeek, nightNow, outsideHoursNow } = useMemo(() => findBestPicks(forecasts, profile, locale), [forecasts, profile, locale]);
+  // The list is chronological; flag the week's best slot instead of numbering
+  // the days (a "#1" on the weakest day read as a ranking).
+  const weekBestIdx = useMemo(
+    () => bestWeek.reduce((bi, p, i) => (p.cond.score > bestWeek[bi].cond.score ? i : bi), 0),
+    [bestWeek],
+  );
   const levelTxt = getLevelLabel(profile.level, t);
 
   const locationLabel = useMemo(() => {
@@ -446,6 +455,10 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
   // Only show the full-screen skeleton when we have nothing to display yet. A
   // location refresh (locLoading) must not blank an already-populated list.
   const isLoading = forecasts.length === 0 && !error && (locLoading || loadedCount === 0 || profileLoading);
+  // No position and no usable zone: the home falls back to a worldwide showcase,
+  // which is no use to decide where to surf today. Say so and offer a country.
+  const isGlobal = !locLoading && !location
+    && !(profile.preferredZone && SPOTS.filter(sp => sp.country === profile.preferredZone).length >= 3);
   // "Enough to render" = we have a few cards, OR everything finished (so partial
   // failures don't leave the screen stuck on a skeleton forever).
   const hasEnoughData = totalCount > 0 && (
@@ -453,6 +466,16 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     || loadedCount >= totalCount
     || loadedCount + failedCount >= totalCount
   );
+
+  // Tell the user when loading drags on (rate limit, slow network) instead of
+  // leaving them on a silent skeleton.
+  const [slowLoad, setSlowLoad] = useState(false);
+  const stillLoading = isLoading || !hasEnoughData;
+  useEffect(() => {
+    if (!stillLoading) { setSlowLoad(false); return; }
+    const id = setTimeout(() => setSlowLoad(true), 8000);
+    return () => clearTimeout(id);
+  }, [stillLoading]);
 
   const renderHeader = () => (
     <View style={[ss.header, { paddingTop: insets.top + (isWide ? 28 : spacing.md) }]}>
@@ -469,7 +492,6 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
         {refreshing && (
           <View style={[ss.loadingPill, { backgroundColor: colors.cardLight }]}>
             <ActivityIndicator size="small" color={colors.accent} />
-            <Text style={[ss.loadingTxt, { color: colors.textMuted }]}>{loadedCount}/{totalCount}</Text>
           </View>
         )}
         <TouchableOpacity
@@ -663,6 +685,9 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
           <ActivityIndicator size="small" color={colors.accent} />
           <Text style={[ss.metaTxt, { color: colors.textMuted, marginLeft: spacing.sm }]}>{t.spotsLoading}</Text>
         </View>
+        {slowLoad && (
+          <Text style={[ss.metaTxt, ss.slowTxt, { color: colors.textMuted }]}>{t.spotsSlowLoading}</Text>
+        )}
         <View style={{ marginTop: spacing.md }}>
           {[0, 1, 2, 3, 4].map(i => <SkeletonCard key={i} />)}
         </View>
@@ -687,15 +712,30 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
 
         {searchQuery.length === 0 && (
           <>
-            {((loadedCount < totalCount && totalCount > 0) || failedCount > 0) && (
+            {loadedCount < totalCount && totalCount > 0 && (
               <View style={ss.metaRow}>
-                {loadedCount < totalCount && totalCount > 0 && (
-                  <View style={ss.progressRow}>
-                    <ActivityIndicator size="small" color={colors.accent} />
-                    <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{loadedCount}/{totalCount} spot{totalCount !== 1 ? 's' : ''}</Text>
-                  </View>
-                )}
-                {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.yellow }]}>{t.spotsUnavailable(failedCount)}</Text>}
+                <View style={ss.progressRow}>
+                  <ActivityIndicator size="small" color={colors.accent} />
+                  <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{t.spotsUpdating}</Text>
+                </View>
+              </View>
+            )}
+
+            {isGlobal && (
+              <View style={[ss.zoneCard, isWide && ss.heroWide, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Text style={[ss.zoneTitle, { color: colors.white }]} accessibilityRole="header">{t.spotsPickZoneTitle}</Text>
+                <Text style={[ss.zoneSub, { color: colors.textMuted }]}>{t.spotsPickZoneSub}</Text>
+                <View style={ss.zoneChips}>
+                  {ZONE_SHORTLIST.map(z => (
+                    <FilterChip
+                      key={z.country}
+                      label={countryLabel(z.country, locale)}
+                      active={false}
+                      onPress={() => { updateProfile({ ...profile, preferredZone: z.country }); }}
+                      colors={colors}
+                    />
+                  ))}
+                </View>
               </View>
             )}
 
@@ -709,19 +749,19 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                 accessibilityRole="button"
                 accessibilityLabel={`${t.spotsWhereToSurf} ${bestToday.spotName} ${bestToday.timeRange}`}
               >
-                <Text style={[ss.heroQ, { color: colors.textMuted }]}>{t.spotsWhereToSurf}</Text>
+                <Text style={[ss.heroQ, { color: colors.textMuted }]}>{isGlobal ? t.spotsWorldPick : t.spotsWhereToSurf}</Text>
                 <View style={ss.heroMain}>
                   <ScoreBadge score={bestToday.cond.score} size="hero" animated={!reduceMotion} />
                   <View style={ss.heroRight}>
                     <Text style={[ss.heroSpot, { color: colors.white }]} numberOfLines={1}>{bestToday.spotName}</Text>
                     <Text style={[ss.heroRange, { color: colors.textSecondary }]}>{bestToday.timeRange}</Text>
-                    <Text style={[ss.heroLabel, { color: scoreColor(bestToday.cond.score) }]}>
-                      <MaterialCommunityIcons name={scoreIcon(bestToday.cond.score)} size={12} color={scoreColor(bestToday.cond.score)} /> {scoreLabel(bestToday.cond.score, t)}
+                    <Text style={[ss.heroLabel, { color: scoreInk(bestToday.cond.score, isDark) }]}>
+                      <MaterialCommunityIcons name={scoreIcon(bestToday.cond.score)} size={12} color={scoreInk(bestToday.cond.score, isDark)} /> {scoreLabel(bestToday.cond.score, t)}
                     </Text>
                   </View>
                 </View>
                 <View style={[ss.heroBar, { borderTopColor: colors.border }]}>
-                  <MiniStat icon={ICONS.swell} value={`${bestToday.cond.swellHeight.toFixed(1)}m`} sub={t.spotsSwell} colors={colors} />
+                  <MiniStat icon={ICONS.swell} value={`${fmtDec(bestToday.cond.swellHeight)}m`} sub={t.spotsSwell} colors={colors} />
                   <MiniStat icon={ICONS.period} value={`${bestToday.cond.swellPeriod.toFixed(0)}s`} sub={t.spotsPeriod} colors={colors} />
                   <MiniStat icon={ICONS.wind} value={windLabel(bestToday.cond.windSpeed, bestToday.cond.windDirection, bestToday.beachOrientation)} sub={`${bestToday.cond.windSpeed.toFixed(0)} km/h`} colors={colors} />
                   <MiniStat icon={ICONS.seaTemp} value={`${bestToday.cond.seaTemp.toFixed(0)}°`} sub={t.spotsSeaTemp} colors={colors} />
@@ -751,8 +791,8 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                     accessibilityRole="button"
                     accessibilityLabel={`${t.spotsSeeBestWeek} ${bestWeek[0].dayLabel} ${bestWeek[0].spotName}`}
                   >
-                    <MaterialCommunityIcons name={ICONS.bestTime} size={14} color={scoreColor(bestWeek[0].cond.score)} />
-                    <Text style={[ss.emptyCtaTxt, { color: scoreColor(bestWeek[0].cond.score) }]}>{t.spotsSeeBestWeek}</Text>
+                    <MaterialCommunityIcons name={ICONS.bestTime} size={14} color={scoreInk(bestWeek[0].cond.score, isDark)} />
+                    <Text style={[ss.emptyCtaTxt, { color: scoreInk(bestWeek[0].cond.score, isDark) }]}>{t.spotsSeeBestWeek}</Text>
                   </PressableScale>
                 )}
               </View>
@@ -766,28 +806,29 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                 {bestWeek.map((pick, idx) => {
                   const conf = getConfidenceForDate(pick.cond.time);
                   const confCol = confidenceColor(conf, colors);
+                  const isTop = idx === weekBestIdx;
                   return (
                     <PressableScale
                       key={`${pick.spotId}-${pick.cond.time}`}
-                      style={[ss.weekCard, { backgroundColor: colors.card }, idx === 0 && { borderColor: scoreColor(pick.cond.score), borderWidth: 1 }]}
+                      style={[ss.weekCard, { backgroundColor: colors.card }, isTop && { borderColor: scoreColor(pick.cond.score), borderWidth: 1 }]}
                       onPress={() => navigateToPick(pick)}
                       accessibilityRole="button"
                       accessibilityLabel={`${pick.dayLabel} ${pick.spotName} ${pick.timeRange}`}
                     >
                       <View style={ss.weekLeft}>
-                        <View style={[ss.weekRank, { backgroundColor: idx === 0 ? scoreBg(pick.cond.score) : colors.bgSubtle }]}>
-                          <Text style={[ss.weekRankTxt, { color: idx === 0 ? scoreColor(pick.cond.score) : colors.textMuted }]}>#{idx + 1}</Text>
-                        </View>
                         <View style={ss.weekInfo}>
                           <View style={ss.weekDayRow}>
                             <Text style={[ss.weekDay, { color: colors.white }]}>{pick.dayLabel}</Text>
                             {conf !== 'high' && (
                               <View style={[ss.confDot, { backgroundColor: confCol }]} accessibilityLabel={`${t.detailDataAccuracy} ${confidenceLabel(conf, t)}`} />
                             )}
+                            {isTop && bestWeek.length > 1 && (
+                              <Text style={[ss.weekTopTag, { color: scoreInk(pick.cond.score, isDark), backgroundColor: scoreBg(pick.cond.score) }]}>{t.spotsWeekTop}</Text>
+                            )}
                           </View>
                           <Text style={[ss.weekSpot, { color: colors.textSecondary }]}>{pick.spotName} · {pick.timeRange}</Text>
                           <View style={ss.weekStats}>
-                            <Text style={[ss.weekStat, { color: colors.textMuted }]}><MaterialCommunityIcons name={ICONS.swell} size={11} color={colors.textMuted} /> {pick.cond.swellHeight.toFixed(1)}m</Text>
+                            <Text style={[ss.weekStat, { color: colors.textMuted }]}><MaterialCommunityIcons name={ICONS.swell} size={11} color={colors.textMuted} /> {fmtDec(pick.cond.swellHeight)}m</Text>
                             <Text style={[ss.weekStat, { color: colors.textMuted }]}><MaterialCommunityIcons name={ICONS.period} size={11} color={colors.textMuted} /> {pick.cond.swellPeriod.toFixed(0)}s</Text>
                             <Text style={[ss.weekStat, { color: colors.textMuted }]}><MaterialCommunityIcons name={ICONS.wind} size={11} color={colors.textMuted} /> {pick.cond.windSpeed.toFixed(0)} km/h</Text>
                           </View>
@@ -795,11 +836,18 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                       </View>
                       <View style={ss.weekRight}>
                         <ScoreBadge score={pick.cond.score} size="md" />
-                        <Text style={[ss.weekLabel, { color: scoreColor(pick.cond.score) }]} numberOfLines={1}>{scoreShort(pick.cond.score, t)}</Text>
+                        <Text style={[ss.weekLabel, { color: scoreInk(pick.cond.score, isDark) }]} numberOfLines={1}>{scoreShort(pick.cond.score, t)}</Text>
                       </View>
                     </PressableScale>
                   );
                 })}
+                {bestWeek.some(p => getConfidenceForDate(p.cond.time) !== 'high') && (
+                  <View style={ss.confLegend}>
+                    <View style={[ss.confDot, { backgroundColor: colors.yellow }]} />
+                    <View style={[ss.confDot, { backgroundColor: colors.red }]} />
+                    <Text style={[ss.metaTxt, { color: colors.textMuted, flex: 1 }]}>{t.spotsConfLegend}</Text>
+                  </View>
+                )}
               </View>
             )}
             </View>
@@ -833,10 +881,10 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
                 {loadedCount < totalCount && totalCount > 0 && (
                   <View style={ss.progressRow}>
                     <ActivityIndicator size="small" color={colors.accent} />
-                    <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{loadedCount}/{totalCount} spots</Text>
+                    <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{t.spotsUpdating}</Text>
                   </View>
                 )}
-                {failedCount > 0 && <Text style={[ss.metaTxt, { color: colors.yellow }]}>{t.spotsUnavailable(failedCount)}</Text>}
+                {failedCount > 0 && loadedCount >= totalCount && <Text style={[ss.metaTxt, { color: colors.textMuted }]}>{t.spotsUnavailable(failedCount)}</Text>}
               </View>
             )}
             {searchQuery.length === 0 && renderFilterBar()}
@@ -914,6 +962,7 @@ const SpotCard = memo(function SpotCard({
   forecast: SpotForecast; isFav: boolean; distance?: number; onPress: (f: SpotForecast) => void; onToggleFav: (id: string) => void; colors: any; grid?: boolean;
 }) {
   const { t, locale } = useI18n();
+  const { isDark } = useTheme();
   const handlePress = useCallback(() => onPress(f), [onPress, f]);
   // On web the card and the star both render as clickable elements; stop the
   // star's click from bubbling up to the card (which would also open the spot).
@@ -930,18 +979,21 @@ const SpotCard = memo(function SpotCard({
     <PressableScale
       style={[ss.spot, grid && ss.spotGrid, { backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={handlePress}
-      accessibilityLabel={`${f.spot.name}, score ${f.currentScore.toFixed(1)}`}
+      accessibilityLabel={`${f.spot.name}, score ${fmtDec(f.currentScore)}`}
       accessibilityRole="button"
     >
       <View style={ss.spotHead}>
-        <ScoreBadge score={f.currentScore} size="lg" />
+        <View style={ss.spotScoreCol}>
+          <ScoreBadge score={f.currentScore} size="lg" />
+          <Text style={[ss.spotNowTxt, { color: colors.textMuted }]}>{t.detailNow}</Text>
+        </View>
         <View style={ss.spotInfo}>
           <View style={ss.spotNameRow}>
             <Text style={[ss.spotName, { color: colors.white }]} numberOfLines={1}>{f.spot.name}</Text>
             {isFav && <Ionicons name="star" size={14} color={colors.yellow} />}
           </View>
-          <Text style={[ss.spotLabel, { color: scoreColor(f.currentScore) }]}>
-            <MaterialCommunityIcons name={scoreIcon(f.currentScore)} size={13} color={scoreColor(f.currentScore)} /> {scoreLabel(f.currentScore, t)}
+          <Text style={[ss.spotLabel, { color: scoreInk(f.currentScore, isDark) }]}>
+            <MaterialCommunityIcons name={scoreIcon(f.currentScore)} size={13} color={scoreInk(f.currentScore, isDark)} /> {scoreLabel(f.currentScore, t)}
           </Text>
           <View style={ss.spotMeta}>
             <Text style={[ss.spotDistance, { color: colors.textMuted }]} numberOfLines={1}>{countryLabel(f.spot.country, locale)}</Text>
@@ -965,13 +1017,13 @@ const SpotCard = memo(function SpotCard({
         <View style={ss.spotBar}>
           <Text style={[ss.spotStat, { color: colors.textSecondary }]}><MaterialCommunityIcons name={weatherMCIcon(cc.weatherCode)} size={12} color={colors.textSecondary} /> {cc.temperature.toFixed(0)}°</Text>
           <Text style={[ss.spotDot, { color: colors.border }]}>·</Text>
-          <Text style={[ss.spotStat, { color: colors.textSecondary }]}><MaterialCommunityIcons name={ICONS.swell} size={12} color={colors.textSecondary} /> {cc.swellHeight.toFixed(1)}m</Text>
+          <Text style={[ss.spotStat, { color: colors.textSecondary }]}><MaterialCommunityIcons name={ICONS.swell} size={12} color={colors.textSecondary} /> {fmtDec(cc.swellHeight)}m</Text>
           <Text style={[ss.spotDot, { color: colors.border }]}>·</Text>
           <Text style={[ss.spotStat, { color: colors.textSecondary }]}>{cc.swellPeriod.toFixed(0)}s</Text>
           <Text style={[ss.spotDot, { color: colors.border }]}>·</Text>
-          <Text style={[ss.spotStat, { color: condColor }]}><MaterialCommunityIcons name={ICONS.wind} size={12} color={condColor} /> {condLabel} {cc.windSpeed.toFixed(0)}</Text>
+          <Text style={[ss.spotStat, { color: condColor }]}><MaterialCommunityIcons name={ICONS.wind} size={12} color={condColor} /> {condLabel} {cc.windSpeed.toFixed(0)} km/h</Text>
           {cc.windGusts > 20 && (
-            <><Text style={[ss.spotDot, { color: colors.border }]}>·</Text><Text style={[ss.spotStat, { color: colors.yellow }]}><MaterialCommunityIcons name={ICONS.gust} size={12} color={colors.yellow} /> {cc.windGusts.toFixed(0)}</Text></>
+            <><Text style={[ss.spotDot, { color: colors.border }]}>·</Text><Text style={[ss.spotStat, { color: colors.yellow }]}><MaterialCommunityIcons name={ICONS.gust} size={12} color={colors.yellow} /> {t.spotsGustShort} {cc.windGusts.toFixed(0)}</Text></>
           )}
           <Text style={[ss.spotDot, { color: colors.border }]}>·</Text>
           <Text style={[ss.spotStat, { color: colors.blue }]}><MaterialCommunityIcons name={ICONS.seaTemp} size={12} color={colors.blue} /> {cc.seaTemp.toFixed(0)}°</Text>
@@ -979,8 +1031,8 @@ const SpotCard = memo(function SpotCard({
       )}
       {f.bestTime.score >= RIDABLE_SCORE ? (
         <View style={[ss.spotBest, { backgroundColor: scoreBg(f.bestTime.score) }]}>
-          <Text style={[ss.spotBestTxt, { color: scoreColor(f.bestTime.score) }]}>
-            <MaterialCommunityIcons name={ICONS.bestTime} size={12} color={scoreColor(f.bestTime.score)} /> {bestTimeLabel(f, locale)} — {scoreShort(f.bestTime.score, t)} ({f.bestTime.score.toFixed(1)})
+          <Text style={[ss.spotBestTxt, { color: scoreInk(f.bestTime.score, isDark) }]}>
+            <MaterialCommunityIcons name={ICONS.bestTime} size={12} color={scoreInk(f.bestTime.score, isDark)} /> {bestTimeLabel(f, locale)} — {scoreShort(f.bestTime.score, t)} ({fmtDec(f.bestTime.score)})
           </Text>
         </View>
       ) : (
@@ -1129,7 +1181,7 @@ const ss = StyleSheet.create({
   searchMeta: { ...typography.micro, fontWeight: '500', marginTop: 2 },
   searchLoading: { ...typography.micro, marginTop: 3 },
   levelBadge: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.sm },
-  levelBadgeTxt: { fontSize: 10, fontWeight: '700' },
+  levelBadgeTxt: { fontSize: 11, fontWeight: '700' },
 
   metaRow: {
     flexDirection: 'row',
@@ -1194,7 +1246,7 @@ const ss = StyleSheet.create({
   ms: { flex: 1, alignItems: 'center' },
   msIcon: { fontSize: 14, marginBottom: spacing.xs },
   msVal: { ...typography.bodyBold, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  msSub: { ...typography.tiny, fontSize: 10, marginTop: 2 },
+  msSub: { ...typography.tiny, fontSize: 11, marginTop: 2 },
 
   weekSection: { marginHorizontal: spacing.lg, marginBottom: spacing.sm },
   weekTitle: { ...typography.sectionLabel, marginBottom: spacing.md, marginLeft: spacing.xs },
@@ -1208,15 +1260,13 @@ const ss = StyleSheet.create({
     ...elevation.sm,
   },
   weekLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  weekRank: {
-    width: 30,
-    height: 30,
-    borderRadius: radius.pill,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  weekRankTxt: { ...typography.caption, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  weekTopTag: { ...typography.micro, fontWeight: '700', paddingHorizontal: 6, paddingVertical: 1, borderRadius: radius.pill, overflow: 'hidden' },
+  confLegend: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing.xs, marginLeft: spacing.xs },
+  zoneCard: { marginHorizontal: spacing.lg, marginBottom: spacing.md, padding: spacing.lg, borderRadius: radius.lg, borderWidth: 1 },
+  zoneTitle: { ...typography.h3 },
+  zoneSub: { ...typography.caption, fontWeight: '500', marginTop: 4, lineHeight: 18 },
+  zoneChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
+  slowTxt: { textAlign: 'center', marginTop: spacing.sm, paddingHorizontal: spacing.xl },
   weekInfo: { flex: 1 },
   weekDayRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   weekDay: { ...typography.h3, fontSize: 15 },
@@ -1258,12 +1308,14 @@ const ss = StyleSheet.create({
   heroWide: { marginHorizontal: 0, marginTop: spacing.md, marginBottom: spacing.md },
   weekWide: { marginHorizontal: 0, marginTop: 0 },
   spotHead: { flexDirection: 'row', alignItems: 'center' },
+  spotScoreCol: { alignItems: 'center' },
+  spotNowTxt: { fontSize: 11, fontWeight: '600', marginTop: 4 },
   spotInfo: { flex: 1, marginLeft: spacing.md },
   spotNameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   spotName: { ...typography.h2, fontSize: 17, flexShrink: 1 },
   spotLabel: { ...typography.caption, fontSize: 13, marginTop: 3 },
   spotMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs },
-  spotDistance: { ...typography.micro, fontSize: 11 },
+  spotDistance: { ...typography.micro, fontSize: 12 },
   favBtn: {
     width: touchTarget.min,
     height: touchTarget.min,

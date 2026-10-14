@@ -2,11 +2,11 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
-import { useI18n, Locale } from '../i18n';
+import { useI18n, Locale, fmtDec } from '../i18n';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { GuideScreenProps } from '../navigation/types';
 import { MCIName } from '../utils/icons';
-import { scoreColor } from '../theme';
+import { scoreInk, SCORE_BANDS } from '../theme';
 import { spacing, radius, typography, touchTarget } from '../utils/tokens';
 
 type LS = Partial<Record<Locale, string>> & { en: string };
@@ -17,14 +17,13 @@ const pick = (m: LS, l: Locale): string => m[l] ?? m.en;
 
 // Colours come straight from the app's score ramp (scoreColor) so the guide can
 // never drift from what users actually see on cards and the map.
-const scoreRows: { range: string; label: LS; icon: MCIName; color: string }[] = [
-  { range: '9.0 – 10', label: L('Parfait (rare)', 'Perfect (rare)', 'Perfecto (raro)', 'Perfeito (raro)', 'Perfekt (selten)', 'Perfetto (raro)', '完璧（まれ）'), icon: 'fire', color: scoreColor(9.5) },
-  { range: '7.5 – 8.9', label: L('On fonce', "Let's go", 'A por ello', 'Bora', 'Los geht’s', 'Si va', '行こう'), icon: 'thumb-up', color: scoreColor(8.2) },
-  { range: '6.0 – 7.4', label: L('Correct', 'Decent', 'Aceptable', 'Aceitável', 'Solide', 'Discreto', 'まずまず'), icon: 'thumb-up-outline', color: scoreColor(6.7) },
-  { range: '4.5 – 5.9', label: L('Moyen', 'Average', 'Regular', 'Médio', 'Mittel', 'Nella media', '普通'), icon: 'emoticon-neutral-outline', color: scoreColor(5.2) },
-  { range: '2.5 – 4.4', label: L('Mauvais', 'Bad', 'Malo', 'Mau', 'Schlecht', 'Scarso', '悪い'), icon: 'thumb-down-outline', color: scoreColor(3.4) },
-  { range: '0 – 2.4', label: L('Flat / nul', 'Flat / awful', 'Plano / nulo', 'Flat / nulo', 'Flat / mies', 'Flat / pessimo', 'フラット/最悪'), icon: 'cancel', color: scoreColor(1.2) },
-];
+// Built from SCORE_BANDS, the table every card, badge and icon reads, so the
+// legend can't drift from the app (it used to have its own thresholds).
+const scoreRows = SCORE_BANDS.map((band, i) => {
+  const lo = Number.isFinite(band.min) ? band.min : 0;
+  const hi = i === 0 ? 10 : SCORE_BANDS[i - 1].min - 0.1;
+  return { lo, hi, top: i === 0, band, score: (lo + hi) / 2 };
+});
 
 const windTerms: { term: string; desc: LS; icon: MCIName; good: boolean }[] = [
   { term: 'Offshore', icon: 'weather-windy', good: true, desc: L(
@@ -210,7 +209,7 @@ const SECT = {
 };
 
 export default function GuideScreen({ navigation }: GuideScreenProps) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { locale, t } = useI18n();
 
   const insets = useSafeAreaInsets();
@@ -263,9 +262,9 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
         <Text style={[gs.secTitle, { color: colors.accent }]}>{pick(SECT.scale, locale)}</Text>
         {scoreRows.map((r, i) => (
           <View key={i} style={gs.scoreRow}>
-            <MaterialCommunityIcons name={r.icon} size={16} color={r.color} style={gs.scoreEmoji} />
-            <Text style={[gs.scoreRange, { color: colors.white70 }]}>{r.range}</Text>
-            <Text style={[gs.scoreLabel, { color: r.color }]}>{pick(r.label, locale)}</Text>
+            <MaterialCommunityIcons name={r.band.icon} size={16} color={scoreInk(r.score, isDark)} style={gs.scoreEmoji} />
+            <Text style={[gs.scoreRange, { color: colors.white70 }]}>{fmtDec(r.lo)} – {r.top ? '10' : fmtDec(r.hi)}</Text>
+            <Text style={[gs.scoreLabel, { color: scoreInk(r.score, isDark) }]}>{t[r.band.long]}</Text>
           </View>
         ))}
 
@@ -335,5 +334,5 @@ const gs = StyleSheet.create({
   termGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   termItem: { borderRadius: 10, padding: 10, flexBasis: '46%', flexGrow: 1 },
   termWord: { fontSize: 13, fontWeight: '800', marginBottom: 3 },
-  termDesc: { fontSize: 11, lineHeight: 16 },
+  termDesc: { fontSize: 12, lineHeight: 16 },
 });

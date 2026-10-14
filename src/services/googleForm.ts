@@ -1,14 +1,15 @@
 import { log } from '../utils/logger';
 
 /**
- * Fire-and-forget anonymous POST to a Google Form `formResponse` endpoint.
- * `fields` maps `entry.XXXX` ids to their string values. Returns true on success.
+ * Anonymous POST to a Google Form `formResponse` endpoint. `fields` maps
+ * `entry.XXXX` ids to their string values. Returns the HTTP status (0 for an
+ * opaque response), or null when no answer came back (offline, timeout).
  */
-export async function postGoogleForm(
+export async function postGoogleFormStatus(
   action: string,
   fields: Record<string, string>,
-): Promise<boolean> {
-  if (!action) return false;
+): Promise<number | null> {
+  if (!action) return null;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12000);
   try {
@@ -21,12 +22,24 @@ export async function postGoogleForm(
       body,
       signal: controller.signal,
     });
-    // Google Forms returns 200 on success; opaque responses report status 0.
-    return res.ok || res.status === 0;
+    if (!res.ok && res.status !== 0) log.warn('Google Form answered HTTP', res.status);
+    return res.status;
   } catch (e) {
     log.warn('Google Form submit failed:', (e as Error)?.message);
-    return false;
+    return null;
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/**
+ * Fire-and-forget variant. Returns true on success: Google Forms returns 200,
+ * opaque responses report status 0.
+ */
+export async function postGoogleForm(
+  action: string,
+  fields: Record<string, string>,
+): Promise<boolean> {
+  const status = await postGoogleFormStatus(action, fields);
+  return status === 0 || (status != null && status >= 200 && status < 300);
 }

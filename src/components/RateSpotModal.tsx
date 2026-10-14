@@ -3,30 +3,33 @@ import { Modal, View, Text, StyleSheet, TouchableOpacity, Pressable, PanResponde
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { useI18n } from '../i18n';
-import { scoreColor } from '../theme';
+import { useI18n, fmtDec } from '../i18n';
+import { scoreColor, scoreInk } from '../theme';
 
 interface Props {
   visible: boolean;
   spotName: string;
-  appScore: number;
+  /** No longer shown in the sheet (it anchored the ratings); kept for callers. */
+  appScore?: number;
   onClose: () => void;
   onSubmit: (score: number) => void;
 }
 
 const THUMB = 26;
 
-export default function RateSpotModal({ visible, spotName, appScore, onClose, onSubmit }: Props) {
-  const { colors } = useTheme();
+export default function RateSpotModal({ visible, spotName, onClose, onSubmit }: Props) {
+  const { colors, isDark } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const [picked, setPicked] = useState<number | null>(null);
   const [trackW, setTrackW] = useState(0);
 
-  // Pre-fill the slider with the algorithm score so the user nudges from it.
+  // Start EMPTY. Pre-filling with the app's score anchored the ratings: people
+  // nudged or just confirmed what the app already said, which makes the
+  // feedback useless for calibrating the score.
   useEffect(() => {
-    if (visible) setPicked(Math.max(0, Math.min(10, Math.round(appScore * 10) / 10)));
-  }, [visible, appScore]);
+    if (visible) setPicked(null);
+  }, [visible]);
   const trackRef = useRef<View>(null);
   const trackXRef = useRef(0);
   const trackWRef = useRef(0);
@@ -65,6 +68,7 @@ export default function RateSpotModal({ visible, spotName, appScore, onClose, on
   const thumbLeft = Math.max(0, Math.min(trackW - THUMB, ratio * trackW - THUMB / 2));
   const fillW = ratio * trackW;
   const c = picked == null ? colors.white40 : scoreColor(picked);
+  const ink = picked == null ? colors.white40 : scoreInk(picked, isDark);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={close}>
@@ -75,7 +79,7 @@ export default function RateSpotModal({ visible, spotName, appScore, onClose, on
           <Text style={[s.spot, { color: colors.accent }]}>{spotName}</Text>
           <Text style={[s.sub, { color: colors.white40 }]}>{t.rateSubtitle}</Text>
 
-          <Text style={[s.bigNum, { color: c }]}>{picked == null ? '–' : picked.toFixed(1)}<Text style={[s.bigNumMax, { color: colors.white40 }]}>/10</Text></Text>
+          <Text style={[s.bigNum, { color: ink }]}>{picked == null ? '–' : fmtDec(picked)}<Text style={[s.bigNumMax, { color: colors.white40 }]}>/10</Text></Text>
 
           <View
             ref={trackRef}
@@ -92,8 +96,12 @@ export default function RateSpotModal({ visible, spotName, appScore, onClose, on
             {...pan.panHandlers}
           >
             <View pointerEvents="none" style={[s.trackBg, { backgroundColor: colors.white15 }]} />
-            <View pointerEvents="none" style={[s.trackFill, { width: fillW, backgroundColor: c }]} />
-            <View pointerEvents="none" style={[s.thumb, { left: thumbLeft, backgroundColor: c, borderColor: colors.white }]} />
+            {picked != null && (
+              <>
+                <View pointerEvents="none" style={[s.trackFill, { width: fillW, backgroundColor: c }]} />
+                <View pointerEvents="none" style={[s.thumb, { left: thumbLeft, backgroundColor: c, borderColor: colors.white }]} />
+              </>
+            )}
           </View>
           <View style={s.scaleRow}>
             {[0, 2, 4, 6, 8, 10].map(n => (
@@ -101,8 +109,7 @@ export default function RateSpotModal({ visible, spotName, appScore, onClose, on
             ))}
           </View>
 
-          <Text style={[s.hint, { color: colors.white40 }]}>{t.rateHint}</Text>
-          <Text style={[s.appScore, { color: colors.white40 }]}>{t.rateAppScore(appScore.toFixed(1))}</Text>
+          <Text style={[s.hint, { color: colors.white40 }]}>{picked == null ? t.rateTapToRate : t.rateHint}</Text>
 
           <TouchableOpacity
             onPress={send}
@@ -112,8 +119,8 @@ export default function RateSpotModal({ visible, spotName, appScore, onClose, on
             accessibilityLabel={t.rateSend}
             style={[s.send, { backgroundColor: picked == null ? colors.white15 : colors.accent }]}
           >
-            <MaterialCommunityIcons name="send" size={16} color={picked == null ? colors.white40 : '#06121F'} />
-            <Text style={[s.sendTxt, { color: picked == null ? colors.white40 : '#06121F' }]}>{t.rateSend}</Text>
+            <MaterialCommunityIcons name="send" size={16} color={picked == null ? colors.white40 : colors.onAccent} />
+            <Text style={[s.sendTxt, { color: picked == null ? colors.white40 : colors.onAccent }]}>{t.rateSend}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={close} style={s.cancel} accessibilityRole="button" accessibilityLabel={t.rateCancel}>
@@ -139,9 +146,8 @@ const s = StyleSheet.create({
   trackFill: { position: 'absolute', left: 0, height: 6, borderRadius: 3 },
   thumb: { position: 'absolute', width: THUMB, height: THUMB, borderRadius: THUMB / 2, borderWidth: 3 },
   scaleRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  scaleTxt: { fontSize: 11, fontWeight: '600' },
+  scaleTxt: { fontSize: 12, fontWeight: '600' },
   hint: { fontSize: 12, fontWeight: '500', textAlign: 'center', marginTop: 16, lineHeight: 17 },
-  appScore: { fontSize: 11, fontWeight: '600', textAlign: 'center', marginTop: 6 },
   send: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 50, borderRadius: 14, marginTop: 14 },
   sendTxt: { fontSize: 15, fontWeight: '800' },
   cancel: { alignItems: 'center', paddingVertical: 12, marginTop: 2 },

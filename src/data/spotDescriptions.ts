@@ -73,1414 +73,1309 @@ export const SPOT_DESCRIPTIONS: Record<string, { en: string; es: string; pt: str
     "pt": "Beach break poderoso do noroeste da Nicarágua, perto de Aposentillo. Vento offshore quase diário, ondas ocas."
   },
   "sao-joao": {
-    "en": "Family beach north of Caparica. Beach break soft, ideal for beginners.",
+    "en": "Family beach north of Caparica. Gentle beach break, ideal for beginners.",
     "es": "Playa familiar al norte de Caparica. Beach break suave, ideal para principiantes.",
-    "pt": "Praia familiar a norte da Caparica. Beach break macio, ideal para iniciantes."
+    "pt": "Praia familiar a norte da Caparica. Beach break suave, ideal para iniciantes."
   },
   "caparica-centro": {
-    "en": "The main beach of Costa da Caparica, facing the city center. Many peaks, very accessible.",
-    "es": "La playa principal de Costa da Caparica, frente al centro de la ciudad. Muchos picos, muy accesibles.",
-    "pt": "A principal praia da Costa da Caparica, virada para o centro da cidade. Muitos picos, muito acessíveis."
+    "en": "The main beach of Costa da Caparica, in front of the town centre. Lots of peaks, very accessible.",
+    "es": "La playa principal de Costa da Caparica, frente al centro. Muchos picos, muy accesible.",
+    "pt": "A praia principal da Costa da Caparica, em frente ao centro. Muitos picos, muito acessível."
   },
   "praia-do-norte-caparica": {
-    "en": "Just south of the center are well-formed sandbars. One of the best peaks in Caparica.",
-    "es": "Justo al sur del centro hay bancos de arena bien formados. Uno de los mejores picos de Caparica.",
-    "pt": "Ao sul do centro estão bancos de areia bem formados. Um dos melhores picos da Caparica."
+    "en": "Just south of the centre, with well-shaped sandbanks. One of the best peaks in Caparica.",
+    "es": "Justo al sur del centro, con bancos de arena bien formados. Uno de los mejores picos de Caparica.",
+    "pt": "Logo a sul do centro, com bancos de areia bem formados. Um dos melhores picos da Caparica."
   },
   "fonte-da-telha": {
-    "en": "South of the Costa, wilder and more powerful. Peaks quality when the swell comes in.",
-    "es": "Al sur de la Costa, más salvaje y potente. Calidad picos cuando llega el oleaje.",
-    "pt": "Ao sul da Costa, mais selvagem e poderoso. Qualidade picos quando o swell chega."
+    "en": "South of the Costa, wilder and more powerful. Quality peaks when the swell comes in.",
+    "es": "Al sur de la Costa, más salvaje y potente. Picos de calidad cuando entra el swell.",
+    "pt": "A sul da Costa, mais selvagem e potente. Picos de qualidade quando entra ondulação."
   },
   "carcavelos": {
-    "en": "Lisbon's most consistent beach. Works with the majority of swells.",
-    "es": "La playa más consistente de Lisboa. Funciona con la mayoría de oleajes.",
-    "pt": "A praia mais consistente de Lisboa. Funciona com a maioria dos swells."
+    "en": "Lisbon's most consistent beach. Works on most swells.",
+    "es": "La playa más constante de Lisboa. Funciona con la mayoría de los swells.",
+    "pt": "A praia mais consistente de Lisboa. Funciona com a maioria das ondulações."
   },
   "ribeira-dilhas": {
-    "en": "Long and regular straight on a rocky bottom. Emblematic spot of the Ericeira World Surf Reserve.",
-    "es": "Recta larga y regular sobre fondo rocoso. Lugar emblemático de la Reserva Mundial de Surf de Ericeira.",
-    "pt": "Longo e regular, reto sobre fundo rochoso. Local emblemático da Reserva Mundial de Surf da Ericeira."
+    "en": "Long, regular right over a rocky bottom. Iconic spot of the Ericeira World Surfing Reserve.",
+    "es": "Derecha larga y regular sobre fondo de roca. Spot emblemático de la Reserva Mundial de Surf de Ericeira.",
+    "pt": "Direita longa e regular sobre fundo de pedra. Spot emblemático da Reserva Mundial de Surf da Ericeira."
   },
   "coxos": {
-    "en": "The best straight line in Portugal. Powerful tube on reef. Reserved for experienced surfers.",
-    "es": "La mejor línea recta de Portugal. Potente tubo en arrecife. Reservado para surfistas experimentados.",
-    "pt": "A melhor reta de Portugal. Tubo poderoso no recife. Reservado para surfistas experientes."
+    "en": "The best right in Portugal. Powerful barrel over reef. For experienced surfers only.",
+    "es": "La mejor derecha de Portugal. Tubo potente sobre arrecife. Solo para surfistas con experiencia.",
+    "pt": "A melhor direita de Portugal. Tubo potente sobre recife. Só para surfistas experientes."
   },
   "foz-do-lizandro": {
-    "en": "Beach break accessible at the mouth of the Lizandro. Ideal for beginners.",
+    "en": "Accessible beach break at the mouth of the Lizandro. Ideal for beginners.",
     "es": "Beach break accesible en la desembocadura del Lizandro. Ideal para principiantes.",
     "pt": "Beach break acessível na foz do Lizandro. Ideal para iniciantes."
   },
   "supertubos": {
-    "en": "The “European Pipeline”. Hollow and powerful tubes on a sandy bottom. Welcomes the WSL CT.",
-    "es": "El “Oleoducto Europeo”. Tubos huecos y potentes sobre fondo arenoso. Da la bienvenida al WSL CT.",
-    "pt": "O “Gasoduto Europeu”. Tubos ocos e poderosos em fundo arenoso. Dá as boas-vindas ao WSL CT."
+    "en": "The “European Pipeline”. Hollow, powerful barrels over sand. Hosts the WSL CT.",
+    "es": "El “Pipeline europeo”. Tubos huecos y potentes sobre fondo de arena. Sede del CT de la WSL.",
+    "pt": "O “Pipeline europeu”. Tubos cavados e potentes sobre fundo de areia. Recebe o CT da WSL."
   },
   "baleal": {
-    "en": "Ideal beach to start. Many surf schools. The peninsula offers a sheltered side.",
-    "es": "Playa ideal para empezar. Muchas escuelas de surf. La península ofrece un lado protegido.",
-    "pt": "Praia ideal para começar. Muitas escolas de surf. A península oferece um lado protegido."
+    "en": "Ideal beach to learn. Many surf schools. The peninsula offers a sheltered side.",
+    "es": "Playa ideal para empezar. Muchas escuelas de surf. La península ofrece un lado resguardado.",
+    "pt": "Praia ideal para começar. Muitas escolas de surf. A península oferece um lado abrigado."
   },
   "molho-leste": {
-    "en": "South side of the Peniche peninsula. Works when north is too big.",
-    "es": "Lado sur de la península de Peniche. Funciona cuando el norte es demasiado grande.",
-    "pt": "Lado sul da península de Peniche. Funciona quando o norte é muito grande."
+    "en": "South side of the Peniche peninsula. Works when the north side is too big.",
+    "es": "Lado sur de la península de Peniche. Funciona cuando el norte está demasiado grande.",
+    "pt": "Lado sul da península de Peniche. Funciona quando o norte está grande demais."
   },
   "nazare-praia-do-norte": {
-    "en": "The biggest waves in the world. The underwater canyon amplifies the swell. Big wave only.",
-    "es": "Las olas más grandes del mundo. El cañón submarino amplifica el oleaje. Sólo big wave.",
-    "pt": "As maiores ondas do mundo. O desfiladeiro subaquático amplifica o swell. Somente big wave."
+    "en": "The biggest waves in the world. The underwater canyon amplifies the swell. Big-wave surfing only.",
+    "es": "Las olas más grandes del mundo. El cañón submarino amplifica el swell. Solo big wave.",
+    "pt": "As maiores ondas do mundo. O canhão submarino amplifica a ondulação. Só big wave."
   },
   "nazare-praia-da-vila": {
-    "en": "The city beach, more protected. Beach break fun when the swell is not too big.",
-    "es": "La playa de la ciudad, más protegida. Beach break divertido cuando el oleaje no es demasiado grande.",
-    "pt": "A praia da cidade, mais protegida. Beach break divertido quando o swell não é muito grande."
+    "en": "The town beach, more sheltered. Fun beach break when the swell isn't too big.",
+    "es": "La playa del pueblo, más resguardada. Beach break divertido cuando el swell no es demasiado grande.",
+    "pt": "A praia da vila, mais abrigada. Beach break divertido quando a ondulação não está muito grande."
   },
   "arrifana": {
-    "en": "Protected bay on the Vicentine coast. Quality right along the north cliff.",
-    "es": "Bahía protegida en la costa vicentina. Calidad justo a lo largo del acantilado norte.",
-    "pt": "Baía protegida na costa vicentina. Qualidade mesmo junto à falésia norte."
+    "en": "Sheltered bay on the Vicentine coast. Quality right along the northern cliff.",
+    "es": "Bahía resguardada en la costa vicentina. Derecha de calidad a lo largo del acantilado norte.",
+    "pt": "Baía abrigada na costa vicentina. Direita de qualidade junto à falésia norte."
   },
   "amado": {
-    "en": "Beach break consisting of the Vicentine coast. Very popular for surf lessons.",
-    "es": "Beach break formado por la costa vicentina. Muy popular para clases de surf.",
-    "pt": "Beach break constituída pela costa vicentina. Muito popular para aulas de surf."
+    "en": "Consistent beach break on the Vicentine coast. Very popular for surf lessons.",
+    "es": "Beach break constante de la costa vicentina. Muy popular para clases de surf.",
+    "pt": "Beach break consistente da costa vicentina. Muito procurado para aulas de surf."
   },
   "sagres-tonel": {
-    "en": "Beach/reef break facing southwest. The most southwestern point of Europe.",
-    "es": "Playa/reef break orientada al suroeste. El punto más al suroeste de Europa.",
-    "pt": "Praia/reef break virada a sudoeste. O ponto mais a sudoeste da Europa."
+    "en": "Exposed beach/reef break facing southwest. The southwesternmost point of Europe.",
+    "es": "Beach/reef break expuesto, orientado al suroeste. El punto más al suroeste de Europa.",
+    "pt": "Beach/reef break exposto, virado a sudoeste. O ponto mais a sudoeste da Europa."
   },
   "matosinhos": {
-    "en": "Porto urban beach. Beach break accessible, many surf schools.",
+    "en": "Porto's city beach. Accessible beach break, many surf schools.",
     "es": "Playa urbana de Oporto. Beach break accesible, muchas escuelas de surf.",
     "pt": "Praia urbana do Porto. Beach break acessível, muitas escolas de surf."
   },
   "espinho": {
     "en": "Powerful beach break south of Porto. Hosts national competitions.",
-    "es": "Potente beach break al sur de Oporto. Organiza competiciones nacionales.",
-    "pt": "Poderoso beach break a sul do Porto. Sedia competições nacionais."
+    "es": "Beach break potente al sur de Oporto. Sede de competiciones nacionales.",
+    "pt": "Beach break potente a sul do Porto. Recebe competições nacionais."
   },
   "anglet-cavaliers": {
-    "en": "Quality beach break north of Biarritz. Several peaks on a long line.",
-    "es": "Calidad beach break al norte de Biarritz. Varios picos en una larga fila.",
-    "pt": "Qualidade beach break ao norte de Biarritz. Vários picos em uma longa fila."
+    "en": "Quality beach break north of Biarritz. Several peaks along a long stretch of sand.",
+    "es": "Beach break de calidad al norte de Biarritz. Varios picos a lo largo de una playa larga.",
+    "pt": "Beach break de qualidade a norte de Biarritz. Vários picos ao longo de uma praia extensa."
   },
   "biarritz-cote-basques": {
-    "en": "Cradle of surfing in France. Mythical protected beach. Only works at low tide.",
-    "es": "Cuna del surf en Francia. Playa mítica protegida. Sólo funciona con marea baja.",
-    "pt": "Berço do surf na França. Praia mítica protegida. Só funciona na maré baixa."
+    "en": "The cradle of surfing in France. Legendary sheltered beach. Only works at low tide.",
+    "es": "La cuna del surf en Francia. Playa mítica y resguardada. Solo funciona con marea baja.",
+    "pt": "O berço do surf em França. Praia mítica e abrigada. Só funciona na maré baixa."
   },
   "biarritz-grande-plage": {
-    "en": "Iconic beach in the heart of Biarritz. Beach break accessible but often crowded.",
-    "es": "Playa icónica en el corazón de Biarritz. Beach break accesible pero a menudo lleno de gente.",
-    "pt": "Praia icónica no coração de Biarritz. Beach break acessível, mas muitas vezes lotado."
+    "en": "Iconic beach in the heart of Biarritz. Accessible beach break, but often crowded.",
+    "es": "Playa emblemática en pleno centro de Biarritz. Beach break accesible, pero a menudo concurrido.",
+    "pt": "Praia emblemática no coração de Biarritz. Beach break acessível, mas muitas vezes cheio."
   },
   "guethary": {
-    "en": "Big wave Basque spot. Powerful right on reef which can exceed 5 meters.",
-    "es": "Big wave Spot vasco. Potente derecho sobre arrecife que puede superar los 5 metros.",
-    "pt": "Big wave Local basco. Poderoso mesmo no recife que pode ultrapassar os 5 metros."
+    "en": "Basque big-wave spot. Powerful right over reef that can go beyond 5 metres.",
+    "es": "Spot de big wave vasco. Derecha potente sobre arrecife que puede superar los 5 metros.",
+    "pt": "Spot de big wave basco. Direita potente sobre recife que pode passar dos 5 metros."
   },
   "lafitenia": {
-    "en": "Quality point break with a long straight. Mythical spot on the Basque coast.",
-    "es": "Calidad point break con una larga recta. Paraje mítico de la costa vasca.",
-    "pt": "Qualidade point break com longa reta. Local mítico na costa basca."
+    "en": "Quality point break with a long right. Legendary spot on the Basque coast.",
+    "es": "Point break de calidad con una derecha larga. Spot mítico de la costa vasca.",
+    "pt": "Point break de qualidade com uma direita longa. Spot mítico da costa basca."
   },
   "hendaye": {
-    "en": "Large protected beach on the Spanish border. Ideal for getting started.",
-    "es": "Gran playa protegida en la frontera española. Ideal para empezar.",
-    "pt": "Grande praia protegida na fronteira espanhola. Ideal para começar."
+    "en": "Large sheltered beach on the Spanish border. Ideal for beginners.",
+    "es": "Gran playa resguardada junto a la frontera española. Ideal para empezar.",
+    "pt": "Grande praia abrigada junto à fronteira espanhola. Ideal para começar."
   },
   "hossegor-graviere": {
-    "en": "The best beach break in Europe. Powerful hits. Quiksilver Pro France spot.",
-    "es": "El mejor beach break de Europa. Golpes potentes. Anuncio Quiksilver Pro Francia.",
-    "pt": "O melhor beach break da Europa. Golpes poderosos. Lugar Quiksilver Pro França."
+    "en": "The best beach break in Europe. Powerful barrels. Home of the Quiksilver Pro France.",
+    "es": "El mejor beach break de Europa. Tubos potentes. Escenario del Quiksilver Pro France.",
+    "pt": "O melhor beach break da Europa. Tubos potentes. Palco do Quiksilver Pro France."
   },
   "hossegor-nord": {
-    "en": "Hossegor’s big wave beach break. Deep trenches generate massive waves.",
-    "es": "Big wave beach break de Hossegor. Las trincheras profundas generan olas masivas.",
-    "pt": "Big wave beach break de Hossegor. Trincheiras profundas geram ondas enormes."
+    "en": "Hossegor's big-wave beach break. Deep trenches produce massive waves.",
+    "es": "El beach break de big wave de Hossegor. Las fosas profundas generan olas enormes.",
+    "pt": "O beach break de big wave de Hossegor. As fossas profundas geram ondas enormes."
   },
   "hossegor-centrale": {
-    "en": "Beach break central Hossegor, more accessible than La Gravière.",
-    "es": "Beach break central Hossegor, más accesible que La Gravière.",
-    "pt": "Beach break central Hossegor, mais acessível que La Gravière."
+    "en": "Hossegor's central beach break, more accessible than La Gravière.",
+    "es": "Beach break central de Hossegor, más accesible que La Gravière.",
+    "pt": "Beach break central de Hossegor, mais acessível do que La Gravière."
   },
   "capbreton-santosha": {
-    "en": "Long beach between Hossegor and Capbreton. Numerous peaks along the dune.",
-    "es": "Larga playa entre Hossegor y Capbreton. Numerosos picos a lo largo de la duna.",
-    "pt": "Longa praia entre Hossegor e Capbreton. Numerosos picos ao longo da duna."
+    "en": "Long beach between Hossegor and Capbreton. Plenty of peaks along the dune.",
+    "es": "Playa larga entre Hossegor y Capbreton. Numerosos picos a lo largo de la duna.",
+    "pt": "Praia longa entre Hossegor e Capbreton. Muitos picos ao longo da duna."
   },
   "seignosse-penon": {
-    "en": "Quality beach break north of Hossegor. Changing sandbanks.",
-    "es": "Calidad beach break al norte de Hossegor. Cambio de bancos de arena.",
-    "pt": "Qualidade beach break ao norte de Hossegor. Mudança de bancos de areia."
+    "en": "Quality beach break north of Hossegor. Shifting sandbanks.",
+    "es": "Beach break de calidad al norte de Hossegor. Bancos de arena cambiantes.",
+    "pt": "Beach break de qualidade a norte de Hossegor. Bancos de areia variáveis."
   },
   "mimizan": {
-    "en": "Beach break classic Landes. Fewer people than in Hossegor.",
-    "es": "Beach break clásico landés. Menos gente que en Hossegor.",
-    "pt": "Beach break clássico Landes. Menos pessoas do que em Hossegor."
+    "en": "Classic Landes beach break. Less crowded than Hossegor.",
+    "es": "Beach break clásico de las Landas. Menos gente que en Hossegor.",
+    "pt": "Beach break clássico das Landes. Menos gente do que em Hossegor."
   },
   "lacanau": {
-    "en": "Emblematic spot in Gironde. Hosts the Lacanau Pro every year.",
-    "es": "Lugar emblemático de la Gironda. Acoge cada año el Lacanau Pro.",
-    "pt": "Local emblemático da Gironda. Hospeda o Lacanau Pro todos os anos."
+    "en": "Iconic Gironde spot. Hosts the Lacanau Pro every year.",
+    "es": "Spot emblemático de la Gironda. Acoge cada año el Lacanau Pro.",
+    "pt": "Spot emblemático da Gironda. Recebe o Lacanau Pro todos os anos."
   },
   "le-porge": {
     "en": "Wild beach south of Lacanau. Fewer people, quality sandbanks.",
-    "es": "Playa salvaje al sur de Lacanau. Menos gente, arenales de calidad.",
-    "pt": "Praia selvagem ao sul de Lacanau. Menos gente, bancos de areia de qualidade."
+    "es": "Playa salvaje al sur de Lacanau. Menos gente, bancos de arena de calidad.",
+    "pt": "Praia selvagem a sul de Lacanau. Menos gente, bancos de areia de qualidade."
   },
   "la-torche": {
-    "en": "The most consistent spot in Brittany. Beach break exposed facing the Atlantic.",
-    "es": "El lugar más consistente de Bretaña. Beach break expuesto frente al Atlántico.",
-    "pt": "O local mais consistente da Bretanha. Beach break exposta de frente para o Atlântico."
+    "en": "The most consistent spot in Brittany. Beach break fully exposed to the Atlantic.",
+    "es": "El spot más constante de Bretaña. Beach break expuesto de lleno al Atlántico.",
+    "pt": "O spot mais consistente da Bretanha. Beach break totalmente exposto ao Atlântico."
   },
   "mundaka": {
-    "en": "The best left in Europe. Perfect tube at the river mouth.",
-    "es": "La mejor izquierda de Europa. Tubo perfecto en la desembocadura del río.",
-    "pt": "O melhor que sobrou na Europa. Tubo perfeito na foz do rio."
+    "en": "The best left in Europe. Perfect barrel at the river mouth.",
+    "es": "La mejor izquierda de Europa. Tubo perfecto en la desembocadura de la ría.",
+    "pt": "A melhor esquerda da Europa. Tubo perfeito na foz do rio."
   },
   "zarautz": {
-    "en": "The longest beach in the Spanish Basque Country. Many peaks accessible.",
-    "es": "La playa más larga del País Vasco español. Muchos picos accesibles.",
-    "pt": "A maior praia do País Basco espanhol. Muitos picos acessíveis."
+    "en": "The longest beach in the Spanish Basque Country. Lots of accessible peaks.",
+    "es": "La playa más larga del País Vasco. Muchos picos accesibles.",
+    "pt": "A praia mais longa do País Basco espanhol. Muitos picos acessíveis."
   },
   "sopela-la-salvaje": {
-    "en": "Beach break consisting of near Bilbao. Good quality/accessibility ratio.",
-    "es": "Beach break que consta de cerca de Bilbao. Buena relación calidad/accesibilidad.",
-    "pt": "Beach break consistindo perto de Bilbao. Boa relação qualidade/acessibilidade."
+    "en": "Consistent beach break near Bilbao. Good balance between quality and accessibility.",
+    "es": "Beach break constante cerca de Bilbao. Buen equilibrio entre calidad y accesibilidad.",
+    "pt": "Beach break consistente perto de Bilbau. Bom equilíbrio entre qualidade e acessibilidade."
   },
   "rodiles": {
-    "en": "Beach break quality at the mouth of an estuary. Right and left.",
-    "es": "Calidad beach break en la desembocadura de una ría. Derecha e izquierda.",
-    "pt": "Qualidade beach break na foz de um estuário. Direita e esquerda."
+    "en": "Quality beach break at the mouth of an estuary. Rights and lefts.",
+    "es": "Beach break de calidad en la desembocadura de una ría. Derechas e izquierdas.",
+    "pt": "Beach break de qualidade na foz de um estuário. Direitas e esquerdas."
   },
   "pantin": {
-    "en": "The best spot in Galicia. Hosts the Pantín Classic, WSL QS competition.",
-    "es": "El mejor lugar de Galicia. Acoge el Pantín Classic, competición WSL QS.",
-    "pt": "O melhor local da Galiza. Sedia o Pantín Classic, competição WSL QS."
+    "en": "The best spot in Galicia. Hosts the Pantín Classic, a WSL QS event.",
+    "es": "El mejor spot de Galicia. Sede del Pantín Classic, prueba del QS de la WSL.",
+    "pt": "O melhor spot da Galiza. Recebe o Pantín Classic, prova do QS da WSL."
   },
   "somo": {
-    "en": "Beach break accessible from Cantabria. Many surf schools.",
-    "es": "Beach break accesible desde Cantabria. Muchas escuelas de surf.",
-    "pt": "Beach break acessível a partir da Cantábria. Muitas escolas de surf."
+    "en": "Accessible beach break in Cantabria. Many surf schools.",
+    "es": "Beach break accesible de Cantabria. Muchas escuelas de surf.",
+    "pt": "Beach break acessível da Cantábria. Muitas escolas de surf."
   },
   "el-confital": {
-    "en": "Perfect right from Las Palmas. Volcanic reef, powerful and hollow waves.",
-    "es": "Perfecto desde Las Palmas. Arrecife volcánico, olas poderosas y huecas.",
-    "pt": "Perfeito desde Las Palmas. Recife vulcânico, ondas poderosas e ocas."
+    "en": "Perfect right in Las Palmas. Volcanic reef, powerful and hollow waves.",
+    "es": "Derecha perfecta de Las Palmas. Arrecife volcánico, olas potentes y huecas.",
+    "pt": "Direita perfeita de Las Palmas. Recife vulcânico, ondas potentes e cavadas."
   },
   "famara": {
-    "en": "Large wild beach at the foot of the cliffs. Beach break consistent.",
-    "es": "Gran playa salvaje al pie de los acantilados. Beach break consistente.",
+    "en": "Large wild beach at the foot of the cliffs. Consistent beach break.",
+    "es": "Gran playa salvaje al pie de los acantilados. Beach break constante.",
     "pt": "Grande praia selvagem no sopé das falésias. Beach break consistente."
   },
   "el-quemao": {
-    "en": "Powerful left on volcanic reef. The “European Pipeline” of the Canary Islands.",
-    "es": "Potente izquierda sobre arrecife volcánico. El “Oleoducto Europeo” de Canarias.",
-    "pt": "Poderosa esquerda no recife vulcânico. O “Gasoduto Europeu” das Ilhas Canárias."
+    "en": "Powerful left over volcanic reef. The “European Pipeline” of the Canary Islands.",
+    "es": "Izquierda potente sobre arrecife volcánico. El “Pipeline europeo” de Canarias.",
+    "pt": "Esquerda potente sobre recife vulcânico. O “Pipeline europeu” das Canárias."
   },
   "tenerife-el-socorro": {
-    "en": "Beach break from the north of Tenerife. Black volcanic sand, consistent all year round.",
-    "es": "Beach break del norte de Tenerife. Arena volcánica negra, consistente todo el año.",
-    "pt": "Beach break do norte de Tenerife. Areia vulcânica preta, consistente durante todo o ano."
+    "en": "Beach break in the north of Tenerife. Black volcanic sand, consistent all year round.",
+    "es": "Beach break del norte de Tenerife. Arena volcánica negra, constante todo el año.",
+    "pt": "Beach break do norte de Tenerife. Areia vulcânica preta, consistente todo o ano."
   },
   "taghazout-anchor": {
-    "en": "Long and mechanical right from Taghazout. The most famous spot in Morocco.",
-    "es": "Derecha larga y mecánica desde Taghazout. El lugar más famoso de Marruecos.",
-    "pt": "Direita longa e mecânica de Taghazout. O local mais famoso de Marrocos."
+    "en": "Taghazout's long, mechanical right. The most famous spot in Morocco.",
+    "es": "La derecha larga y mecánica de Taghazout. El spot más famoso de Marruecos.",
+    "pt": "A direita longa e mecânica de Taghazout. O spot mais famoso de Marrocos."
   },
   "taghazout-killers": {
-    "en": "Big wave spot north of Taghazout. Powerful right that holds the big swells.",
-    "es": "Lugar big wave al norte de Taghazout. Potente derecha que aguanta los grandes swells.",
-    "pt": "Local big wave ao norte de Taghazout. Direita poderosa que segura as grandes ondas."
+    "en": "Big-wave spot north of Taghazout. Powerful right that holds big swells.",
+    "es": "Spot de big wave al norte de Taghazout. Derecha potente que aguanta los swells grandes.",
+    "pt": "Spot de big wave a norte de Taghazout. Direita potente que aguenta as grandes ondulações."
   },
   "tamri": {
-    "en": "Beach break at the mouth of a river. Fun and accessible.",
-    "es": "Beach break en la desembocadura de un río. Divertida y accesible.",
+    "en": "Beach break at a river mouth. Fun and accessible.",
+    "es": "Beach break en la desembocadura de un río. Divertido y accesible.",
     "pt": "Beach break na foz de um rio. Divertido e acessível."
   },
   "imsouane": {
-    "en": "The longest wave in Africa. Endless straight into a protected bay.",
-    "es": "La ola más larga de África. Recta sin fin hacia una bahía protegida.",
-    "pt": "A onda mais longa da África. Endless direto para uma baía protegida."
+    "en": "The longest wave in Africa. An endless right in a sheltered bay.",
+    "es": "La ola más larga de África. Una derecha interminable en una bahía resguardada.",
+    "pt": "A onda mais longa de África. Uma direita interminável numa baía abrigada."
   },
   "sidi-kaouki": {
-    "en": "Beach break windy south of Essaouira. Popular spot but windy in the afternoon.",
-    "es": "Beach break viento al sur de Essaouira. Lugar popular pero ventoso por la tarde.",
-    "pt": "Beach break ventoso ao sul de Essaouira. Local popular, mas com muito vento à tarde."
+    "en": "Windy beach break south of Essaouira. Popular spot, but windy in the afternoon.",
+    "es": "Beach break ventoso al sur de Esauira. Spot popular, pero con viento por la tarde.",
+    "pt": "Beach break ventoso a sul de Essaouira. Spot popular, mas com vento à tarde."
   },
   "uluwatu": {
-    "en": "Mythical left of Bali. Several sections of the temple inside.",
-    "es": "Izquierda mítica de Bali. Varias secciones del templo en su interior.",
-    "pt": "Esquerda mítica de Bali. Várias seções do templo no interior."
+    "en": "Bali's legendary left. Several sections below the temple.",
+    "es": "La izquierda mítica de Bali. Varias secciones bajo el templo.",
+    "pt": "A esquerda mítica de Bali. Várias secções por baixo do templo."
   },
   "padang-padang": {
-    "en": "The “Bali Pipeline”. Perfect barrel on shallow reef.",
-    "es": "El “Oleoducto de Bali”. Barril perfecto en arrecife poco profundo.",
-    "pt": "O “Oleoduto de Bali”. Barril perfeito em recifes rasos."
+    "en": "The “Bali Pipeline”. Perfect barrel over shallow reef.",
+    "es": "El “Pipeline de Bali”. Tubo perfecto sobre arrecife poco profundo.",
+    "pt": "O “Pipeline de Bali”. Tubo perfeito sobre recife raso."
   },
   "kuta-beach-bali": {
-    "en": "Beach break the most popular in Bali. Ideal for beginners.",
-    "es": "Beach break el más popular en Bali. Ideal para principiantes.",
-    "pt": "Beach break o mais popular em Bali. Ideal para iniciantes."
+    "en": "Bali's most popular beach break. Ideal for beginners.",
+    "es": "El beach break más popular de Bali. Ideal para principiantes.",
+    "pt": "O beach break mais popular de Bali. Ideal para iniciantes."
   },
   "canggu": {
-    "en": "Beach break trend from Bali. Several peaks, relaxed atmosphere.",
-    "es": "Tendencia beach break de Bali. Varios picos, ambiente relajado.",
-    "pt": "Tendência beach break de Bali. Vários picos, ambiente descontraído."
+    "en": "Bali's trendy beach break. Several peaks, laid-back vibe.",
+    "es": "El beach break de moda en Bali. Varios picos, ambiente relajado.",
+    "pt": "O beach break da moda em Bali. Vários picos, ambiente descontraído."
   },
   "keramas": {
-    "en": "World-class straight to the east coast. Hosted the CT WSL.",
-    "es": "Clase mundial directo a la costa este. Fue anfitrión del CT WSL.",
-    "pt": "Classe mundial direto para a costa leste. Sediou o CT WSL."
+    "en": "World-class right on the east coast. Used to host the WSL CT.",
+    "es": "Derecha de nivel mundial en la costa este. Fue sede del CT de la WSL.",
+    "pt": "Direita de classe mundial na costa leste. Já recebeu o CT da WSL."
   },
   "desert-point": {
-    "en": "Perfect, tubular left from Lombok. The longest barrel in Indonesia.",
-    "es": "Perfecto, tubular izquierdo de Lombok. El barril más largo de Indonesia.",
-    "pt": "Perfeito, tubular à esquerda de Lombok. O barril mais longo da Indonésia."
+    "en": "Lombok's perfect, tubing left. The longest barrel in Indonesia.",
+    "es": "La izquierda perfecta y tubera de Lombok. El tubo más largo de Indonesia.",
+    "pt": "A esquerda perfeita e tubular de Lombok. O tubo mais longo da Indonésia."
   },
   "lakey-peak": {
-    "en": "Perfect A-frame from Sumbawa. Quality right and left on reef.",
-    "es": "Marco en A perfecto de Sumbawa. Calidad a derecha e izquierda en arrecife.",
-    "pt": "Moldura em A perfeita de Sumbawa. Qualidade direita e esquerda no recife."
+    "en": "Sumbawa's perfect A-frame. Quality right and left over reef.",
+    "es": "El pico en A perfecto de Sumbawa. Derecha e izquierda de calidad sobre arrecife.",
+    "pt": "O pico em A perfeito de Sumbawa. Direita e esquerda de qualidade sobre recife."
   },
   "g-land": {
-    "en": "Legendary Java left in the jungle. Several sections (Kongs, Money Trees, Speed ​​Reef).",
-    "es": "El Java legendario abandonado en la jungla. Varias secciones (Kongs, Money Trees, Speed ​​Reef).",
-    "pt": "O lendário Java foi deixado na selva. Várias seções (Kongs, Money Trees, Speed ​​​​Reef)."
+    "en": "Java's legendary left, deep in the jungle. Several sections (Kongs, Money Trees, Speed Reef).",
+    "es": "La izquierda legendaria de Java, en plena selva. Varias secciones (Kongs, Money Trees, Speed Reef).",
+    "pt": "A esquerda lendária de Java, no meio da selva. Várias secções (Kongs, Money Trees, Speed Reef)."
   },
   "mentawai-macaronis": {
-    "en": "The most fun wave in Mentawai. Perfect and playable left.",
-    "es": "La ola más divertida de Mentawai. Izquierda perfecta y jugable.",
-    "pt": "A onda mais divertida do Mentawai. Esquerda perfeita e jogável."
+    "en": "The most fun wave in the Mentawais. Perfect, playful left.",
+    "es": "La ola más divertida de las Mentawai. Izquierda perfecta y muy surfeable.",
+    "pt": "A onda mais divertida das Mentawai. Esquerda perfeita e muito surfável."
   },
   "mentawai-lance-right": {
-    "en": "Powerful and tubular right of the Mentawai. World-class.",
-    "es": "Potente y tubular derecha del Mentawai. De clase mundial.",
-    "pt": "Direita poderosa e tubular do Mentawai. De classe mundial."
+    "en": "Powerful, tubing right in the Mentawais. World-class.",
+    "es": "Derecha potente y tubera de las Mentawai. De nivel mundial.",
+    "pt": "Direita potente e tubular das Mentawai. De classe mundial."
   },
   "nias-sorake": {
-    "en": "Mechanical and powerful right of the island of Nias. Barrel machine.",
-    "es": "Mecánico y potente derecho de la isla de Nias. Máquina de barriles.",
-    "pt": "Direita mecânica e poderosa da ilha de Nias. Máquina de barril."
+    "en": "Mechanical, powerful right on Nias island. A barrel machine.",
+    "es": "Derecha mecánica y potente de la isla de Nias. Una máquina de tubos.",
+    "pt": "Direita mecânica e potente da ilha de Nias. Uma máquina de tubos."
   },
   "snapper-rocks": {
-    "en": "World famous point break. Start of the Superbank, perfect right.",
-    "es": "Mundialmente famoso point break. Inicio del Superbank, perfecto derecho.",
-    "pt": "Mundialmente famoso point break. Início do Superbanco, perfeito né."
+    "en": "World-famous point break. Start of the Superbank, a perfect right.",
+    "es": "Point break de fama mundial. Inicio del Superbank, una derecha perfecta.",
+    "pt": "Point break de fama mundial. Início do Superbank, uma direita perfeita."
   },
   "kirra": {
-    "en": "Perfect Gold Coast barrel. Long, hollow tube when the sandbanks are good.",
-    "es": "Barril perfecto de Gold Coast. Tubo largo y hueco cuando los arenales son buenos.",
-    "pt": "Barril Gold Coast perfeito. Tubo longo e oco quando os bancos de areia estão bons."
+    "en": "The Gold Coast's perfect barrel. Long, hollow tube when the sandbanks are good.",
+    "es": "El tubo perfecto de la Gold Coast. Largo y hueco cuando los bancos de arena están bien.",
+    "pt": "O tubo perfeito da Gold Coast. Longo e cavado quando os bancos de areia estão bons."
   },
   "burleigh-heads": {
-    "en": "Point break on a rock background. Powerful right with a nice barrel section.",
-    "es": "Point break sobre un fondo de roca. Potente derecha con una bonita sección del cañón.",
-    "pt": "Point break sobre fundo rochoso. Direita poderosa com uma bela seção de cano."
+    "en": "Point break over a rocky bottom. Powerful right with a nice barrel section.",
+    "es": "Point break sobre fondo de roca. Derecha potente con una buena sección de tubo.",
+    "pt": "Point break sobre fundo de pedra. Direita potente com uma boa secção de tubo."
   },
   "noosa-heads": {
-    "en": "Longboard paradise. Long, gentle straights along the headland.",
-    "es": "El paraíso del longboard. Largas y suaves rectas a lo largo del promontorio.",
-    "pt": "Paraíso do longboard. Retas longas e suaves ao longo do promontório."
+    "en": "Longboard paradise. Long, gentle rights along the headland.",
+    "es": "El paraíso del longboard. Derechas largas y suaves a lo largo del cabo.",
+    "pt": "O paraíso do longboard. Direitas longas e suaves ao longo do promontório."
   },
   "bondi-beach": {
-    "en": "Australia's most iconic beach. Beach break accessible and consistent.",
-    "es": "La playa más emblemática de Australia. Beach break accesible y consistente.",
-    "pt": "A praia mais icônica da Austrália. Beach break acessível e consistente."
+    "en": "Australia's most iconic beach. Accessible, consistent beach break.",
+    "es": "La playa más emblemática de Australia. Beach break accesible y constante.",
+    "pt": "A praia mais icónica da Austrália. Beach break acessível e consistente."
   },
   "manly-beach": {
-    "en": "Beach break historic Sydney. Fun and accessible by ferry.",
-    "es": "Beach break Sídney histórico. Divertido y accesible en ferry.",
-    "pt": "Beach break histórica Sydney. Divertido e acessível por ferry."
+    "en": "Sydney's historic beach break. Fun and reachable by ferry.",
+    "es": "El beach break histórico de Sídney. Divertido y accesible en ferry.",
+    "pt": "O beach break histórico de Sydney. Divertido e acessível de ferry."
   },
   "bells-beach": {
-    "en": "Legendary spot on the Great Ocean Road. Home to the Rip Curl Pro since 1961.",
-    "es": "Lugar legendario en la Great Ocean Road. Hogar del Rip Curl Pro desde 1961.",
-    "pt": "Local lendário na Great Ocean Road. Lar do Rip Curl Pro desde 1961."
+    "en": "Legendary spot on the Great Ocean Road. Home of the Rip Curl Pro since 1961.",
+    "es": "Spot legendario de la Great Ocean Road. Sede del Rip Curl Pro desde 1961.",
+    "pt": "Spot lendário da Great Ocean Road. Recebe o Rip Curl Pro desde 1961."
   },
   "margaret-river": {
-    "en": "West Coast powerhouse reef break. Hosts the CT WSL. Shark waters.",
-    "es": "La potencia de la costa oeste reef break. Es sede del CT WSL. Aguas de tiburones.",
-    "pt": "Potência da Costa Oeste reef break. Hospeda o CT WSL. Águas de tubarão."
+    "en": "Powerful reef break on the west coast. Hosts the WSL CT. Shark waters.",
+    "es": "Reef break potente de la costa oeste. Sede del CT de la WSL. Aguas con tiburones.",
+    "pt": "Reef break potente da costa oeste. Recebe o CT da WSL. Águas com tubarões."
   },
   "north-narrabeen": {
-    "en": "Quality point break in Sydney's Northern Beaches.",
-    "es": "Calidad point break en las playas del norte de Sydney.",
-    "pt": "Qualidade point break nas praias do norte de Sydney."
+    "en": "Quality point break on Sydney's Northern Beaches.",
+    "es": "Point break de calidad en las Northern Beaches de Sídney.",
+    "pt": "Point break de qualidade nas Northern Beaches de Sydney."
   },
   "pipeline": {
-    "en": "The most famous wave in the world. Perfect tube on shallow coral reef.",
-    "es": "La ola más famosa del mundo. Tubo perfecto en arrecifes de coral poco profundos.",
-    "pt": "A onda mais famosa do mundo. Tubo perfeito em recifes de corais rasos."
+    "en": "The most famous wave in the world. Perfect barrel over shallow coral reef.",
+    "es": "La ola más famosa del mundo. Tubo perfecto sobre arrecife de coral poco profundo.",
+    "pt": "A onda mais famosa do mundo. Tubo perfeito sobre recife de coral raso."
   },
   "sunset-beach": {
-    "en": "Big wave historic spot. Shifty and powerful, the surfer's ultimate test.",
-    "es": "Lugar histórico de big wave. Astuto y potente, la prueba definitiva del surfista.",
-    "pt": "Local histórico big wave. Astuto e poderoso, o teste final do surfista."
+    "en": "Historic big-wave spot. Shifty and powerful, the surfer's ultimate test.",
+    "es": "Spot histórico de big wave. Cambiante y potente, la prueba definitiva del surfista.",
+    "pt": "Spot histórico de big wave. Instável e potente, o teste supremo do surfista."
   },
   "waimea-bay": {
-    "en": "Temple of big wave riding. Only breaks when waves exceed 5m.",
-    "es": "Templo de big wave montando. Sólo rompe cuando las olas superan los 5m.",
-    "pt": "Templo de equitação big wave. Só quebra quando as ondas ultrapassam os 5m."
+    "en": "The temple of big-wave riding. Only breaks when waves go over 5 m.",
+    "es": "El templo del big wave. Solo rompe cuando las olas superan los 5 m.",
+    "pt": "O templo do big wave. Só rebenta quando as ondas passam dos 5 m."
   },
   "haleiwa": {
-    "en": "Reef break fun at the entrance to the North Shore. Quality right and left.",
-    "es": "Diversión reef break en la entrada de North Shore. Calidad a derecha e izquierda.",
-    "pt": "Reef break diversão na entrada do Litoral Norte. Qualidade à direita e à esquerda."
+    "en": "Fun reef break at the gateway to the North Shore. Quality right and left.",
+    "es": "Reef break divertido a la entrada del North Shore. Derecha e izquierda de calidad.",
+    "pt": "Reef break divertido à entrada do North Shore. Direita e esquerda de qualidade."
   },
   "jaws-peahi": {
-    "en": "One of the biggest big wave spots in the world. Tow-in surfing. Waves of 15-20m.",
-    "es": "Uno de los lugares big wave más grandes del mundo. Surf con remolque. Olas de 15-20m.",
-    "pt": "Um dos maiores spots big wave do mundo. Surf de reboque. Ondas de 15-20m."
+    "en": "One of the biggest big-wave spots in the world. Tow-in surfing. Waves of 15 to 20 m.",
+    "es": "Uno de los spots de big wave más grandes del mundo. Surf remolcado (tow-in). Olas de 15 a 20 m.",
+    "pt": "Um dos maiores spots de big wave do mundo. Surf rebocado (tow-in). Ondas de 15 a 20 m."
   },
   "honolua-bay": {
-    "en": "Perfect right into a protected bay. World-class when conditions align.",
-    "es": "Perfecto justo en una bahía protegida. Clase mundial cuando las condiciones se alinean.",
-    "pt": "Perfeito em uma baía protegida. De classe mundial quando as condições se alinham."
+    "en": "Perfect right in a sheltered bay. World-class when everything lines up.",
+    "es": "Derecha perfecta en una bahía resguardada. De nivel mundial cuando todo se alinea.",
+    "pt": "Direita perfeita numa baía abrigada. De classe mundial quando tudo se alinha."
   },
   "trestles": {
-    "en": "The best wave in Southern California. High performance point break cobblestone.",
-    "es": "La mejor ola del sur de California. Adoquín point break de altas prestaciones.",
-    "pt": "A melhor onda do sul da Califórnia. Paralelepípedo point break de alto desempenho."
+    "en": "The best wave in Southern California. High-performance cobblestone point break.",
+    "es": "La mejor ola del sur de California. Point break de cantos rodados para surf de alto nivel.",
+    "pt": "A melhor onda do sul da Califórnia. Point break de calhau rolado para surf de alto nível."
   },
   "rincon": {
-    "en": "The queen of the Californian rights. Point break long and mechanical.",
+    "en": "The queen of Californian rights. Long, mechanical point break.",
     "es": "La reina de las derechas californianas. Point break largo y mecánico.",
-    "pt": "A rainha dos direitos californianos. Point break longo e mecânico."
+    "pt": "A rainha das direitas californianas. Point break longo e mecânico."
   },
   "mavericks": {
-    "en": "Big wave legendary NorCal spot. Massive waves, cold water, white sharks.",
-    "es": "Big wave lugar legendario de NorCal. Olas enormes, agua fría, tiburones blancos.",
-    "pt": "Big wave lendário local NorCal. Ondas enormes, água fria, tubarões brancos."
+    "en": "Legendary NorCal big-wave spot. Massive waves, cold water, great white sharks.",
+    "es": "Spot legendario de big wave en el norte de California. Olas enormes, agua fría, tiburones blancos.",
+    "pt": "Spot lendário de big wave no norte da Califórnia. Ondas enormes, água fria, tubarões-brancos."
   },
   "huntington-beach": {
-    "en": "Surf CityUSA. Iconic beach break at the foot of the pier.",
-    "es": "Surf CityEstados Unidos. Icónico beach break al pie del muelle.",
-    "pt": "Surf City EUA. Icônico beach break ao pé do cais."
+    "en": "Surf City USA. Iconic beach break by the pier.",
+    "es": "Surf City USA. Beach break emblemático junto al muelle.",
+    "pt": "Surf City USA. Beach break emblemático junto ao pontão."
   },
   "blacks-beach": {
-    "en": "The best beach break in San Diego. Located at the foot of impressive cliffs.",
-    "es": "El mejor beach break de San Diego. Situada al pie de impresionantes acantilados.",
-    "pt": "O melhor beach break de San Diego. Situada no sopé de impressionantes falésias."
+    "en": "The best beach break in San Diego, at the foot of towering cliffs.",
+    "es": "El mejor beach break de San Diego, al pie de acantilados impresionantes.",
+    "pt": "O melhor beach break de San Diego, no sopé de falésias impressionantes."
   },
   "steamer-lane": {
-    "en": "Point break emblematic of Santa Cruz. Quality left in front of the surf museum.",
-    "es": "Point break emblemático de Santa Cruz. Calidad dejada frente al museo del surf.",
-    "pt": "Point break emblemático de Santa Cruz. Qualidade deixada em frente ao museu do surf."
+    "en": "Santa Cruz's iconic point break. Quality left in front of the surf museum.",
+    "es": "El point break emblemático de Santa Cruz. Izquierda de calidad frente al museo del surf.",
+    "pt": "O point break emblemático de Santa Cruz. Esquerda de qualidade em frente ao museu do surf."
   },
   "malibu-surfrider": {
-    "en": "The birthplace of Californian surfing. Long and easy straight, longboard paradise.",
-    "es": "La cuna del surf californiano. Recta larga y fácil, el paraíso del longboard.",
-    "pt": "O berço do surf californiano. Reta longa e fácil, paraíso do longboard."
+    "en": "The birthplace of Californian surfing. Long, easy right, a longboard paradise.",
+    "es": "La cuna del surf californiano. Derecha larga y fácil, un paraíso del longboard.",
+    "pt": "O berço do surf californiano. Direita longa e fácil, um paraíso do longboard."
   },
   "witch-rock": {
-    "en": "Wild beach break accessible only by boat. Spotlight from “Endless Summer II”.",
-    "es": "Beach break salvaje accesible sólo en barco. Foco de “Endless Summer II”.",
-    "pt": "Wild beach break acessível apenas por barco. Destaque de “Endless Summer II”."
+    "en": "Wild beach break reachable only by boat. Featured in “The Endless Summer II”.",
+    "es": "Beach break salvaje accesible solo en barco. Aparece en “The Endless Summer II”.",
+    "pt": "Beach break selvagem acessível só de barco. Aparece em “The Endless Summer II”."
   },
   "playa-grande-cr": {
     "en": "Quality beach break facing the Pacific. Leatherback turtles in season.",
-    "es": "Calidad beach break frente al Pacífico. Tortugas laúd en temporada.",
-    "pt": "Qualidade beach break voltada para o Pacífico. Tartarugas de couro na temporada."
+    "es": "Beach break de calidad frente al Pacífico. Tortugas laúd en temporada.",
+    "pt": "Beach break de qualidade virado ao Pacífico. Tartarugas-de-couro na época."
   },
   "santa-teresa": {
-    "en": "Beach break consisting of the Nicoya Peninsula. Hippie-chic atmosphere.",
-    "es": "Beach break conformado por la Península de Nicoya. Ambiente hippie-chic.",
-    "pt": "Beach break consistindo na Península de Nicoya. Atmosfera hippie chique."
+    "en": "Consistent beach break on the Nicoya Peninsula. Hippie-chic vibe.",
+    "es": "Beach break constante de la península de Nicoya. Ambiente hippie chic.",
+    "pt": "Beach break consistente da península de Nicoya. Ambiente hippie chique."
   },
   "pavones": {
-    "en": "The second longest left in the world. Point break of mythical river.",
-    "es": "La segunda izquierda más larga del mundo. Point break del río mítico.",
-    "pt": "A segunda esquerda mais longa do mundo. Point break do rio mítico."
+    "en": "The second-longest left in the world. Legendary river-mouth point break.",
+    "es": "La segunda izquierda más larga del mundo. Point break mítico junto a un río.",
+    "pt": "A segunda esquerda mais longa do mundo. Point break mítico junto a um rio."
   },
   "jeffreys-bay": {
-    "en": "The best right in the world. Legendary 500m+ point break with perfect sections.",
-    "es": "La mejor derecha del mundo. Legendario point break de 500m+ con secciones perfectas.",
-    "pt": "A melhor direita do mundo. Lendário 500m+ point break com seções perfeitas."
+    "en": "The best right in the world. Legendary point break over 500 m long with perfect sections.",
+    "es": "La mejor derecha del mundo. Point break legendario de más de 500 m con secciones perfectas.",
+    "pt": "A melhor direita do mundo. Point break lendário com mais de 500 m e secções perfeitas."
   },
   "muizenberg": {
-    "en": "Cradle of South African surfing. Beach break sweet, recognizable by its colorful cabins.",
-    "es": "Cuna del surf sudafricano. Beach break dulce, reconocible por sus coloridas cabañas.",
-    "pt": "Berço do surf sul-africano. Beach break doce, reconhecível pelas suas cabines coloridas."
+    "en": "The cradle of South African surfing. Gentle beach break, known for its colourful beach huts.",
+    "es": "La cuna del surf sudafricano. Beach break suave, reconocible por sus casetas de colores.",
+    "pt": "O berço do surf sul-africano. Beach break suave, conhecido pelas cabanas coloridas."
   },
   "dungeons": {
-    "en": "Big wave spot at the foot of the Sentinel. One of the scariest spots in the world.",
-    "es": "Lugar big wave al pie del Sentinel. Uno de los lugares más aterradores del mundo.",
-    "pt": "Local big wave ao pé do Sentinela. Um dos lugares mais assustadores do mundo."
+    "en": "Big-wave spot at the foot of the Sentinel. One of the scariest spots in the world.",
+    "es": "Spot de big wave al pie del Sentinel. Uno de los spots más temibles del mundo.",
+    "pt": "Spot de big wave no sopé do Sentinel. Um dos spots mais assustadores do mundo."
   },
   "durban-north-beach": {
-    "en": "Beach break hot from Durban. Anti-shark nets. Hot water all year round.",
-    "es": "Beach break caliente desde Durban. Redes antitiburones. Agua caliente todo el año.",
-    "pt": "Beach break quente de Durban. Redes anti-tubarões. Água quente o ano todo."
+    "en": "Durban's warm-water beach break. Shark nets. Warm water all year round.",
+    "es": "Beach break de aguas cálidas de Durban. Redes antitiburones. Agua cálida todo el año.",
+    "pt": "Beach break de águas quentes de Durban. Redes anti-tubarão. Água quente todo o ano."
   },
   "puerto-escondido": {
-    "en": "The “Mexican Pipeline”. Beach break giant, the most powerful in the world.",
-    "es": "El “Oleoducto Mexicano”. Gigante beach break, el más poderoso del mundo.",
-    "pt": "O “Oleoduto Mexicano”. Gigante beach break, o mais poderoso do mundo."
+    "en": "The “Mexican Pipeline”. Giant beach break, the most powerful in the world.",
+    "es": "El “Pipeline mexicano”. Beach break gigante, el más potente del mundo.",
+    "pt": "O “Pipeline mexicano”. Beach break gigante, o mais potente do mundo."
   },
   "sayulita": {
-    "en": "Point break fun in a hippie village. Long and accessible straight.",
-    "es": "Point break diversión en un pueblo hippie. Recta larga y accesible.",
-    "pt": "Point break diversão em uma vila hippie. Reto longo e acessível."
+    "en": "Fun point break in a hippie village. Long, accessible right.",
+    "es": "Point break divertido en un pueblo hippie. Derecha larga y accesible.",
+    "pt": "Point break divertido numa vila hippie. Direita longa e acessível."
   },
   "pascuales": {
-    "en": "Beach break giant of the Pacific coast. Massive and powerful waves.",
-    "es": "Beach break gigante de la costa del Pacífico. Olas masivas y poderosas.",
-    "pt": "Beach break gigante da costa do Pacífico. Ondas enormes e poderosas."
+    "en": "Giant beach break on the Pacific coast. Massive, powerful waves.",
+    "es": "Beach break gigante de la costa del Pacífico. Olas enormes y potentes.",
+    "pt": "Beach break gigante da costa do Pacífico. Ondas enormes e potentes."
   },
   "barra-de-la-cruz": {
-    "en": "Point break CT WSL quality. Perfect straight on a sand/rock bottom.",
-    "es": "Calidad point break CT WSL. Perfecta recta sobre fondo de arena/roca.",
-    "pt": "Qualidade point break CT WSL. Perfeito direto em um fundo de areia/rocha."
+    "en": "WSL CT-quality point break. Perfect right over sand and rock.",
+    "es": "Point break con nivel de CT de la WSL. Derecha perfecta sobre fondo de arena y roca.",
+    "pt": "Point break com nível de CT da WSL. Direita perfeita sobre fundo de areia e pedra."
   },
   "saquarema": {
-    "en": "The Maracanã of Brazilian surfing. Beach break in front of the church. CT WSL spot.",
-    "es": "El Maracaná del surf brasileño. Beach break frente a la iglesia. Lugar CT WSL.",
-    "pt": "O Maracanã do surf brasileiro. Beach break em frente à igreja. Local CT WSL."
+    "en": "The Maracanã of Brazilian surfing. Beach break in front of the church. WSL CT venue.",
+    "es": "El Maracaná del surf brasileño. Beach break frente a la iglesia. Sede del CT de la WSL.",
+    "pt": "O Maracanã do surf brasileiro. Beach break em frente à igreja. Recebe o CT da WSL."
   },
   "florianopolis-joaquina": {
     "en": "The most consistent spot in southern Brazil. Powerful beach break.",
-    "es": "El spot más consistente del sur de Brasil. Potente beach break.",
-    "pt": "O ponto mais consistente do sul do Brasil. Poderoso beach break."
+    "es": "El spot más constante del sur de Brasil. Beach break potente.",
+    "pt": "O spot mais consistente do sul do Brasil. Beach break potente."
   },
   "chicama": {
-    "en": "The longest left in the world. Point break of 2km+ with 4 distinct sections.",
-    "es": "La izquierda más larga del mundo. Point break de 2km+ con 4 tramos diferenciados.",
-    "pt": "A esquerda mais longa do mundo. Point break de 2km+ com 4 troços distintos."
+    "en": "The longest left in the world. Point break over 2 km long with 4 distinct sections.",
+    "es": "La izquierda más larga del mundo. Point break de más de 2 km con 4 secciones distintas.",
+    "pt": "A esquerda mais longa do mundo. Point break com mais de 2 km e 4 secções distintas."
   },
   "punta-hermosa": {
-    "en": "The Lima competition spot. Several quality peaks on a rocky bottom.",
-    "es": "El lugar de competencia de Lima. Varios picos de calidad sobre un fondo rocoso.",
-    "pt": "O local de competição de Lima. Vários picos de qualidade num fundo rochoso."
+    "en": "Lima's competition spot. Several quality peaks over a rocky bottom.",
+    "es": "El spot de competición de Lima. Varios picos de calidad sobre fondo de roca.",
+    "pt": "O spot de competição de Lima. Vários picos de qualidade sobre fundo de pedra."
   },
   "punta-de-lobos": {
-    "en": "Big wave spot and legendary point break from Chile. Powerful left.",
-    "es": "Spot de big wave y legendario point break de Chile. Una izquierda poderosa.",
-    "pt": "Spot big wave e lendário point break do Chile. Esquerda poderosa."
+    "en": "Chile's legendary big-wave spot and point break. Powerful left.",
+    "es": "Spot de big wave y point break legendario de Chile. Izquierda potente.",
+    "pt": "Spot de big wave e point break lendário do Chile. Esquerda potente."
   },
   "cloudbreak": {
-    "en": "World class left off Tavarua. Perfect tube on coral reef.",
-    "es": "La clase mundial quedó fuera de Tavarua. Tubo perfecto en arrecife de coral.",
-    "pt": "A classe mundial deixou Tavarua. Tubo perfeito no recife de coral."
+    "en": "World-class left off Tavarua. Perfect barrel over coral reef.",
+    "es": "Izquierda de nivel mundial frente a Tavarua. Tubo perfecto sobre arrecife de coral.",
+    "pt": "Esquerda de classe mundial ao largo de Tavarua. Tubo perfeito sobre recife de coral."
   },
   "restaurants-fiji": {
-    "en": "Fun and accessible right near Tavarua. The alternative to Cloudbreak.",
-    "es": "Diversión y accesible justo cerca de Tavarua. La alternativa a Cloudbreak.",
-    "pt": "Divertido e acessível perto de Tavarua. A alternativa ao Cloudbreak."
+    "en": "Fun, accessible right near Tavarua. The alternative to Cloudbreak.",
+    "es": "Derecha divertida y accesible cerca de Tavarua. La alternativa a Cloudbreak.",
+    "pt": "Direita divertida e acessível perto de Tavarua. A alternativa ao Cloudbreak."
   },
   "teahupoo": {
-    "en": "The thickest and most powerful wave in the world. Giant tube on coral reef. 2024 Olympic spot.",
-    "es": "La ola más gruesa y poderosa del mundo. Tubo gigante sobre arrecife de coral. Plaza olímpica 2024.",
-    "pt": "A onda mais espessa e poderosa do mundo. Tubo gigante no recife de coral. Local olímpico de 2024."
+    "en": "The thickest, most powerful wave in the world. Giant barrel over coral reef. 2024 Olympic venue.",
+    "es": "La ola más gruesa y potente del mundo. Tubo gigante sobre arrecife de coral. Sede olímpica en 2024.",
+    "pt": "A onda mais grossa e potente do mundo. Tubo gigante sobre recife de coral. Palco olímpico em 2024."
   },
   "sultans": {
-    "en": "Mechanical right on coral reef. The most famous spot in the Maldives.",
-    "es": "Derecho mecánico sobre arrecife de coral. El lugar más famoso de las Maldivas.",
-    "pt": "Direito mecânico no recife de coral. O local mais famoso das Maldivas."
+    "en": "Mechanical right over coral reef. The most famous spot in the Maldives.",
+    "es": "Derecha mecánica sobre arrecife de coral. El spot más famoso de Maldivas.",
+    "pt": "Direita mecânica sobre recife de coral. O spot mais famoso das Maldivas."
   },
   "pasta-point": {
     "en": "Perfect left with exclusive access. The most consistent barrel in the Maldives.",
-    "es": "Perfecta izquierda con acceso exclusivo. El barril más consistente de las Maldivas.",
-    "pt": "Sobrado perfeito com acesso exclusivo. O barril mais consistente das Maldivas."
+    "es": "Izquierda perfecta con acceso exclusivo. El tubo más constante de Maldivas.",
+    "pt": "Esquerda perfeita com acesso exclusivo. O tubo mais consistente das Maldivas."
   },
   "arugam-bay": {
-    "en": "The most famous spot in Sri Lanka. Long and fun straight into a bay.",
-    "es": "El lugar más famoso de Sri Lanka. Largo y divertido directo a una bahía.",
-    "pt": "O local mais famoso do Sri Lanka. Longo e divertido direto para uma baía."
+    "en": "The most famous spot in Sri Lanka. Long, fun right in a bay.",
+    "es": "El spot más famoso de Sri Lanka. Derecha larga y divertida en una bahía.",
+    "pt": "O spot mais famoso do Sri Lanka. Direita longa e divertida numa baía."
   },
   "tsurigasaki": {
-    "en": "Tokyo 2020 Olympic spot. Beach break consisting of the Boso Peninsula.",
-    "es": "Plaza olímpica de Tokio 2020. Beach break formado por la Península de Boso.",
-    "pt": "Local olímpico Tóquio 2020. Beach break constituído pela Península de Boso."
+    "en": "Tokyo 2020 Olympic venue. Consistent beach break on the Boso Peninsula.",
+    "es": "Sede olímpica de Tokio 2020. Beach break constante de la península de Boso.",
+    "pt": "Palco olímpico de Tóquio 2020. Beach break consistente da península de Boso."
   },
   "praia-santa-barbara-azores": {
-    "en": "The most consistent spot in the Azores. Beach break volcanic on São Miguel.",
-    "es": "El spot más consistente de las Azores. Beach break volcánico en São Miguel.",
-    "pt": "O spot mais consistente dos Açores. Vulcânico beach break em São Miguel."
+    "en": "The most consistent spot in the Azores. Volcanic beach break on São Miguel.",
+    "es": "El spot más constante de las Azores. Beach break volcánico en São Miguel.",
+    "pt": "O spot mais consistente dos Açores. Beach break vulcânico em São Miguel."
   },
   "raglan": {
-    "en": "The longest left in New Zealand. Spot from “Endless Summer”.",
-    "es": "La izquierda más larga de Nueva Zelanda. Spot de “Verano sin fin”.",
-    "pt": "O mais longo saiu na Nova Zelândia. Spot de “Verão Sem Fim”."
+    "en": "The longest left in New Zealand. Featured in “The Endless Summer”.",
+    "es": "La izquierda más larga de Nueva Zelanda. Aparece en “The Endless Summer”.",
+    "pt": "A esquerda mais longa da Nova Zelândia. Aparece em “The Endless Summer”."
   },
   "capo-mannu": {
-    "en": "The best spot in the Mediterranean. Reef break exposed facing the Mistral.",
-    "es": "El mejor lugar del Mediterráneo. Reef break expuesto frente al Mistral.",
-    "pt": "O melhor local do Mediterrâneo. Reef break exposto de frente para o Mistral."
+    "en": "The best spot in the Mediterranean. Reef break exposed to the mistral.",
+    "es": "El mejor spot del Mediterráneo. Reef break expuesto al mistral.",
+    "pt": "O melhor spot do Mediterrâneo. Reef break exposto ao mistral."
   },
   "mullaghmore": {
-    "en": "Big wave Irish spot. Powerful left at the foot of a castle. Freezing water.",
-    "es": "Big wave Spot irlandés. Potente izquierda al pie de un castillo. Agua helada.",
-    "pt": "Big wave Local irlandês. Poderosa esquerda ao pé de um castelo. Água gelada."
+    "en": "Irish big-wave spot. Powerful left at the foot of a castle. Freezing water.",
+    "es": "Spot de big wave irlandés. Izquierda potente al pie de un castillo. Agua helada.",
+    "pt": "Spot de big wave irlandês. Esquerda potente no sopé de um castelo. Água gelada."
   },
   "bundoran-peak": {
-    "en": "The most consistent spot in Ireland. Quality A-frame on flat reef.",
-    "es": "El lugar más consistente de Irlanda. Estructura en A de calidad sobre arrecife plano.",
-    "pt": "O local mais consistente da Irlanda. Estrutura em A de qualidade em recife plano."
+    "en": "The most consistent spot in Ireland. Quality A-frame over a flat reef.",
+    "es": "El spot más constante de Irlanda. Pico en A de calidad sobre arrecife plano.",
+    "pt": "O spot mais consistente da Irlanda. Pico em A de qualidade sobre recife plano."
   },
   "fistral-beach": {
-    "en": "The most famous spot in England. Beach break of Newquay, consistent.",
-    "es": "El lugar más famoso de Inglaterra. Beach break de Newquay, consistente.",
-    "pt": "O local mais famoso da Inglaterra. Beach break de Newquay, consistente."
+    "en": "The best-known spot in England. Newquay's consistent beach break.",
+    "es": "El spot más conocido de Inglaterra. Beach break constante de Newquay.",
+    "pt": "O spot mais conhecido de Inglaterra. Beach break consistente de Newquay."
   },
   "thurso-east": {
-    "en": "World-class right in Scotland. Reef break perfect but freezing water.",
-    "es": "Derecho de clase mundial en Escocia. Reef break agua perfecta pero helada.",
-    "pt": "Direito de classe mundial na Escócia. Reef break água perfeita, mas gelada."
+    "en": "World-class right in Scotland. Perfect reef break, but freezing water.",
+    "es": "Derecha de nivel mundial en Escocia. Reef break perfecto, pero agua helada.",
+    "pt": "Direita de classe mundial na Escócia. Reef break perfeito, mas água gelada."
   },
   "siargao-cloud9": {
-    "en": "The best straight in Southeast Asia. Perfect tube on coral reef.",
-    "es": "La mejor recta del Sudeste Asiático. Tubo perfecto en arrecife de coral.",
-    "pt": "A melhor reta do Sudeste Asiático. Tubo perfeito no recife de coral."
+    "en": "The best right in Southeast Asia. Perfect barrel over coral reef.",
+    "es": "La mejor derecha del Sudeste Asiático. Tubo perfecto sobre arrecife de coral.",
+    "pt": "A melhor direita do Sudeste Asiático. Tubo perfeito sobre recife de coral."
   },
   "ngor-right": {
-    "en": "Quality right facing the island of N'Gor. The best spot in West Africa.",
-    "es": "Calidad justo frente a la isla de N'Gor. El mejor lugar de África Occidental.",
-    "pt": "Qualidade de frente para a ilha de N'Gor. O melhor local da África Ocidental."
+    "en": "Quality right facing N'Gor island. The best spot in West Africa.",
+    "es": "Derecha de calidad frente a la isla de N'Gor. El mejor spot de África Occidental.",
+    "pt": "Direita de qualidade em frente à ilha de N'Gor. O melhor spot da África Ocidental."
   },
   "kovalam": {
-    "en": "The most famous spot in India. Point break accessible and fun.",
-    "es": "El lugar más famoso de la India. Point break accesible y divertido.",
-    "pt": "O local mais famoso da Índia. Point break acessível e divertido."
+    "en": "The best-known spot in India. Fun, accessible point break.",
+    "es": "El spot más conocido de la India. Point break accesible y divertido.",
+    "pt": "O spot mais conhecido da Índia. Point break acessível e divertido."
   },
   "skeleton-bay": {
-    "en": "Infinite tubular left in the desert. One of the longest barrels in the world.",
-    "es": "Tubular infinito abandonado en el desierto. Uno de los barriles más largos del mundo.",
-    "pt": "Tubular infinito deixado no deserto. Um dos barris mais longos do mundo."
+    "en": "Endless tubing left in the desert. One of the longest barrels in the world.",
+    "es": "Izquierda tubera interminable en pleno desierto. Uno de los tubos más largos del mundo.",
+    "pt": "Esquerda tubular interminável no deserto. Um dos tubos mais longos do mundo."
   },
   "jardim-do-mar": {
-    "en": "Big wave Madeira spot. Powerful right in front of the village.",
-    "es": "Big wave Lugar de Madeira. Potente justo enfrente del pueblo.",
-    "pt": "Big wave Local Madeira. Poderoso mesmo em frente à aldeia."
+    "en": "Madeira's big-wave spot. Powerful right in front of the village.",
+    "es": "El spot de big wave de Madeira. Derecha potente frente al pueblo.",
+    "pt": "O spot de big wave da Madeira. Direita potente em frente à aldeia."
   },
   "punta-roca": {
-    "en": "The best right in Central America. Point break on rocky bottom.",
-    "es": "La mejor derecha de Centroamérica. Point break sobre fondo rocoso.",
-    "pt": "A melhor direita da América Central. Point break em fundo rochoso."
+    "en": "The best right in Central America. Point break over a rocky bottom.",
+    "es": "La mejor derecha de Centroamérica. Point break sobre fondo de roca.",
+    "pt": "A melhor direita da América Central. Point break sobre fundo de pedra."
   },
   "popoyo": {
-    "en": "The most consistent spot in Nicaragua. Reef break accessible and quality.",
-    "es": "El spot más consistente de Nicaragua. Reef break accesible y de calidad.",
-    "pt": "O local mais consistente da Nicarágua. Reef break acessível e de qualidade."
+    "en": "The most consistent spot in Nicaragua. Accessible, quality reef break.",
+    "es": "El spot más constante de Nicaragua. Reef break accesible y de calidad.",
+    "pt": "O spot mais consistente da Nicarágua. Reef break acessível e de qualidade."
   },
   "santa-catalina": {
-    "en": "The best spot in Panama. Point break quality in a preserved setting.",
-    "es": "El mejor lugar de Panamá. Calidad point break en un entorno preservado.",
-    "pt": "O melhor lugar do Panamá. Qualidade point break em ambiente preservado."
+    "en": "The best spot in Panama. Quality point break in an unspoilt setting.",
+    "es": "El mejor spot de Panamá. Point break de calidad en un entorno virgen.",
+    "pt": "O melhor spot do Panamá. Point break de qualidade num cenário preservado."
   },
   "taitung-jinzun": {
-    "en": "CT WSL spot from Taiwan. Point break quality on the east coast.",
-    "es": "Anuncio CT WSL de Taiwán. Calidad point break en la costa este.",
-    "pt": "Local CT WSL de Taiwan. Qualidade point break na costa leste."
-  },
-  "nazare-norte": {
-    "en": "Legendary big wave. Underwater canyon amplifies the swell. Reserved for pros and tow-ins.",
-    "es": "El legendario big wave. El cañón submarino amplifica el oleaje. Reservado para profesionales y remolques.",
-    "pt": "Lendário big wave. O cânion subaquático amplifica o swell. Reservado para profissionais e rebocadores."
-  },
-  "lacanau-ocean": {
-    "en": "Historic spot in the Landes. Long beach with many peaks, very busy.",
-    "es": "Lugar histórico de las Landas. Playa larga con muchos picos, muy concurrida.",
-    "pt": "Local histórico nas Landes. Praia extensa com muitos picos, muito movimentada."
+    "en": "Taiwan's WSL CT spot. Quality point break on the east coast.",
+    "es": "El spot del CT de la WSL en Taiwán. Point break de calidad en la costa este.",
+    "pt": "O spot do CT da WSL em Taiwan. Point break de qualidade na costa leste."
   },
   "moliets": {
-    "en": "Great family beach. Beach break soft, ideal for learning.",
+    "en": "Large family beach. Gentle beach break, ideal for learning.",
     "es": "Gran playa familiar. Beach break suave, ideal para aprender.",
-    "pt": "Ótima praia familiar. Beach break macio, ideal para aprender."
+    "pt": "Grande praia familiar. Beach break suave, ideal para aprender."
   },
   "contis": {
-    "en": "Quiet spot with lighthouse. Less crowded than Lacanau, good for starting out.",
-    "es": "Lugar tranquilo con faro. Menos concurrido que Lacanau, bueno para empezar.",
-    "pt": "Local tranquilo com farol. Menos lotado que Lacanau, bom para começar."
+    "en": "Quiet spot with a lighthouse. Less crowded than Lacanau, good for beginners.",
+    "es": "Spot tranquilo con faro. Menos concurrido que Lacanau, bueno para empezar.",
+    "pt": "Spot tranquilo com farol. Menos cheio do que Lacanau, bom para começar."
   },
   "bakio": {
     "en": "Long sandy beach. Lots of peaks, fewer people than in Zarautz.",
-    "es": "Larga playa de arena. Mucho picos, menos gente que en Zarautz.",
-    "pt": "Longa praia de areia. Muitos picos, menos gente que em Zarautz."
+    "es": "Playa larga de arena. Muchos picos, menos gente que en Zarautz.",
+    "pt": "Praia longa de areia. Muitos picos, menos gente do que em Zarautz."
   },
   "razo": {
-    "en": "Beach break quality in Galicia. Facing NW, good with depressions.",
-    "es": "Calidad beach break en Galicia. Orientación NO, buena con depresiones.",
-    "pt": "Qualidade beach break na Galiza. Virado para NO, bom com depressões."
+    "en": "Quality beach break in Galicia. Faces northwest, good with Atlantic lows.",
+    "es": "Beach break de calidad en Galicia. Orientado al noroeste, bueno con las borrascas atlánticas.",
+    "pt": "Beach break de qualidade na Galiza. Virado a noroeste, bom com as depressões atlânticas."
   },
   "doniños": {
-    "en": "Great beach near Ferrol. Fresh water lagoon behind, pleasant setting.",
+    "en": "Large beach near Ferrol. Freshwater lagoon behind it, a pleasant setting.",
     "es": "Gran playa cerca de Ferrol. Laguna de agua dulce detrás, entorno agradable.",
-    "pt": "Ótima praia perto de Ferrol. Lagoa de água doce atrás, ambiente agradável."
+    "pt": "Grande praia perto de Ferrol. Lagoa de água doce atrás, cenário agradável."
   },
   "tamraght-banana": {
-    "en": "Beach break in front of the surf camps. Ideal for lessons and progression.",
-    "es": "Beach break frente a los campamentos de surf. Ideal para lecciones y progresión.",
-    "pt": "Beach break em frente aos surf camps. Ideal para aulas e progressão."
+    "en": "Beach break in front of the surf camps. Ideal for lessons and progressing.",
+    "es": "Beach break frente a los surf camps. Ideal para clases y para progresar.",
+    "pt": "Beach break em frente aos surf camps. Ideal para aulas e para evoluir."
   },
   "taghazout-panoramas": {
-    "en": "Point break between Anchor and Taghazout village. Fewer people, good right.",
-    "es": "Point break entre Anchor y el pueblo de Taghazout. Menos gente, muy bien.",
-    "pt": "Point break entre a aldeia Anchor e Taghazout. Menos gente, bom né."
+    "en": "Point break between Anchor Point and Taghazout village. Fewer people, good right.",
+    "es": "Point break entre Anchor Point y el pueblo de Taghazout. Menos gente, buena derecha.",
+    "pt": "Point break entre Anchor Point e a aldeia de Taghazout. Menos gente, boa direita."
   },
   "bingin": {
-    "en": "Reef break with a view of the cliffs. Right and left, relaxed atmosphere.",
-    "es": "Reef break con vistas a los acantilados. A derecha e izquierda, ambiente relajado.",
-    "pt": "Reef break com vista para as falésias. Direita e esquerda, ambiente descontraído."
+    "en": "Reef break below the cliffs. Rights and lefts, laid-back vibe.",
+    "es": "Reef break con vistas a los acantilados. Derechas e izquierdas, ambiente relajado.",
+    "pt": "Reef break com vista para as falésias. Direitas e esquerdas, ambiente descontraído."
   },
   "impossibles": {
-    "en": "Several peaks on the same reef. Good compromise between power and accessibility.",
-    "es": "Varios picos en un mismo arrecife. Buen compromiso entre potencia y accesibilidad.",
-    "pt": "Vários picos no mesmo recife. Bom compromisso entre potência e acessibilidade."
+    "en": "Several peaks on the same reef. A good balance between power and accessibility.",
+    "es": "Varios picos en el mismo arrecife. Buen equilibrio entre potencia y accesibilidad.",
+    "pt": "Vários picos no mesmo recife. Bom equilíbrio entre potência e acessibilidade."
   },
   "lances-right": {
-    "en": "Perfect right from Mentawai. Long wall and tube section.",
-    "es": "Perfecto desde Mentawai. Sección larga de pared y tubo.",
-    "pt": "Perfeito direto do Mentawai. Seção longa de parede e tubo."
+    "en": "Perfect right in the Mentawais. Long wall and a barrel section.",
+    "es": "Derecha perfecta de las Mentawai. Pared larga y una sección de tubo.",
+    "pt": "Direita perfeita das Mentawai. Parede longa e uma secção de tubo."
   },
   "macaronis": {
-    "en": "Straight fun and handy. One of the most \"surfable\" spots in Mentawai.",
-    "es": "Directamente divertido y práctico. Uno de los lugares más \"surfables\" de Mentawai.",
-    "pt": "Divertido e prático. Um dos spots mais “surfáveis” de Mentawai."
+    "en": "Fun, forgiving right. One of the most surfable spots in the Mentawais.",
+    "es": "Derecha divertida y manejable. Uno de los spots más surfeables de las Mentawai.",
+    "pt": "Direita divertida e fácil de surfar. Um dos spots mais surfáveis das Mentawai."
   },
   "byron-bay-pass": {
-    "en": "Long gentle straight around the cape. Longboard and beginners, chill atmosphere.",
-    "es": "Una recta larga y suave alrededor de la capa. Longboard y principiantes, ambiente relajado.",
-    "pt": "Longo e suave ao redor da capa. Longboard e iniciantes, ambiente descontraído."
+    "en": "Long, gentle right wrapping around the cape. Longboarders and beginners, chilled vibe.",
+    "es": "Derecha larga y suave que rodea el cabo. Longboard y principiantes, ambiente relajado.",
+    "pt": "Direita longa e suave à volta do cabo. Longboard e iniciantes, ambiente descontraído."
   },
   "crescent-head": {
-    "en": "Longboard paradise. Long and regular straight, few people.",
-    "es": "El paraíso del longboard. Recta larga y regular, poca gente.",
-    "pt": "Paraíso do longboard. Reta longa e regular, poucas pessoas."
+    "en": "Longboard paradise. Long, regular right, few people.",
+    "es": "El paraíso del longboard. Derecha larga y regular, poca gente.",
+    "pt": "O paraíso do longboard. Direita longa e regular, pouca gente."
   },
   "yallingup": {
-    "en": "Reef break accessible south of Margaret River. Several peaks.",
-    "es": "Reef break accesible al sur del río Margaret. Varios picos.",
-    "pt": "Reef break acessível ao sul de Margaret River. Vários picos."
-  },
-  "trestles-lowers": {
-    "en": "CT WSL spot. Perfect reef break, right and left of world quality.",
-    "es": "Lugar CT WSL. Perfecto reef break, derecha e izquierda de calidad mundial.",
-    "pt": "Local CT WSL. Perfeito reef break, direita e esquerda de qualidade mundial."
-  },
-  "malibu-first-point": {
-    "en": "Mythical surfing spot. Long smooth straight, longboard paradise.",
-    "es": "Lugar mítico para practicar surf. Largo, suave y recto, el paraíso del longboard.",
-    "pt": "Local mítico de surf. Longo e liso, paraíso do longboard."
-  },
-  "huntington-pier": {
-    "en": "US Open of Surfing. Beach break in front of the pier, very busy.",
-    "es": "Abierto de Surf de Estados Unidos. Beach break frente al muelle, muy transitado.",
-    "pt": "US Open de Surf. Beach break em frente ao cais, muito movimentado."
+    "en": "Accessible reef break south of Margaret River. Several peaks.",
+    "es": "Reef break accesible al sur de Margaret River. Varios picos.",
+    "pt": "Reef break acessível a sul de Margaret River. Vários picos."
   },
   "swamis": {
-    "en": "Point break in front of the temple. Long quality straight line, calm atmosphere.",
-    "es": "Point break frente al templo. Línea recta de larga calidad, ambiente tranquilo.",
-    "pt": "Point break em frente ao templo. Linha reta de longa qualidade, ambiente calmo."
+    "en": "Point break below the temple. Long quality right, mellow vibe.",
+    "es": "Point break frente al templo. Derecha larga de calidad, ambiente tranquilo.",
+    "pt": "Point break em frente ao templo. Direita longa de qualidade, ambiente calmo."
   },
   "long-beach-kommetjie": {
-    "en": "Beach break facing south of Cape Town. Good with S-SW swell.",
-    "es": "Beach break orientado al sur de Ciudad del Cabo. Bueno con oleaje de S-SW.",
-    "pt": "Beach break voltado para o sul da Cidade do Cabo. Bom com ondulação de S-SW."
+    "en": "Exposed beach break south of Cape Town. Good on S to SW swells.",
+    "es": "Beach break expuesto al sur de Ciudad del Cabo. Bueno con swell de S a SO.",
+    "pt": "Beach break exposto a sul da Cidade do Cabo. Bom com ondulação de S a SO."
   },
   "croyde": {
-    "en": "Protected bay, good for learning. Several peaks depending on the benches.",
-    "es": "Bahía protegida, buena para aprender. Varios picos según los bancos.",
-    "pt": "Baía protegida, boa para aprender. Vários picos dependendo das bancadas."
+    "en": "Sheltered bay, good for learning. Several peaks depending on the sandbanks.",
+    "es": "Bahía resguardada, buena para aprender. Varios picos según los bancos de arena.",
+    "pt": "Baía abrigada, boa para aprender. Vários picos conforme os bancos de areia."
   },
   "woolacombe": {
     "en": "Long sandy beach. Ideal for beginners and families.",
-    "es": "Larga playa de arena. Ideal para principiantes y familias.",
-    "pt": "Longa praia de areia. Ideal para iniciantes e famílias."
+    "es": "Playa larga de arena. Ideal para principiantes y familias.",
+    "pt": "Praia longa de areia. Ideal para iniciantes e famílias."
   },
   "lahinch": {
-    "en": "Beach break in a bay. Surf schools, good for getting started.",
-    "es": "Beach break en una bahía. Escuelas de surf, buenas para iniciarse.",
-    "pt": "Beach break em uma baía. Escolas de surf, boas para começar."
-  },
-  "cloud-nine": {
-    "en": "Reef break in the shape of a tube. Flagship spot of the Philippines, WSL QS.",
-    "es": "Reef break en forma de tubo. Spot insignia de Filipinas, WSL QS.",
-    "pt": "Reef break em forma de tubo. Local carro-chefe das Filipinas, WSL QS."
+    "en": "Beach break in a bay. Surf schools, good for beginners.",
+    "es": "Beach break en una bahía. Escuelas de surf, bueno para empezar.",
+    "pt": "Beach break numa baía. Escolas de surf, bom para começar."
   },
   "ichinomiya": {
-    "en": "Tokyo beach. Beach break accessible, spot for the 2020 Olympics.",
-    "es": "Playa de Tokio. Beach break accesible, lugar para los Juegos Olímpicos de 2020.",
-    "pt": "Praia de Tóquio. Beach break acessível, local para as Olimpíadas de 2020."
+    "en": "Tsurigasaki beach in Ichinomiya, 2020 Olympic venue. Consistent, accessible beach break about 1.5 hours from Tokyo.",
+    "es": "Playa de Tsurigasaki en Ichinomiya, sede olímpica de 2020. Beach break constante y accesible, a unas 1 h 30 de Tokio.",
+    "pt": "Praia de Tsurigasaki em Ichinomiya, palco olímpico de 2020. Beach break consistente e acessível, a cerca de 1 h 30 de Tóquio."
   },
   "montanita": {
-    "en": "Point break and surf town atmosphere. Good straight, lively nightlife.",
-    "es": "Point break y ambiente de ciudad surfera. Buena y animada vida nocturna.",
-    "pt": "Point break e atmosfera de cidade de surf. Vida noturna boa e animada."
+    "en": "Point break with a surf-town vibe. Good right, lively nightlife.",
+    "es": "Point break con ambiente de pueblo surfero. Buena derecha, vida nocturna animada.",
+    "pt": "Point break com ambiente de vila de surf. Boa direita, vida noturna animada."
   },
   "nosara-guinones": {
     "en": "Beach break perfect for learning. Long beach, surf schools.",
     "es": "Beach break perfecto para aprender. Playa larga, escuelas de surf.",
-    "pt": "Beach break perfeito para aprender. Longa praia, escolas de surf."
+    "pt": "Beach break perfeito para aprender. Praia longa, escolas de surf."
   },
   "playa-negra": {
-    "en": "Reef break quick and hollow. Good for intermediate surfers.",
-    "es": "Reef break rápido y hueco. Bueno para surfistas intermedios.",
-    "pt": "Reef break rápido e oco. Bom para surfistas intermediários."
+    "en": "Fast, hollow reef break. Good for intermediate surfers.",
+    "es": "Reef break rápido y hueco. Bueno para surfistas de nivel intermedio.",
+    "pt": "Reef break rápido e cavado. Bom para surfistas de nível intermédio."
   },
   "lobitos": {
-    "en": "Point break desert. Long lefts, few people.",
-    "es": "Desierto point break. Izquierdas largas, poca gente.",
-    "pt": "Deserto point break. Esquerdas longas, poucas pessoas."
+    "en": "Desert point break. Long lefts, few people.",
+    "es": "Point break en pleno desierto. Izquierdas largas, poca gente.",
+    "pt": "Point break no deserto. Esquerdas longas, pouca gente."
   },
   "punta-rocas": {
     "en": "Reef break near Lima. Competition spot, good left.",
-    "es": "Reef break cerca de Lima. Lugar de competición, buena izquierda.",
-    "pt": "Reef break perto de Lima. Local de competição, boa esquerda."
+    "es": "Reef break cerca de Lima. Spot de competición, buena izquierda.",
+    "pt": "Reef break perto de Lima. Spot de competição, boa esquerda."
   },
   "guarda-do-embau": {
-    "en": "Beach break on the banks of a river. Good wave, preserved setting.",
-    "es": "Beach break a orillas de un río. Buena ola, entorno conservado.",
-    "pt": "Beach break às margens de um rio. Onda boa, cenário preservado."
+    "en": "Beach break next to a river. Good wave, unspoilt setting.",
+    "es": "Beach break junto a un río. Buena ola, entorno conservado.",
+    "pt": "Beach break junto a um rio. Boa onda, cenário preservado."
   },
   "praia-do-rosa": {
-    "en": "Whale and surf spot. Beach break quality, whales in winter.",
-    "es": "Spot de ballenas y surf. Calidad beach break, ballenas en invierno.",
-    "pt": "Baleia e local de surf. Qualidade beach break, baleias no inverno."
+    "en": "A whale and surf spot. Quality beach break, whales in winter.",
+    "es": "Spot de ballenas y de surf. Beach break de calidad, ballenas en invierno.",
+    "pt": "Spot de baleias e de surf. Beach break de qualidade, baleias no inverno."
   },
   "porto-pollo": {
-    "en": "Protected bay in Sardinia. Thermal wind offshore in the afternoon, ideal for beginners.",
-    "es": "Bahía protegida en Cerdeña. Viento térmico offshore por la tarde, ideal para principiantes.",
-    "pt": "Baía protegida na Sardenha. Vento térmico offshore à tarde, ideal para iniciantes."
+    "en": "Sheltered bay in Sardinia. Offshore thermal wind in the afternoon, ideal for beginners.",
+    "es": "Bahía resguardada en Cerdeña. Viento térmico offshore por la tarde, ideal para principiantes.",
+    "pt": "Baía abrigada na Sardenha. Vento térmico offshore à tarde, ideal para iniciantes."
   },
   "ericeira-pedra-branca": {
-    "en": "Reef break fast north of Ericeira. Good technical right.",
-    "es": "Reef break rápido al norte de Ericeira. Buen derecho técnico.",
-    "pt": "Reef break rápido a norte da Ericeira. Bom técnico certo."
+    "en": "Fast reef break north of Ericeira. Good, technical right.",
+    "es": "Reef break rápido al norte de Ericeira. Buena derecha técnica.",
+    "pt": "Reef break rápido a norte da Ericeira. Boa direita técnica."
   },
   "lisboa-estoril": {
-    "en": "Beach on the Portuguese Riviera. Beach break calm, ideal beginner.",
-    "es": "Playa en la Riviera portuguesa. Beach break tranquilo, ideal principiante.",
-    "pt": "Praia na Riviera Portuguesa. Beach break calmo, ideal para iniciante."
+    "en": "Beach on the Portuguese Riviera. Calm beach break, ideal for beginners.",
+    "es": "Playa de la Riviera portuguesa. Beach break tranquilo, ideal para principiantes.",
+    "pt": "Praia da Riviera portuguesa. Beach break calmo, ideal para iniciantes."
   },
   "sines-vale-figueria": {
-    "en": "Beach break wild in the south of Portugal. Fewer people.",
+    "en": "Wild beach break in southern Portugal. Fewer people.",
     "es": "Beach break salvaje en el sur de Portugal. Menos gente.",
-    "pt": "Beach break selvagem no sul de Portugal. Menos pessoas."
+    "pt": "Beach break selvagem no sul de Portugal. Menos gente."
   },
   "bidart-centre": {
     "en": "Family beach between Biarritz and Guéthary. Several peaks.",
     "es": "Playa familiar entre Biarritz y Guéthary. Varios picos.",
     "pt": "Praia familiar entre Biarritz e Guéthary. Vários picos."
   },
-  "capbreton-hossegor": {
-    "en": "Beach break south of the lake. Good compromise between power and accessibility.",
-    "es": "Beach break al sur del lago. Buen compromiso entre potencia y accesibilidad.",
-    "pt": "Beach break ao sul do lago. Bom compromisso entre potência e acessibilidade."
-  },
-  "vieux-boucau": {
-    "en": "Quiet spot north of the Landes. Good for progress.",
-    "es": "Lugar tranquilo al norte de las Landas. Bueno para el progreso.",
-    "pt": "Local tranquilo ao norte das Landes. Bom para o progresso."
-  },
   "getxo-arbolatza": {
-    "en": "Bilbao urban beach. Beach break accessible.",
+    "en": "Bilbao's city beach. Accessible beach break.",
     "es": "Playa urbana de Bilbao. Beach break accesible.",
-    "pt": "Praia urbana de Bilbao. Beach break acessível."
-  },
-  "mexico-puerto-escondido": {
-    "en": "The Mexican Pipeline. Beach break powerful, shore break dangerous.",
-    "es": "El Oleoducto Mexicano. Beach break poderoso, shore break peligroso.",
-    "pt": "O gasoduto mexicano. Beach break poderoso, shore break perigoso."
+    "pt": "Praia urbana de Bilbau. Beach break acessível."
   },
   "nicaragua-colorados": {
-    "en": "Powerful beach break by the lake. Good wave.",
-    "es": "Potente beach break junto al lago. Buena onda.",
-    "pt": "Poderoso beach break à beira do lago. Boa onda."
+    "en": "Powerful beach break near the lake. Good wave.",
+    "es": "Beach break potente cerca del lago. Buena ola.",
+    "pt": "Beach break potente perto do lago. Boa onda."
   },
   "panama-bocas": {
-    "en": "Reef break accessible on the island. Caribbean atmosphere.",
+    "en": "Accessible reef break on the island. Caribbean vibe.",
     "es": "Reef break accesible en la isla. Ambiente caribeño.",
-    "pt": "Reef break acessível na ilha. Atmosfera caribenha."
+    "pt": "Reef break acessível na ilha. Ambiente caribenho."
   },
   "brazil-santos": {
-    "en": "Beaches near São Paulo. Beach break, good for Sunday outings.",
-    "es": "Playas cercanas a São Paulo. Beach break, bueno para salidas dominicales.",
-    "pt": "Praias perto de São Paulo. Beach break, bom para passeios de domingo."
-  },
-  "fiji-restaurants": {
-    "en": "Legendary reef break. Perfect tube, resort access.",
-    "es": "El legendario reef break. Tubo perfecto, acceso al resort.",
-    "pt": "Lendário reef break. Tubo perfeito, acesso ao resort."
+    "en": "Beaches near São Paulo. Beach break, good for weekend sessions.",
+    "es": "Playas cerca de São Paulo. Beach break, bueno para las escapadas de domingo.",
+    "pt": "Praias perto de São Paulo. Beach break, bom para as saídas de domingo."
   },
   "usa-california-pacific-beach": {
-    "en": "Beach break urban San Diego. Young atmosphere.",
-    "es": "Beach break urbano San Diego. Ambiente joven.",
-    "pt": "Beach break urbana de San Diego. Atmosfera jovem."
+    "en": "San Diego's city beach break. Young crowd.",
+    "es": "Beach break urbano de San Diego. Ambiente joven.",
+    "pt": "Beach break urbano de San Diego. Ambiente jovem."
   },
   "usa-california-oceanside": {
     "en": "Beach break north of San Diego. Fewer people.",
     "es": "Beach break al norte de San Diego. Menos gente.",
-    "pt": "Beach break ao norte de San Diego. Menos pessoas."
+    "pt": "Beach break a norte de San Diego. Menos gente."
   },
   "hawaii-waikiki": {
-    "en": "Cradle of surfing. Long gentle waves, ideal longboard and beginner.",
-    "es": "Cuna del surf. Olas largas y suaves, ideal longboard y principiante.",
-    "pt": "Berço do surf. Ondas longas e suaves, ideal para longboard e iniciante."
+    "en": "The cradle of surfing. Long, gentle waves, ideal for longboarding and beginners.",
+    "es": "La cuna del surf. Olas largas y suaves, ideales para longboard y principiantes.",
+    "pt": "O berço do surf. Ondas longas e suaves, ideais para longboard e iniciantes."
   },
   "indonesia-medewi": {
-    "en": "Long left on point break. Fewer people than in southern Bali.",
-    "es": "Largo a la izquierda en point break. Menos gente que en el sur de Bali.",
-    "pt": "Muito à esquerda na point break. Menos pessoas do que no sul de Bali."
+    "en": "Long point-break left. Fewer people than in southern Bali.",
+    "es": "Izquierda larga de point break. Menos gente que en el sur de Bali.",
+    "pt": "Esquerda longa de point break. Menos gente do que no sul de Bali."
   },
   "uk-sennen": {
-    "en": "Beautiful bay at the tip of Cornwall. Beach break family.",
-    "es": "Hermosa bahía en la punta de Cornualles. Familia beach break.",
-    "pt": "Bela baía na ponta da Cornualha. Família beach break."
+    "en": "Beautiful bay at the tip of Cornwall. Family beach break.",
+    "es": "Bonita bahía en el extremo de Cornualles. Beach break familiar.",
+    "pt": "Bela baía na ponta da Cornualha. Beach break familiar."
   },
   "ireland-easkey": {
-    "en": "Reef break from the west coast. Good right, few people.",
-    "es": "Reef break de la costa oeste. Bien cierto, poca gente.",
-    "pt": "Reef break da costa oeste. Muito bem, poucas pessoas."
-  },
-  "canary-lanzarote-famara": {
-    "en": "Long beach under the cliffs. Beach break, often strong wind.",
-    "es": "Larga playa bajo los acantilados. Beach break, a menudo viento fuerte.",
-    "pt": "Longa praia sob as falésias. Beach break, vento frequentemente forte."
+    "en": "Reef break on the west coast. Good right, few people.",
+    "es": "Reef break de la costa oeste. Buena derecha, poca gente.",
+    "pt": "Reef break da costa oeste. Boa direita, pouca gente."
   },
   "canary-fuerteventura-corralejo": {
-    "en": "Beach in the north of Fuerteventura. Good for starting out in the sun.",
-    "es": "Playa en el norte de Fuerteventura. Bueno para empezar al sol.",
-    "pt": "Praia no norte de Fuerteventura. Bom para começar ao sol."
+    "en": "Beach in the north of Fuerteventura. Good for learning in the sun.",
+    "es": "Playa del norte de Fuerteventura. Buena para empezar al sol.",
+    "pt": "Praia no norte de Fuerteventura. Boa para começar ao sol."
   },
   "italie-toscane-marina-di-pisa": {
     "en": "Beach break near Pisa. Small Mediterranean spot.",
-    "es": "Beach break cerca de Pisa. Pequeño rincón mediterráneo.",
-    "pt": "Beach break perto de Pisa. Pequeno local mediterrâneo."
+    "es": "Beach break cerca de Pisa. Pequeño spot mediterráneo.",
+    "pt": "Beach break perto de Pisa. Pequeno spot mediterrânico."
   },
   "france-cap-ferret": {
-    "en": "Ocean side basin. Beach break, less swell than in Lacanau.",
-    "es": "Cuenca del lado del océano. Beach break, menos oleaje que en Lacanau.",
-    "pt": "Bacia lateral do oceano. Beach break, menos ondulação que em Lacanau."
+    "en": "Ocean side of the peninsula, facing away from the bay. Beach break, less swell than Lacanau.",
+    "es": "El lado océano de la península, opuesto a la bahía. Beach break, menos swell que en Lacanau.",
+    "pt": "O lado do oceano da península, oposto à baía. Beach break, menos ondulação do que em Lacanau."
   },
   "espagne-playa-de-las-americas": {
-    "en": "Tourist spot in the Canary Islands. Beach break, often wind offshore.",
-    "es": "Punto turístico de las Islas Canarias. Beach break, a menudo viento offshore.",
-    "pt": "Ponto turístico nas Ilhas Canárias. Beach break, muitas vezes enrolado offshore."
+    "en": "Tourist spot in the Canary Islands. Beach break, wind often offshore.",
+    "es": "Spot turístico de Canarias. Beach break, viento a menudo offshore.",
+    "pt": "Spot turístico das Canárias. Beach break, vento muitas vezes offshore."
   },
   "australie-byron-tallow": {
-    "en": "Beach break to Byron. Less crowded than The Pass.",
-    "es": "Beach break a Byron. Menos concurrido que The Pass.",
-    "pt": "Beach break para Byron. Menos lotado que o The Pass."
+    "en": "Beach break in Byron. Less crowded than The Pass.",
+    "es": "Beach break en Byron. Menos concurrido que The Pass.",
+    "pt": "Beach break em Byron. Menos cheio do que The Pass."
   },
   "usa-florida-cocoa-beach": {
-    "en": "Spot by Kelly Slater. Beach break, small consistent waves.",
-    "es": "Spot de Kelly Slater. Beach break, pequeñas olas consistentes.",
-    "pt": "Spot de Kelly Slater. Beach break, ondas pequenas e consistentes."
+    "en": "Kelly Slater's home spot. Beach break, small but consistent waves.",
+    "es": "El spot de Kelly Slater. Beach break, olas pequeñas pero constantes.",
+    "pt": "O spot de Kelly Slater. Beach break, ondas pequenas mas consistentes."
   },
   "usa-nc-wrightsville": {
-    "en": "Beach break from the east coast. Good with NE swell.",
-    "es": "Beach break de la costa este. Bueno con oleaje del NE.",
+    "en": "East coast beach break. Good on NE swells.",
+    "es": "Beach break de la costa este. Bueno con swell del NE.",
     "pt": "Beach break da costa leste. Bom com ondulação de NE."
   },
   "japon-shonan": {
-    "en": "Beach near Tokyo. Beach break, typhoons in summer.",
+    "en": "Beach near Tokyo. Beach break, typhoon swells in summer.",
     "es": "Playa cerca de Tokio. Beach break, tifones en verano.",
     "pt": "Praia perto de Tóquio. Beach break, tufões no verão."
   },
   "philippines-boracay": {
-    "en": "Kitesurfing and surfing spot. Side-shore wind, small swell.",
-    "es": "Lugar de kitesurf y surf. Viento de costa, oleaje pequeño.",
-    "pt": "Local de kitesurf e surf. Vento lateral, ondulação pequena."
+    "en": "Kitesurf and surf spot. Side-shore wind, small swell.",
+    "es": "Spot de kitesurf y surf. Viento lateral, swell pequeño.",
+    "pt": "Spot de kitesurf e surf. Vento lateral, ondulação pequena."
   },
   "sri-lanka-midigama": {
-    "en": "Reef break near Arugam. Several peaks (Ram's Right, etc.).",
-    "es": "Reef break cerca de Arugam. Varios picos (Derecha de Carnero, etc.).",
-    "pt": "Reef break perto de Arugam. Vários picos (Ram's Right, etc.)."
+    "en": "Reef break near Arugam. Several peaks (Ram's Right and more).",
+    "es": "Reef break cerca de Arugam. Varios picos (Ram's Right, entre otros).",
+    "pt": "Reef break perto de Arugam. Vários picos (Ram's Right, entre outros)."
   },
   "maldives-cokes": {
-    "en": "Short and fun straight. Access by boat from Male.",
-    "es": "Heterosexual corto y divertido. Acceso en barco desde Malé.",
-    "pt": "Curto e divertido direto. Acesso de barco a partir de Malé."
+    "en": "Short, fun right. Boat access from Malé.",
+    "es": "Derecha corta y divertida. Acceso en barco desde Malé.",
+    "pt": "Direita curta e divertida. Acesso de barco a partir de Malé."
   },
   "reunion-etang-sale": {
-    "en": "Beach break of the island. Be careful of sharks (prohibitions).",
-    "es": "Beach break de la isla. Cuidado con los tiburones (prohibiciones).",
-    "pt": "Beach break da ilha. Tenha cuidado com os tubarões (proibições)."
+    "en": "The island's beach break. Beware of sharks (surfing bans in place).",
+    "es": "El beach break de la isla. Cuidado con los tiburones (hay prohibiciones).",
+    "pt": "O beach break da ilha. Atenção aos tubarões (há proibições)."
   },
   "martinique-anse-bonnie": {
-    "en": "Beach break Caribbean. Small swell, good for a start.",
-    "es": "Beach break Caribe. Pequeño oleaje, bueno para empezar.",
-    "pt": "Beach break Caribe. Ondulação pequena, boa para começar."
+    "en": "Caribbean beach break. Small swell, good for beginners.",
+    "es": "Beach break caribeño. Swell pequeño, bueno para empezar.",
+    "pt": "Beach break caribenho. Ondulação pequena, bom para começar."
   },
   "guadeloupe-port-louis": {
-    "en": "Spot in the north of Guadeloupe. Beach break exposed N.",
-    "es": "Spot en el norte de Guadalupe. Beach break expuso a N.",
-    "pt": "Local no norte de Guadalupe. Beach break expôs N."
+    "en": "Spot in the north of Guadeloupe. Beach break exposed to the north.",
+    "es": "Spot del norte de Guadalupe. Beach break expuesto al norte.",
+    "pt": "Spot no norte de Guadalupe. Beach break exposto a norte."
   },
   "canada-tofino-long-beach": {
-    "en": "Main spot in Tofino. Beach break wild, cold water.",
-    "es": "Lugar principal en Tofino. Beach break agua salvaje y fría.",
-    "pt": "Ponto principal em Tofino. Beach break água selvagem e fria."
+    "en": "Tofino's main spot. Wild beach break, cold water.",
+    "es": "El spot principal de Tofino. Beach break salvaje, agua fría.",
+    "pt": "O spot principal de Tofino. Beach break selvagem, água fria."
   },
   "israel-tel-aviv": {
-    "en": "Beach break Mediterranean. Small swell, good for a start.",
-    "es": "Beach break Mediterráneo. Pequeño oleaje, bueno para empezar.",
-    "pt": "Beach break Mediterrâneo. Ondulação pequena, boa para começar."
+    "en": "Mediterranean beach break. Small swell, good for beginners.",
+    "es": "Beach break mediterráneo. Swell pequeño, bueno para empezar.",
+    "pt": "Beach break mediterrânico. Ondulação pequena, bom para começar."
   },
   "egypte-el-gouna": {
-    "en": "Kitesurfing and surfing spot. Regular wind, small swell.",
-    "es": "Lugar de kitesurf y surf. Viento regular, oleaje pequeño.",
-    "pt": "Local de kitesurf e surf. Vento regular, ondulação pequena."
+    "en": "Kitesurf and surf spot. Steady wind, small swell.",
+    "es": "Spot de kitesurf y surf. Viento regular, swell pequeño.",
+    "pt": "Spot de kitesurf e surf. Vento regular, ondulação pequena."
   },
   "senegal-ngor": {
-    "en": "Historical spot in Dakar. Beach break, canoe to go there.",
-    "es": "Lugar histórico de Dakar. Beach break, canoa para ir allí.",
-    "pt": "Local histórico em Dakar. Beach break, canoa para ir até lá."
+    "en": "Dakar's historic spot. Beach break, reached by pirogue.",
+    "es": "El spot histórico de Dakar. Beach break, se llega en piragua.",
+    "pt": "O spot histórico de Dacar. Beach break, chega-se de piroga."
   },
   "ghana-busua": {
-    "en": "Beach break from Ghana. Few people, Atlantic swell.",
-    "es": "Beach break de Ghana. Poca gente, oleaje atlántico.",
-    "pt": "Beach break de Gana. Pouca gente, onda do Atlântico."
+    "en": "Ghanaian beach break. Few people, Atlantic swell.",
+    "es": "Beach break de Ghana. Poca gente, swell atlántico.",
+    "pt": "Beach break do Gana. Pouca gente, ondulação atlântica."
   },
   "portugal-praia-da-rocha": {
-    "en": "Portimão beach. Beach break, very touristy.",
+    "en": "Portimão's beach. Beach break, very touristy.",
     "es": "Playa de Portimão. Beach break, muy turístico.",
     "pt": "Praia de Portimão. Beach break, muito turístico."
   },
   "france-ile-doleron": {
-    "en": "Great beach on the island. Beach break, less swell than in Lacanau.",
-    "es": "Gran playa de la isla. Beach break, menos oleaje que en Lacanau.",
-    "pt": "Ótima praia na ilha. Beach break, menos ondulação que em Lacanau."
+    "en": "The island's main beach. Beach break, less swell than Lacanau.",
+    "es": "La gran playa de la isla. Beach break, menos swell que en Lacanau.",
+    "pt": "A grande praia da ilha. Beach break, menos ondulação do que em Lacanau."
   },
   "espagne-tarifa": {
-    "en": "Kitesurfing and surfing spot. Strong east wind, small swell.",
-    "es": "Lugar de kitesurf y surf. Fuerte viento del este, oleaje pequeño.",
-    "pt": "Local de kitesurf e surf. Vento leste forte, ondulação pequena."
+    "en": "Kitesurf and surf spot. Strong levante wind, small swell.",
+    "es": "Spot de kitesurf y surf. Levante fuerte, swell pequeño.",
+    "pt": "Spot de kitesurf e surf. Levante forte, ondulação pequena."
   },
   "nicaragua-santana": {
-    "en": "Powerful beach break. Fewer people than in Popoyo.",
-    "es": "Potente beach break. Menos gente que en Popoyo.",
-    "pt": "Poderoso beach break. Menos pessoas do que em Popoyo."
+    "en": "Powerful beach break. Fewer people than at Popoyo.",
+    "es": "Beach break potente. Menos gente que en Popoyo.",
+    "pt": "Beach break potente. Menos gente do que em Popoyo."
   },
   "panama-playa-venao": {
-    "en": "Beach break from the Pacific coast. Good for progress.",
-    "es": "Beach break de la costa del Pacífico. Bueno para el progreso.",
-    "pt": "Beach break da costa do Pacífico. Bom para o progresso."
+    "en": "Beach break on the Pacific coast. Good for progressing.",
+    "es": "Beach break de la costa del Pacífico. Bueno para progresar.",
+    "pt": "Beach break da costa do Pacífico. Bom para evoluir."
   },
   "colombia-punta-madrid": {
-    "en": "Beach break near Santa Marta. Good atmosphere.",
+    "en": "Beach break near Santa Marta. Good vibe.",
     "es": "Beach break cerca de Santa Marta. Buen ambiente.",
-    "pt": "Beach break perto de Santa Marta. Boa atmosfera."
+    "pt": "Beach break perto de Santa Marta. Bom ambiente."
   },
   "venezuela-playa-moa": {
-    "en": "Beach break Caribbean. Small swell, political situation to watch.",
-    "es": "Beach break Caribe. Pequeño oleaje, situación política a seguir.",
-    "pt": "Beach break Caribe. Ondulação pequena, situação política a observar."
+    "en": "Caribbean beach break. Small swell; keep an eye on the political situation.",
+    "es": "Beach break caribeño. Swell pequeño; conviene seguir la situación política.",
+    "pt": "Beach break caribenho. Ondulação pequena; convém acompanhar a situação política."
   },
   "uruguay-punta-del-este": {
-    "en": "Trendy spot in South America. Beach break, good left.",
-    "es": "Lugar de moda en Sudamérica. Beach break, buena izquierda.",
-    "pt": "Local badalado na América do Sul. Beach break, boa esquerda."
+    "en": "South America's trendy spot. Beach break, good left.",
+    "es": "El spot de moda de Sudamérica. Beach break, buena izquierda.",
+    "pt": "O spot da moda da América do Sul. Beach break, boa esquerda."
   },
   "argentina-mar-del-plata": {
     "en": "City beach. Beach break, small Atlantic swell.",
-    "es": "Playa de la ciudad. Beach break, pequeño oleaje del Atlántico.",
-    "pt": "Praia da cidade. Beach break, pequena ondulação do Atlântico."
+    "es": "Playa de la ciudad. Beach break, swell atlántico pequeño.",
+    "pt": "Praia da cidade. Beach break, pequena ondulação atlântica."
   },
   "indonesia-lombok-despot": {
-    "en": "Reef break south of Lombok. Fewer people than in Bali.",
-    "es": "Reef break al sur de Lombok. Menos gente que en Bali.",
-    "pt": "Reef break ao sul de Lombok. Menos pessoas do que em Bali."
+    "en": "Reef break in southern Lombok. Fewer people than in Bali.",
+    "es": "Reef break en el sur de Lombok. Menos gente que en Bali.",
+    "pt": "Reef break no sul de Lombok. Menos gente do que em Bali."
   },
   "new-zealand-gisborne": {
-    "en": "First city in the world to see the sun. Beach break.",
-    "es": "Primera ciudad del mundo en ver el sol. Beach break.",
-    "pt": "Primeira cidade do mundo a ver o sol. Beach break."
+    "en": "The first city in the world to see the sunrise. Beach break.",
+    "es": "La primera ciudad del mundo en ver salir el sol. Beach break.",
+    "pt": "A primeira cidade do mundo a ver o nascer do sol. Beach break."
   },
   "fiji-wilkes-pass": {
-    "en": "Reef break accessible. Less demanding than Cloudbreak.",
+    "en": "Accessible reef break. Less demanding than Cloudbreak.",
     "es": "Reef break accesible. Menos exigente que Cloudbreak.",
-    "pt": "Reef break acessível. Menos exigente que Cloudbreak."
+    "pt": "Reef break acessível. Menos exigente do que o Cloudbreak."
   },
   "samoa-salani": {
-    "en": "Reef break from Samoa. Quality straight, few people.",
-    "es": "Reef break de Samoa. Calidad recta, pocas personas.",
-    "pt": "Reef break de Samoa. Qualidade reta, poucas pessoas."
+    "en": "Samoan reef break. Quality right, few people.",
+    "es": "Reef break de Samoa. Derecha de calidad, poca gente.",
+    "pt": "Reef break de Samoa. Direita de qualidade, pouca gente."
   },
   "tahiti-papenoo": {
-    "en": "Beach break north of Tahiti. Less known than Teahupo'o.",
-    "es": "Beach break al norte de Tahití. Menos conocido que Teahupo'o.",
-    "pt": "Beach break ao norte do Taiti. Menos conhecido que Teahupo'o."
+    "en": "Beach break in the north of Tahiti. Less famous than Teahupo'o.",
+    "es": "Beach break del norte de Tahití. Menos conocido que Teahupo'o.",
+    "pt": "Beach break no norte do Taiti. Menos conhecido do que Teahupo'o."
   },
   "france-saint-jean-de-luz": {
-    "en": "Protected bay. Beach break family, less powerful than Hossegor.",
-    "es": "Bahía protegida. Familia beach break, menos poderosa que Hossegor.",
-    "pt": "Baía protegida. Família beach break, menos poderosa que Hossegor."
+    "en": "Sheltered bay. Family beach break, less powerful than Hossegor.",
+    "es": "Bahía resguardada. Beach break familiar, menos potente que Hossegor.",
+    "pt": "Baía abrigada. Beach break familiar, menos potente do que Hossegor."
   },
   "espagne-ribadesella": {
-    "en": "Beach break from Asturias. Good with N-NW swell.",
-    "es": "Beach break de Asturias. Bueno con oleaje de N-NW.",
-    "pt": "Beach break das Astúrias. Bom com ondulação de N-NW."
+    "en": "Asturian beach break. Good on N to NW swells.",
+    "es": "Beach break de Asturias. Bueno con swell del N al NO.",
+    "pt": "Beach break das Astúrias. Bom com ondulação de N a NO."
   },
   "maroc-mirleft": {
     "en": "Village south of Agadir. Several beaches, fewer people.",
     "es": "Pueblo al sur de Agadir. Varias playas, menos gente.",
-    "pt": "Aldeia ao sul de Agadir. Várias praias, menos gente."
-  },
-  "usa-california-santa-cruz": {
-    "en": "Point break mythical Santa Cruz. Right and left.",
-    "es": "Point break mítica Santa Cruz. Derecha e izquierda.",
-    "pt": "Point break mítica Santa Cruz. Direita e esquerda."
+    "pt": "Aldeia a sul de Agadir. Várias praias, menos gente."
   },
   "usa-california-morro-bay": {
-    "en": "Beach break in front of Morro Rock. Good to start.",
-    "es": "Beach break frente a Morro Roca. Bueno para empezar.",
+    "en": "Beach break in front of Morro Rock. Good for beginners.",
+    "es": "Beach break frente a Morro Rock. Bueno para empezar.",
     "pt": "Beach break em frente ao Morro Rock. Bom para começar."
   },
   "hawaii-lanikai": {
-    "en": "Calm spot on the windward side. Small swell, longboard.",
-    "es": "Lugar tranquilo en el lado de barlovento. Oleaje pequeño, longboard.",
-    "pt": "Local calmo a barlavento. Swell pequeno, longboard."
-  },
-  "afrique-sud-durban": {
-    "en": "Durban urban beach. Beach break, good for starters.",
-    "es": "Playa urbana de Durban. Beach break, bueno para empezar.",
-    "pt": "Praia urbana de Durban. Beach break, bom para começar."
+    "en": "Calm spot on the windward side. Small swell, longboarding.",
+    "es": "Spot tranquilo en el lado de barlovento. Swell pequeño, longboard.",
+    "pt": "Spot calmo a barlavento. Ondulação pequena, longboard."
   },
   "uk-bude": {
-    "en": "North Cornwall beach. Beach break, family.",
-    "es": "Playa del norte de Cornualles. Beach break, familia.",
-    "pt": "Praia do norte da Cornualha. Beach break, família."
-  },
-  "ireland-mullaghmore": {
-    "en": "Big wave spot from Ireland. Reef break, tow-in above 4m.",
-    "es": "Spot de big wave de Irlanda. Reef break, remolque por encima de 4 m.",
-    "pt": "Spot big wave da Irlanda. Reef break, reboque acima de 4m."
+    "en": "North Cornwall beach. Family beach break.",
+    "es": "Playa del norte de Cornualles. Beach break familiar.",
+    "pt": "Praia do norte da Cornualha. Beach break familiar."
   },
   "italie-sardaigne-chia": {
-    "en": "Beaches south of Cagliari. Beach break Mediterranean.",
-    "es": "Playas al sur de Cagliari. Beach break Mediterráneo.",
-    "pt": "Praias ao sul de Cagliari. Beach break Mediterrâneo."
+    "en": "Beaches south of Cagliari. Mediterranean beach break.",
+    "es": "Playas al sur de Cagliari. Beach break mediterráneo.",
+    "pt": "Praias a sul de Cagliari. Beach break mediterrânico."
   },
   "grece-methoni": {
     "en": "Peloponnese spot. Beach break, little swell.",
-    "es": "Mancha del Peloponeso. Beach break, pequeño hincha.",
-    "pt": "Local do Peloponeso. Beach break, pequeno swell."
+    "es": "Spot del Peloponeso. Beach break, poco swell.",
+    "pt": "Spot do Peloponeso. Beach break, pouca ondulação."
   },
   "turquie-alaçati": {
-    "en": "Kitesurfing and surfing spot in the Aegean. Regular wind.",
-    "es": "Lugar para practicar kitesurf y surf en el Egeo. Viento regular.",
-    "pt": "Local de kitesurf e surf no Egeu. Vento regular."
+    "en": "Kitesurf and surf spot on the Aegean. Steady wind.",
+    "es": "Spot de kitesurf y surf en el Egeo. Viento regular.",
+    "pt": "Spot de kitesurf e surf no Egeu. Vento regular."
   },
   "thailande-phuket": {
-    "en": "Beach break tourist. Good to start in Asia.",
-    "es": "Beach break turista. Bueno para empezar en Asia.",
-    "pt": "Turista beach break. É bom começar na Ásia."
+    "en": "Touristy beach break. Good for learning in Asia.",
+    "es": "Beach break turístico. Bueno para empezar en Asia.",
+    "pt": "Beach break turístico. Bom para começar na Ásia."
   },
   "vietnam-mui-ne": {
-    "en": "Kitesurfing and surfing spot. Side-shore wind, small swell.",
-    "es": "Lugar de kitesurf y surf. Viento de costa, oleaje pequeño.",
-    "pt": "Local de kitesurf e surf. Vento lateral, ondulação pequena."
+    "en": "Kitesurf and surf spot. Side-shore wind, small swell.",
+    "es": "Spot de kitesurf y surf. Viento lateral, swell pequeño.",
+    "pt": "Spot de kitesurf e surf. Vento lateral, ondulação pequena."
   },
   "chine-hainan": {
-    "en": "Spot on Hainan Island. Beach break, recent development.",
-    "es": "Lugar en la isla de Hainan. Beach break, desarrollo reciente.",
-    "pt": "Local na Ilha de Hainan. Beach break, desenvolvimento recente."
+    "en": "Spot on Hainan island. Beach break, a recent surf scene.",
+    "es": "Spot de la isla de Hainan. Beach break, escena de surf reciente.",
+    "pt": "Spot da ilha de Hainan. Beach break, cena de surf recente."
   },
   "coree-sud-yangyang": {
     "en": "East coast spot. Beach break, typhoon season.",
-    "es": "Lugar de la costa este. Beach break, temporada de tifones.",
-    "pt": "Local da costa leste. Beach break, temporada de tufões."
+    "es": "Spot de la costa este. Beach break, temporada de tifones.",
+    "pt": "Spot da costa leste. Beach break, época de tufões."
   },
   "russie-kamchatka": {
     "en": "Extreme spot in the Russian Pacific. Volcanoes, bears, waves.",
-    "es": "Lugar extremo en el Pacífico ruso. Volcanes, osos, olas.",
-    "pt": "Ponto extremo no Pacífico Russo. Vulcões, ursos, ondas."
+    "es": "Spot extremo del Pacífico ruso. Volcanes, osos, olas.",
+    "pt": "Spot extremo do Pacífico russo. Vulcões, ursos, ondas."
   },
   "algerie-kouali": {
-    "en": "Beach break Mediterranean. Small swell, developing surf community.",
-    "es": "Beach break Mediterráneo. Oleaje pequeño, comunidad de surf en desarrollo.",
-    "pt": "Beach break Mediterrâneo. Ondas pequenas, comunidade de surf em desenvolvimento."
+    "en": "Mediterranean beach break. Small swell, a growing surf community.",
+    "es": "Beach break mediterráneo. Swell pequeño, comunidad surfera en crecimiento.",
+    "pt": "Beach break mediterrânico. Ondulação pequena, comunidade de surf em crescimento."
   },
   "tunisie-sousse": {
-    "en": "Mediterranean spot. Small swell, good for a start.",
-    "es": "Paraje mediterráneo. Pequeño oleaje, bueno para empezar.",
-    "pt": "Local mediterrâneo. Ondulação pequena, boa para começar."
+    "en": "Mediterranean spot. Small swell, good for beginners.",
+    "es": "Spot mediterráneo. Swell pequeño, bueno para empezar.",
+    "pt": "Spot mediterrânico. Ondulação pequena, bom para começar."
   },
   "madagascar-tamatave": {
-    "en": "Beach break from the east coast. Indian swell, few people.",
-    "es": "Beach break de la costa este. Oleaje indio, poca gente.",
-    "pt": "Beach break da costa leste. Onda indiana, poucas pessoas."
+    "en": "East coast beach break. Indian Ocean swell, few people.",
+    "es": "Beach break de la costa este. Swell del Índico, poca gente.",
+    "pt": "Beach break da costa leste. Ondulação do Índico, pouca gente."
   },
   "mozambique-tofo": {
-    "en": "Beach break of the Indian Ocean. Manta rays, good atmosphere.",
-    "es": "Beach break del Océano Índico. Mantarrayas, buen ambiente.",
-    "pt": "Beach break do Oceano Índico. Raias manta, bom ambiente."
+    "en": "Indian Ocean beach break. Manta rays, good vibe.",
+    "es": "Beach break del océano Índico. Mantarrayas, buen ambiente.",
+    "pt": "Beach break do oceano Índico. Raias-manta, bom ambiente."
   },
   "kenya-nyali": {
-    "en": "Beach break near Mombasa. Small Indian swell.",
-    "es": "Beach break cerca de Mombasa. Pequeño oleaje indio.",
-    "pt": "Beach break perto de Mombaça. Ondulação indiana pequena."
+    "en": "Beach break near Mombasa. Small Indian Ocean swell.",
+    "es": "Beach break cerca de Mombasa. Swell pequeño del Índico.",
+    "pt": "Beach break perto de Mombaça. Pequena ondulação do Índico."
   },
   "tanzania-masimba": {
-    "en": "Emerging spot in Tanzania. Beach break, rainy season.",
-    "es": "Lugar emergente en Tanzania. Beach break, temporada de lluvias.",
-    "pt": "Local emergente na Tanzânia. Beach break, estação chuvosa."
+    "en": "Up-and-coming Tanzanian spot. Beach break; mind the rainy season.",
+    "es": "Spot emergente de Tanzania. Beach break; ojo con la temporada de lluvias.",
+    "pt": "Spot emergente da Tanzânia. Beach break; atenção à época das chuvas."
   },
   "maurice-tamarin": {
-    "en": "Historic spot on the island: long left on a sandy bottom at the bottom of the bay. Season: especially from May to September (southern winter, well-established SW swell). Rather small and capricious the rest of the year. Best early in the morning before the trade winds; sensitive to rain which clouds the water at the mouth of the river.",
-    "es": "Lugar histórico de la isla: largo a la izquierda sobre un fondo arenoso en el fondo de la bahía. Temporada: especialmente de mayo a septiembre (invierno en el sur, oleaje del suroeste bien establecido). Más bien pequeño y caprichoso el resto del año. Es mejor temprano en la mañana antes de los vientos alisios; sensible a la lluvia que enturbia el agua en la desembocadura del río.",
-    "pt": "Local histórico da ilha: há muito tempo à esquerda sobre um fundo arenoso no fundo da baía. Temporada: especialmente de maio a setembro (inverno de sul, ondulação de SW bem estabelecida). Bastante pequeno e caprichoso no resto do ano. Melhor de manhã cedo, antes dos ventos alísios; sensível à chuva que turva a água da foz do rio."
+    "en": "The island's historic spot: a long left over sand at the back of the bay. Season: mainly May to September (southern winter, steady SW swell). Rather small and fickle the rest of the year. Best early in the morning before the trade winds; rain clouds the water at the river mouth.",
+    "es": "El spot histórico de la isla: una izquierda larga sobre arena al fondo de la bahía. Temporada: sobre todo de mayo a septiembre (invierno austral, swell del SO bien asentado). Más bien pequeño e irregular el resto del año. Mejor a primera hora, antes de los alisios; la lluvia enturbia el agua en la desembocadura del río.",
+    "pt": "O spot histórico da ilha: uma esquerda longa sobre areia no fundo da baía. Época: sobretudo de maio a setembro (inverno austral, ondulação de SO bem estabelecida). Bastante pequeno e irregular no resto do ano. Melhor logo de manhã, antes dos alísios; a chuva turva a água na foz do rio."
   },
   "maurice-one-eye": {
-    "en": "World-class left on sharp reef, off Le Morne. Season: May to September, when the big southern swells cross the SE trade winds (perfect offshore). Powerful, hollow tube. Conditions: surf around mid-tide; dangerous and very shallow at low tide. Experts only.",
-    "es": "Izquierda de clase mundial en un arrecife afilado, frente a Le Morne. Temporada: Mayo a Septiembre, cuando los grandes swells del sur cruzan los vientos alisios del SE (perfecto offshore). Tubo hueco y potente. Condiciones: surfear a media marea; peligroso y muy poco profundo durante la marea baja. Sólo expertos.",
-    "pt": "Esquerda de classe mundial em recife afiado, perto de Le Morne. Temporada: de maio a setembro, quando as grandes ondas de sul cruzam os ventos alísios de SE (perfeito offshore). Tubo poderoso e oco. Condições: surfar no meio da maré; perigoso e muito raso na maré baixa. Apenas especialistas."
+    "en": "World-class left over sharp reef, off Le Morne. Season: May to September, when big southern swells meet the SE trade winds (perfect offshore). Powerful, hollow barrel. Conditions: surfed around mid tide; dangerous and very shallow at low tide. Experts only.",
+    "es": "Izquierda de nivel mundial sobre arrecife cortante, frente a Le Morne. Temporada: de mayo a septiembre, cuando los grandes swells australes se cruzan con los alisios del SE (offshore perfecto). Tubo potente y hueco. Condiciones: se surfea en torno a media marea; peligroso y muy poco profundo con marea baja. Solo expertos.",
+    "pt": "Esquerda de classe mundial sobre recife cortante, ao largo de Le Morne. Época: de maio a setembro, quando as grandes ondulações austrais cruzam os alísios de SE (offshore perfeito). Tubo potente e cavado. Condições: surfa-se por volta da meia-maré; perigoso e muito raso na maré baixa. Só para experientes."
   },
   "maurice-manawa": {
-    "en": "Quick left outside of One Eye. Season: takes over on the big swells of southern winter (May–September) when One Eye saturates. Hollow and fast section for experienced surfers, access to the open sea via the lagoon.",
-    "es": "Rápido izquierda fuera de One Eye. Temporada: toma el relevo con las grandes olas del invierno del sur (mayo-septiembre) cuando One Eye se satura. Tramo hueco y rápido para surfistas experimentados, acceso a mar abierto a través de la laguna.",
-    "pt": "Saí rapidamente do lado de fora do One Eye. Temporada: assume o controle das grandes ondas do inverno do sul (maio a setembro), quando One Eye satura. Trecho oco e rápido para surfistas experientes, acesso ao mar aberto pela lagoa."
+    "en": "Fast left outside One Eye. Season: takes over on big southern-winter swells (May–Sept) when One Eye maxes out. Fast, hollow section for experienced surfers, reached by paddling out across the lagoon.",
+    "es": "Izquierda rápida por fuera de One Eye. Temporada: toma el relevo con los grandes swells del invierno austral (mayo–sept.) cuando One Eye se satura. Sección hueca y rápida para surfistas con experiencia, se llega remando por la laguna.",
+    "pt": "Esquerda rápida por fora do One Eye. Época: assume o lugar nas grandes ondulações do inverno austral (maio–set.) quando o One Eye satura. Secção cavada e rápida para surfistas experientes, chega-se a remar pela lagoa."
   },
   "maurice-small-reef": {
-    "en": "Most accessible reef of the Morne lagoon, left and right. Season: ideal for progress on reef when the winter swell (May–September) remains modest. Conditions: cleaner in the morning, afternoon wind often annoying.",
-    "es": "Arrecife más accesible de la laguna de Mourne, izquierda y derecha. Temporada: ideal para progresar en el arrecife cuando el oleaje invernal (mayo-septiembre) sigue siendo modesto. Condiciones: más limpio por la mañana, viento por la tarde a menudo molesto.",
-    "pt": "Recife mais acessível da lagoa Mourne, à esquerda e à direita. Temporada: ideal para progredir nos recifes quando as ondas de inverno (maio a setembro) permanecem modestas. Condições: mais limpo pela manhã, vento da tarde muitas vezes irritante."
+    "en": "The most accessible reef in the Le Morne lagoon, left and right. Season: ideal for progressing on reef when the winter swell (May–Sept) stays moderate. Conditions: cleaner in the morning, afternoon wind often gets in the way.",
+    "es": "El arrecife más accesible de la laguna de Le Morne, izquierda y derecha. Temporada: ideal para progresar en arrecife cuando el swell de invierno (mayo–sept.) se mantiene moderado. Condiciones: más limpio por la mañana, el viento de la tarde suele molestar.",
+    "pt": "O recife mais acessível da lagoa de Le Morne, esquerda e direita. Época: ideal para evoluir em recife quando a ondulação de inverno (maio–set.) se mantém moderada. Condições: mais limpo de manhã, o vento da tarde costuma atrapalhar."
   },
   "maurice-black-rock": {
-    "en": "Reef break north of Tamarin, right and left depending on the swell. Season: SW swells of southern winter (May–September). Generally less busy than Le Morne; requires a slightly more consistent swell to get going.",
-    "es": "Reef break al norte de Tamarin, derecha e izquierda dependiendo del oleaje. Temporada: Oleaje del SO del invierno austral (mayo-septiembre). Generalmente menos concurrido que Le Morne; requiere un oleaje un poco más consistente para comenzar.",
-    "pt": "Reef break ao norte de Tamarin, direita e esquerda dependendo do swell. Temporada: ondas de SW do inverno meridional (maio a setembro). Geralmente menos movimentado que Le Morne; requer um swell um pouco mais consistente para começar."
+    "en": "Reef break north of Tamarin, right or left depending on the swell. Season: SW swells of the southern winter (May–Sept). Usually less crowded than Le Morne; needs a slightly more consistent swell to start working.",
+    "es": "Reef break al norte de Tamarin, derecha o izquierda según el swell. Temporada: swells del SO del invierno austral (mayo–sept.). Suele haber menos gente que en Le Morne; necesita un swell algo más constante para funcionar.",
+    "pt": "Reef break a norte de Tamarin, direita ou esquerda conforme a ondulação. Época: ondulações de SO do inverno austral (maio–set.). Costuma ter menos gente do que Le Morne; precisa de uma ondulação um pouco mais consistente para funcionar."
   },
   "maurice-saint-felix": {
-    "en": "Reef break exposed from the south coast. Season: captures the southern swell almost all year round, more consistent in the southern winter (May–September). Conditions: very exposed to the trade winds — best surfed early in the morning, before the wind picks up.",
-    "es": "Reef break expuesto desde la costa sur. Temporada: captura el oleaje del sur casi todo el año, más consistente en el invierno austral (mayo-septiembre). Condiciones: muy expuesto a los vientos alisios; es mejor surfear temprano en la mañana, antes de que aumente el viento.",
-    "pt": "Reef break exposto na costa sul. Temporada: capta ondulação de sul quase todo o ano, mais consistente no inverno de sul (maio a setembro). Condições: muito exposto aos ventos alísios – melhor surfado de manhã cedo, antes do vento aumentar."
+    "en": "Exposed reef break on the south coast. Season: picks up southern swell almost all year, most consistent in the southern winter (May–Sept). Conditions: very exposed to the trade winds, best early in the morning before the wind picks up.",
+    "es": "Reef break expuesto de la costa sur. Temporada: recibe swell austral casi todo el año, más constante en el invierno austral (mayo–sept.). Condiciones: muy expuesto a los alisios, mejor a primera hora antes de que suba el viento.",
+    "pt": "Reef break exposto da costa sul. Época: apanha ondulação austral quase todo o ano, mais consistente no inverno austral (maio–set.). Condições: muito exposto aos alísios, melhor logo de manhã antes de o vento entrar."
   },
   "maurice-riambel": {
-    "en": "Reef pass on the south coast near Souillac, exposed to direct southern swell. Season: May to September. Conditions: frequent east wind in the afternoon, cleanest window at the start of the day; shallow lagoon on the interior.",
-    "es": "Paso de arrecife en la costa sur cerca de Souillac, expuesto al oleaje directo del sur. Temporada: mayo a septiembre. Condiciones: viento frecuente del este por la tarde, ventana más limpia al comienzo del día; Laguna poco profunda en el interior.",
-    "pt": "Passagem de recife na costa sul perto de Souillac, exposta às ondas diretas do sul. Temporada: maio a setembro. Condições: vento leste frequente à tarde, janela mais limpa no início do dia; lagoa rasa no interior."
+    "en": "Reef pass on the south coast near Souillac, exposed to direct southern swell. Season: May to September. Conditions: frequent easterly wind in the afternoon, cleanest early in the day; shallow lagoon on the inside.",
+    "es": "Paso de arrecife en la costa sur cerca de Souillac, expuesto al swell austral directo. Temporada: de mayo a septiembre. Condiciones: viento del este frecuente por la tarde, más limpio a primera hora; laguna poco profunda en el interior.",
+    "pt": "Passe de recife na costa sul perto de Souillac, exposto à ondulação austral direta. Época: de maio a setembro. Condições: vento de leste frequente à tarde, mais limpo logo de manhã; lagoa rasa no interior."
   },
   "maurice-tagore": {
-    "en": "Left reef off Grand Baie, on the coral reef (row from the lagoon, far from the edge). Season: especially the austral summer (Dec.–March) on cyclone swells from the NW/N, and on westerly swells. Conditions: works best at high tide with a SE wind; sharp coral reef and localism when it's good. Reserved for experts.",
-    "es": "Arrecife izquierdo frente a Grand Baie, en el arrecife de coral (fila desde la laguna, lejos del borde). Temporada: especialmente el verano austral (diciembre-marzo) con marejadas ciclónicas del NO/N y con marejadas del oeste. Condiciones: funciona mejor durante la marea alta con viento del SE; arrecife de coral afilado y localismo cuando es bueno. Reservado para expertos.",
-    "pt": "À esquerda do recife perto de Grand Baie, no recife de coral (linha da lagoa, longe da borda). Temporada: especialmente o verão austral (dezembro-março) nas ondas ciclônicas de NW/N e nas ondas de oeste. Condições: funciona melhor na maré alta com vento SE; recife de coral afiado e localismo quando é bom. Reservado para especialistas."
+    "en": "Reef left off Grand Baie, on the outer coral reef (long paddle from the lagoon, far from shore). Season: mainly the southern summer (Dec–Mar) on NW/N cyclone swells, and on westerly swells. Conditions: best at high tide with a SE wind; sharp coral reef and localism when it's on. Experts only.",
+    "es": "Izquierda de arrecife frente a Grand Baie, en la barrera de coral (remada larga desde la laguna, lejos de la orilla). Temporada: sobre todo el verano austral (dic.–mar.) con swells ciclónicos del NO/N y con swells del oeste. Condiciones: funciona mejor con marea alta y viento del SE; arrecife de coral cortante y localismo cuando está bueno. Solo expertos.",
+    "pt": "Esquerda de recife ao largo de Grand Baie, na barreira de coral (remada longa desde a lagoa, longe da costa). Época: sobretudo o verão austral (dez.–mar.) com ondulações de ciclone de NO/N e com ondulações de oeste. Condições: funciona melhor na maré cheia com vento de SE; recife de coral cortante e localismo quando está bom. Só para experientes."
   },
   "maurice-le-goulet": {
-    "en": "Reef break from the northwest coast, left wrapping around the barrier off Pointe aux Piments. Season: westerly and cyclone swells (Dec.–March), more capricious in southern winter. Conditions: SE offshore trade winds, surf around mid-tide; passage through the lagoon to reach the peak.",
-    "es": "Reef break desde la costa noroeste, a la izquierda rodeando la barrera de Pointe aux Piments. Temporada: oleaje del oeste y ciclónico (diciembre-marzo), más caprichoso en el invierno del sur. Condiciones: vientos alisios del SE offshore, surf alrededor de la marea media; paso por la laguna para llegar al pico.",
-    "pt": "Reef break da costa noroeste, à esquerda contornando a barreira de Pointe aux Piments. Temporada: ondas de oeste e ciclones (dezembro a março), mais caprichosas no inverno do sul. Condições: ventos alísios de SE offshore, surf no meio da maré; passagem pela lagoa para chegar ao pico."
+    "en": "Reef break on the northwest coast, a left wrapping along the barrier reef off Pointe aux Piments. Season: westerly and cyclone swells (Dec–Mar), more fickle in the southern winter. Conditions: SE trade winds blow offshore, surf around mid tide; paddle across the lagoon to reach the peak.",
+    "es": "Reef break de la costa noroeste, una izquierda que se enrosca en la barrera frente a Pointe aux Piments. Temporada: swells del oeste y ciclónicos (dic.–mar.), más irregular en el invierno austral. Condiciones: los alisios del SE soplan offshore, se surfea en torno a media marea; hay que cruzar la laguna remando para llegar al pico.",
+    "pt": "Reef break da costa noroeste, uma esquerda que enrola na barreira ao largo de Pointe aux Piments. Época: ondulações de oeste e de ciclone (dez.–mar.), mais irregular no inverno austral. Condições: os alísios de SE sopram offshore, surfa-se por volta da meia-maré; atravessa-se a lagoa a remar para chegar ao pico."
   },
   "maurice-roches-noires": {
-    "en": "Reef pass on the east coast, fed almost all year round by wind swells from the SE trade winds. Season: most consistent from May to November. Conditions: coast very exposed to the wind onshore — almost surfable only early in the morning, in the wind, or during a real long swell. Reef off the lagoon.",
-    "es": "Paso de arrecife en la costa este, alimentado casi todo el año por las marejadas de los vientos alisios del SE. Temporada: más consistente de mayo a noviembre. Condiciones: costa muy expuesta al viento onshore, casi surfeable sólo temprano en la mañana, con viento o durante un oleaje realmente largo. Arrecife frente a la laguna.",
-    "pt": "Passagem de recife na costa leste, alimentada quase todo o ano pelas ondas dos ventos alísios de SE. Temporada: mais consistente de maio a novembro. Condições: costa muito exposta ao vento onshore — quase surfável apenas de manhã cedo, com vento ou durante ondas muito longas. Recife fora da lagoa."
+    "en": "Reef pass on the east coast, fed almost all year by wind swell from the SE trades. Season: most consistent from May to November. Conditions: this coast gets onshore wind most of the time; really only surfable early in the morning when it's glassy, or on a proper groundswell. Reef on the outer edge of the lagoon.",
+    "es": "Paso de arrecife en la costa este, alimentado casi todo el año por el mar de viento de los alisios del SE. Temporada: más constante de mayo a noviembre. Condiciones: costa casi siempre con viento onshore; en la práctica solo se surfea a primera hora, con el mar glassy, o con un verdadero mar de fondo. Arrecife en el borde exterior de la laguna.",
+    "pt": "Passe de recife na costa leste, alimentado quase todo o ano pela vaga dos alísios de SE. Época: mais consistente de maio a novembro. Condições: costa quase sempre com vento onshore; na prática só se surfa logo de manhã, com o mar espelhado, ou com uma verdadeira ondulação de fundo. Recife na orla exterior da lagoa."
   },
   "maurice-belle-mare": {
-    "en": "Reef passes along the Belle Mare/Palmar lagoon on the east coast. Season: southern swell and wind swell from May to November. Conditions: very exposed to SE trade winds (often choppy) — favor sunrise before the wind picks up; peaks offshore, access by rowing from the lagoon.",
-    "es": "El arrecife pasa a lo largo de la laguna Belle Mare/Palmar en la costa este. Temporada: oleaje del sur y oleaje de viento de mayo a noviembre. Condiciones: muy expuesto a los vientos alisios del SE (a menudo entrecortados): favorezca el amanecer antes de que se levante el viento; picos mar adentro, acceso remando desde la laguna.",
-    "pt": "O recife passa ao longo da lagoa Belle Mare/Palmar, na costa leste. Temporada: ondulação de sul e ondulação de vento de maio a novembro. Condições: muito exposto a ventos alísios de SE (muitas vezes agitados) - favoreça o nascer do sol antes que o vento aumente; picos offshore, acesso a remo a partir da lagoa."
+    "en": "Reef passes along the Belle Mare / Palmar lagoon on the east coast. Season: southern swell and wind swell from May to November. Conditions: very exposed to the SE trade winds (often choppy); go at sunrise before the wind picks up. Peaks are out on the reef, reached by paddling from the lagoon.",
+    "es": "Pasos de arrecife a lo largo de la laguna de Belle Mare / Palmar, en la costa este. Temporada: swell austral y mar de viento de mayo a noviembre. Condiciones: muy expuesto a los alisios del SE (a menudo picado); mejor al amanecer, antes de que suba el viento. Picos en el arrecife, se llega remando desde la laguna.",
+    "pt": "Passes de recife ao longo da lagoa de Belle Mare / Palmar, na costa leste. Época: ondulação austral e vaga de vento de maio a novembro. Condições: muito exposto aos alísios de SE (muitas vezes picado); melhor ao nascer do sol, antes de o vento entrar. Picos no recife, chega-se a remar desde a lagoa."
   },
   "norvege-hoddevik": {
-    "en": "Beach break from the Norwegian Atlantic. Cold water, spectacular scenery.",
-    "es": "Beach break del Atlántico noruego. Agua fría, paisaje espectacular.",
-    "pt": "Beach break do Atlântico Norueguês. Água fria, paisagens espetaculares."
+    "en": "Norwegian Atlantic beach break. Cold water, spectacular scenery.",
+    "es": "Beach break del Atlántico noruego. Agua fría, paisajes espectaculares.",
+    "pt": "Beach break do Atlântico norueguês. Água fria, paisagens espetaculares."
   },
   "danemark-cold-hawaii": {
-    "en": "European capital of surfing. Beach break, often strong wind.",
-    "es": "Capital europea del surf. Beach break, a menudo viento fuerte.",
-    "pt": "Capital europeia do surf. Beach break, vento frequentemente forte."
+    "en": "Europe's “Cold Hawaii” surf capital. Beach break, often strong wind.",
+    "es": "La capital europea del surf, apodada “Cold Hawaii”. Beach break, viento a menudo fuerte.",
+    "pt": "A capital europeia do surf, conhecida como “Cold Hawaii”. Beach break, vento muitas vezes forte."
   },
   "allemagne-sylt": {
     "en": "North Sea island. Beach break, active surf community.",
-    "es": "Isla del Mar del Norte. Beach break, comunidad de surf activa.",
-    "pt": "Ilha do Mar do Norte. Beach break, comunidade ativa de surf."
+    "es": "Isla del mar del Norte. Beach break, comunidad surfera activa.",
+    "pt": "Ilha do mar do Norte. Beach break, comunidade de surf ativa."
   },
   "pays-bas-scheveningen": {
-    "en": "Beach in The Hague. Beach break, good infrastructure.",
-    "es": "Playa en La Haya. Beach break, buena infraestructura.",
-    "pt": "Praia em Haia. Beach break, boas infraestruturas."
+    "en": "The Hague's beach. Beach break, good facilities.",
+    "es": "La playa de La Haya. Beach break, buenas infraestructuras.",
+    "pt": "A praia de Haia. Beach break, boas infraestruturas."
   },
   "galles-llanbedr": {
-    "en": "Beach break from Wales. Fewer people than in Cornwall.",
+    "en": "Welsh beach break. Fewer people than in Cornwall.",
     "es": "Beach break de Gales. Menos gente que en Cornualles.",
-    "pt": "Beach break do País de Gales. Menos pessoas do que na Cornualha."
-  },
-  "espagne-galice-pantin": {
-    "en": "Spot in the Spanish northwest. WSL stage, beach break.",
-    "es": "Spot en el noroeste español. Escenario WSL, beach break.",
-    "pt": "Local no noroeste espanhol. Etapa WSL, beach break."
+    "pt": "Beach break do País de Gales. Menos gente do que na Cornualha."
   },
   "maroc-safi": {
-    "en": "Reef break at the port of Safi. Powerful right, few people.",
-    "es": "Reef break en el puerto de Safi. Derecha poderosa, poca gente.",
-    "pt": "Reef break no porto de Safi. Poderoso né, poucas pessoas."
+    "en": "Reef break by the port of Safi. Powerful right, few people.",
+    "es": "Reef break junto al puerto de Safi. Derecha potente, poca gente.",
+    "pt": "Reef break junto ao porto de Safi. Direita potente, pouca gente."
   },
   "canada-nouvelle-ecosse-lawrencetown": {
-    "en": "Beach break Atlantic. Cold water, good swell.",
-    "es": "Beach break Atlántico. Agua fría, buen oleaje.",
-    "pt": "Beach break Atlântico. Água fria, bom swell."
+    "en": "Atlantic beach break. Cold water, good swell.",
+    "es": "Beach break atlántico. Agua fría, buen swell.",
+    "pt": "Beach break atlântico. Água fria, boa ondulação."
   },
   "usa-oregon-pacific-city": {
     "en": "Beach break in front of Haystack Rock. Good Pacific swell.",
-    "es": "Beach break frente a Haystack Rock. Buen oleaje del Pacífico.",
-    "pt": "Beach break em frente ao Haystack Rock. Bom swell do Pacífico."
+    "es": "Beach break frente a Haystack Rock. Buen swell del Pacífico.",
+    "pt": "Beach break em frente ao Haystack Rock. Boa ondulação do Pacífico."
   },
   "usa-washington-westport": {
-    "en": "Jetty and beach break. Main spot in the state.",
-    "es": "Embarcadero y beach break. Punto principal del estado.",
-    "pt": "Molhe e beach break. Principal ponto do estado."
-  },
-  "mexico-puerto-escondido-zicatela": {
-    "en": "Giant tubes beach. Mexican Pipeline, powerful beach break.",
-    "es": "Playa de tubos gigantes. Oleoducto Mexicano, poderoso beach break.",
-    "pt": "Praia de tubos gigantes. Gasoduto Mexicano, poderoso beach break."
+    "en": "Jetty and beach break. The state's main spot.",
+    "es": "Espigón y beach break. El spot principal del estado.",
+    "pt": "Molhe e beach break. O principal spot do estado."
   },
   "peru-mancora": {
-    "en": "Spot in northern Peru. Beach break, eau plus chaude.",
-    "es": "Spot en el norte del Perú. Beach break, agua más caliente.",
-    "pt": "Local no norte do Peru. Beach break, água mais quente."
-  },
-  "peru-punta-hermosa": {
-    "en": "Point break near Lima. Several peaks (Senoritas, La Isla).",
-    "es": "Point break cerca de Lima. Varios picos (Señoritas, La Isla).",
-    "pt": "Point break perto de Lima. Vários picos (Senoritas, La Isla)."
+    "en": "Northern Peru spot. Beach break, warmer water.",
+    "es": "Spot del norte de Perú. Beach break, agua más cálida.",
+    "pt": "Spot do norte do Peru. Beach break, água mais quente."
   },
   "bresil-praia-da-tiririca": {
-    "en": "Beach break from Bahia. Tropical forest, good atmosphere.",
-    "es": "Beach break de Bahía. Bosque tropical, buen ambiente.",
-    "pt": "Beach break da Bahia. Floresta tropical, bom ambiente."
+    "en": "Bahia beach break. Rainforest backdrop, good vibe.",
+    "es": "Beach break de Bahía. Selva tropical alrededor, buen ambiente.",
+    "pt": "Beach break da Bahia. Mata tropical à volta, bom ambiente."
   },
   "bresil-fernando-noronha": {
-    "en": "Paradise island. Beach break powerful, preserved.",
-    "es": "Isla Paraíso. Beach break potente, conservado.",
-    "pt": "Ilha paradisíaca. Beach break poderoso, preservado."
+    "en": "Paradise island. Powerful, unspoilt beach break.",
+    "es": "Isla paradisíaca. Beach break potente y virgen.",
+    "pt": "Ilha paradisíaca. Beach break potente e preservado."
   },
   "uruguay-la-paloma": {
-    "en": "Quiet seaside resort. Beach break, fewer people than Punta.",
-    "es": "Tranquila localidad costera. Beach break, menos gente que Punta.",
-    "pt": "Estância balnear tranquila. Beach break, menos gente que Punta."
+    "en": "Quiet seaside town. Beach break, fewer people than Punta del Este.",
+    "es": "Balneario tranquilo. Beach break, menos gente que en Punta del Este.",
+    "pt": "Estância balnear tranquila. Beach break, menos gente do que em Punta del Este."
   },
   "taiwan-fulong": {
-    "en": "North coast beach. Beach break, growing community.",
-    "es": "Playa de la costa norte. Beach break, comunidad en crecimiento.",
-    "pt": "Praia do litoral norte. Beach break, comunidade em crescimento."
+    "en": "North coast beach. Beach break, growing surf community.",
+    "es": "Playa de la costa norte. Beach break, comunidad surfera en crecimiento.",
+    "pt": "Praia da costa norte. Beach break, comunidade de surf em crescimento."
   },
   "indonesia-sumbawa-supersuck": {
-    "en": "Reef break from Sumbawa. Short and intense tube.",
+    "en": "Sumbawa reef break. Short, intense barrel.",
     "es": "Reef break de Sumbawa. Tubo corto e intenso.",
     "pt": "Reef break de Sumbawa. Tubo curto e intenso."
   },
   "indonesia-mentawai-thunders": {
-    "en": "Reef break of the Mentawai. Long straight, boat required.",
-    "es": "Reef break de los Mentawai. Recta larga, se necesita barco.",
-    "pt": "Reef break dos Mentawai. Longa reta, é necessário barco."
-  },
-  "sri-lanka-arugam-bay": {
-    "en": "Point break from the east coast. Season April-October.",
-    "es": "Point break de la costa este. Temporada abril-octubre.",
-    "pt": "Point break da costa leste. Temporada abril-outubro."
+    "en": "Mentawai reef break. Long right, boat needed.",
+    "es": "Reef break de las Mentawai. Derecha larga, hace falta barco.",
+    "pt": "Reef break das Mentawai. Direita longa, é preciso barco."
   },
   "maldives-honkeys": {
-    "en": "Fast right from the Maldives. Access by boat.",
-    "es": "Rápido desde las Maldivas. Acceso en barco.",
-    "pt": "Rápido desde as Maldivas. Acesso de barco."
+    "en": "Fast right in the Maldives. Boat access.",
+    "es": "Derecha rápida de Maldivas. Acceso en barco.",
+    "pt": "Direita rápida das Maldivas. Acesso de barco."
   },
   "fiji-namotu-left": {
     "en": "Left near Namotu Island. Smaller than Cloudbreak.",
-    "es": "A la izquierda cerca de la isla Namotu. Más pequeño que Cloudbreak.",
-    "pt": "À esquerda perto da Ilha Namotu. Menor que Cloudbreak."
+    "es": "Izquierda cerca de la isla de Namotu. Más pequeña que Cloudbreak.",
+    "pt": "Esquerda perto da ilha de Namotu. Mais pequena do que o Cloudbreak."
   },
   "tonga-haatafu": {
-    "en": "Reef break from Tonga. Few people, authentic.",
-    "es": "Reef break de Tonga. Poca gente, auténtica.",
-    "pt": "Reef break de Tonga. Poucas pessoas, autênticas."
+    "en": "Tongan reef break. Few people, authentic.",
+    "es": "Reef break de Tonga. Poca gente, auténtico.",
+    "pt": "Reef break de Tonga. Pouca gente, autêntico."
   },
   "nouvelle-caledonie-bourail": {
-    "en": "Beach break of Grande Terre. Lagoon and ocean.",
+    "en": "Beach break on Grande Terre. Lagoon and ocean.",
     "es": "Beach break de Grande Terre. Laguna y océano.",
     "pt": "Beach break de Grande Terre. Lagoa e oceano."
   },
   "iles-cook-raggie": {
-    "en": "Reef break of the Cooks. Small swell, magnificent landscapes.",
-    "es": "Reef break de los Cocineros. Pequeño oleaje, magníficos paisajes.",
-    "pt": "Reef break dos cozinheiros. Ondas pequenas, paisagens magníficas."
+    "en": "Cook Islands reef break. Small swell, stunning scenery.",
+    "es": "Reef break de las islas Cook. Swell pequeño, paisajes magníficos.",
+    "pt": "Reef break das ilhas Cook. Ondulação pequena, paisagens magníficas."
   },
   "samoa-american-savu": {
-    "en": "Reef break of the Big Island. Fewer people than in Upolu.",
-    "es": "Reef break de la Isla Grande. Menos gente que en Upolu.",
-    "pt": "Reef break da Ilha Grande. Menos pessoas do que em Upolu."
+    "en": "Reef break on the big island. Fewer people than on Upolu.",
+    "es": "Reef break de la isla grande. Menos gente que en Upolu.",
+    "pt": "Reef break da ilha grande. Menos gente do que em Upolu."
   },
   "papouasie-nouvelle-guinee-tupira": {
-    "en": "Reef break isolated. Adventure and uncrowded waves.",
-    "es": "Reef break aislado. Aventura y olas poco masificadas.",
-    "pt": "Reef break isolado. Aventura e ondas desertas."
-  },
-  "australie-western-australia-margarets": {
-    "en": "WSL spot. Reef break powerful, sharks to watch out for.",
-    "es": "Lugar WSL. Reef break poderosos, tiburones a tener en cuenta.",
-    "pt": "Lugar na WSL. Reef break poderosos, tubarões a serem observados."
+    "en": "Remote reef break. Adventure and uncrowded waves.",
+    "es": "Reef break aislado. Aventura y olas con poca gente.",
+    "pt": "Reef break isolado. Aventura e ondas com pouca gente."
   },
   "australie-tasmanie-clifton": {
-    "en": "Beach break south of Hobart. Cold water, wild landscapes.",
+    "en": "Beach break south of Hobart. Cold water, wild scenery.",
     "es": "Beach break al sur de Hobart. Agua fría, paisajes salvajes.",
-    "pt": "Beach break ao sul de Hobart. Água fria, paisagens selvagens."
+    "pt": "Beach break a sul de Hobart. Água fria, paisagens selvagens."
   },
   "nouvelle-zelande-piha": {
-    "en": "Beach break black (volcanic sand). Close to Auckland.",
-    "es": "Beach break negro (arena volcánica). Cerca de Auckland.",
-    "pt": "Beach break preto (areia vulcânica). Perto de Auckland."
+    "en": "Black-sand beach break (volcanic sand). Close to Auckland.",
+    "es": "Beach break de arena negra (volcánica). Cerca de Auckland.",
+    "pt": "Beach break de areia preta (vulcânica). Perto de Auckland."
   },
   "afrique-sud-umhlanga": {
-    "en": "Beach north of Durban. Beach break family.",
-    "es": "Playa al norte de Durban. Familia beach break.",
-    "pt": "Praia ao norte de Durban. Família beach break."
-  },
-  "afrique-sud-cape-town-muizenberg": {
-    "en": "Historic spot in Cape Town. Beach break, surf schools.",
-    "es": "Lugar histórico en Ciudad del Cabo. Beach break, escuelas de surf.",
-    "pt": "Local histórico na Cidade do Cabo. Beach break, escolas de surf."
+    "en": "Beach north of Durban. Family beach break.",
+    "es": "Playa al norte de Durban. Beach break familiar.",
+    "pt": "Praia a norte de Durban. Beach break familiar."
   },
   "namibie-skeleton-coast": {
-    "en": "Beach break Atlantic. Desert and ocean, cold water.",
-    "es": "Beach break Atlántico. Desierto y océano, agua fría.",
-    "pt": "Beach break Atlântico. Deserto e oceano, água fria."
+    "en": "Atlantic beach break. Desert meets ocean, cold water.",
+    "es": "Beach break atlántico. Desierto y océano, agua fría.",
+    "pt": "Beach break atlântico. Deserto e oceano, água fria."
   },
   "iles-canaries-gran-canaria-las-canteras": {
-    "en": "Las Palmas urban beach. Natural reef, good for beginners.",
-    "es": "Playa urbana de Las Palmas. Arrecife natural, bueno para principiantes.",
-    "pt": "Praia urbana de Las Palmas. Recife natural, bom para iniciantes."
+    "en": "Las Palmas city beach. Natural reef, good for beginners.",
+    "es": "Playa urbana de Las Palmas. Arrecife natural, buena para empezar.",
+    "pt": "Praia urbana de Las Palmas. Recife natural, boa para começar."
   },
   "madere-ponta-delgada": {
-    "en": "Reef break from Madeira. Green landscapes and ocean.",
+    "en": "Madeira reef break. Green landscapes and ocean.",
     "es": "Reef break de Madeira. Paisajes verdes y océano.",
     "pt": "Reef break da Madeira. Paisagens verdes e oceano."
   },
   "azores-sao-miguel": {
-    "en": "Beach break from the Azores. Volcanoes and Atlantic waves.",
-    "es": "Beach break de las Azores. Volcanes y olas del Atlántico.",
-    "pt": "Beach break dos Açores. Vulcões e ondas do Atlântico."
-  },
-  "france-bretagne-la-torche": {
-    "en": "Exposed spot of the Breton tip. Beach break, wind often.",
-    "es": "Punto expuesto de la punta bretona. Beach break, viento a menudo.",
-    "pt": "Mancha exposta da ponta bretã. Beach break, vento frequente."
+    "en": "Azores beach break. Volcanoes and Atlantic waves.",
+    "es": "Beach break de las Azores. Volcanes y olas atlánticas.",
+    "pt": "Beach break dos Açores. Vulcões e ondas atlânticas."
   },
   "france-noirmoutier": {
-    "en": "Island of Vendée. Beach break, tide and passage of Gois.",
-    "es": "Isla de Vendea. Beach break, marea y paso del Gois.",
-    "pt": "Ilha de Vendéia. Beach break, maré e passagem de Góis."
+    "en": "Island in the Vendée. Beach break; watch the tide and the Passage du Gois causeway.",
+    "es": "Isla de la Vendée. Beach break; atención a la marea y al paso del Gois.",
+    "pt": "Ilha da Vendeia. Beach break; atenção à maré e à passagem do Gois."
   },
   "italie-sicile-mondello": {
-    "en": "Palermo beach. Small Mediterranean swell.",
-    "es": "Playa de Palermo. Pequeño oleaje mediterráneo.",
-    "pt": "Praia de Palermo. Ondulação mediterrânica pequena."
+    "en": "Palermo's beach. Small Mediterranean swell.",
+    "es": "La playa de Palermo. Swell mediterráneo pequeño.",
+    "pt": "A praia de Palermo. Pequena ondulação mediterrânica."
   },
   "croatie-premantura": {
-    "en": "Southern tip of Istria. Gentle wind, small swell.",
-    "es": "Extremo sur de Istria. Viento suave, oleaje pequeño.",
-    "pt": "Ponta sul da Ístria. Vento suave, ondas pequenas."
+    "en": "Southern tip of Istria. Jugo wind, small swell.",
+    "es": "Extremo sur de Istria. Viento jugo, swell pequeño.",
+    "pt": "Ponta sul da Ístria. Vento jugo, ondulação pequena."
   },
   "portugal-ericeira-cave": {
-    "en": "Reef break from the reserve. Technical right.",
-    "es": "Reef break de la reserva. Derecho técnico.",
-    "pt": "Reef break da reserva. Direito técnico."
+    "en": "Reef break in the Ericeira reserve. Technical right.",
+    "es": "Reef break de la reserva de Ericeira. Derecha técnica.",
+    "pt": "Reef break da reserva da Ericeira. Direita técnica."
   },
   "espagne-cantabrique-liencres": {
     "en": "Dunes and beach break. Close to Santander.",
@@ -1488,459 +1383,464 @@ export const SPOT_DESCRIPTIONS: Record<string, { en: string; es: string; pt: str
     "pt": "Dunas e beach break. Perto de Santander."
   },
   "el-salvador-la-libertad": {
-    "en": "Point break of the Pacific. El Sunzal and La Punta, long straight.",
-    "es": "Point break del Pacífico. El Sunzal y La Punta, larga recta.",
-    "pt": "Point break do Pacífico. El Sunzal e La Punta, longa reta."
+    "en": "Pacific point breaks. El Sunzal and La Punta, long rights.",
+    "es": "Point breaks del Pacífico. El Sunzal y La Punta, derechas largas.",
+    "pt": "Point breaks do Pacífico. El Sunzal e La Punta, direitas longas."
   },
   "guatemala-sipacate": {
-    "en": "Beach break from the Guatemalan Pacific. Few people.",
-    "es": "Beach break del Pacífico guatemalteco. Pocas personas.",
-    "pt": "Beach break do Pacífico da Guatemala. Poucas pessoas."
+    "en": "Beach break on Guatemala's Pacific coast. Few people.",
+    "es": "Beach break del Pacífico guatemalteco. Poca gente.",
+    "pt": "Beach break do Pacífico guatemalteco. Pouca gente."
   },
   "honduras-tela": {
-    "en": "Beach break Caribbean. Small swell, forest and beach.",
-    "es": "Beach break Caribe. Pequeño oleaje, bosque y playa.",
-    "pt": "Beach break Caribe. Ondulação pequena, floresta e praia."
+    "en": "Caribbean beach break. Small swell, forest and beach.",
+    "es": "Beach break caribeño. Swell pequeño, selva y playa.",
+    "pt": "Beach break caribenho. Ondulação pequena, floresta e praia."
   },
   "belize-caye-caulker": {
-    "en": "Caribbean island. Small swell, kitesurfing and paddle.",
-    "es": "Isla caribeña. Pequeño oleaje, kitesurf y remo.",
-    "pt": "Ilha do Caribe. Ondas pequenas, kitesurf e remo."
+    "en": "Caribbean island. Small swell, kitesurfing and paddleboarding.",
+    "es": "Isla caribeña. Swell pequeño, kitesurf y paddle surf.",
+    "pt": "Ilha caribenha. Ondulação pequena, kitesurf e paddle."
   },
   "republique-dominicaine-cabarete": {
-    "en": "Kitesurfing and surfing spot. Trade wind, good atmosphere.",
-    "es": "Lugar de kitesurf y surf. Vientos alisios, buen ambiente.",
-    "pt": "Local de kitesurf e surf. Ventos alísios, bom ambiente."
+    "en": "Kitesurf and surf spot. Trade winds, good vibe.",
+    "es": "Spot de kitesurf y surf. Vientos alisios, buen ambiente.",
+    "pt": "Spot de kitesurf e surf. Ventos alísios, bom ambiente."
   },
   "puerto-rico-rincon": {
-    "en": "Historic spot. Reef break, northern winter season.",
-    "es": "Lugar histórico. Reef break, temporada de invierno del norte.",
-    "pt": "Local histórico. Reef break, inverno do norte."
+    "en": "Historic spot. Reef break, best in the northern winter.",
+    "es": "Spot histórico. Reef break, mejor en el invierno boreal.",
+    "pt": "Spot histórico. Reef break, melhor no inverno do norte."
   },
   "barbade-soup-bowl": {
-    "en": "Reef break from the east coast. Caribbean quality.",
-    "es": "Reef break de la costa este. Calidad caribeña.",
-    "pt": "Reef break da costa leste. Qualidade caribenha."
+    "en": "East coast reef break. The Caribbean's quality wave.",
+    "es": "Reef break de la costa este. La ola de calidad del Caribe.",
+    "pt": "Reef break da costa leste. A onda de qualidade das Caraíbas."
   },
   "trinite-tobago-bacolet": {
-    "en": "Beach break from Tobago. Small Atlantic swell.",
-    "es": "Beach break de Tobago. Pequeño oleaje atlántico.",
-    "pt": "Beach break de Tobago. Pequena ondulação do Atlântico."
-  },
-  "usa-california-swamis": {
-    "en": "Point break in front of the temple. Long quality straight.",
-    "es": "Point break frente al templo. Lacio largo de calidad.",
-    "pt": "Point break em frente ao templo. Longa qualidade reta."
+    "en": "Tobago beach break. Small Atlantic swell.",
+    "es": "Beach break de Tobago. Swell atlántico pequeño.",
+    "pt": "Beach break de Tobago. Pequena ondulação atlântica."
   },
   "usa-california-ocean-beach-sf": {
-    "en": "Beach break mighty from the bay. Cold water, strong currents.",
-    "es": "Beach break poderoso desde la bahía. Agua fría, fuertes corrientes.",
-    "pt": "Beach break poderoso da baía. Água fria, correntes fortes."
+    "en": "Powerful San Francisco beach break. Cold water, strong currents.",
+    "es": "Beach break potente de San Francisco. Agua fría, corrientes fuertes.",
+    "pt": "Beach break potente de São Francisco. Água fria, correntes fortes."
   },
   "costa-rica-tamarindo": {
-    "en": "The busiest spot in the country. Ideal for getting started.",
-    "es": "El lugar más concurrido del país. Ideal para empezar.",
-    "pt": "O ponto mais movimentado do país. Ideal para começar."
-  },
-  "costa-rica-nosara": {
-    "en": "Long white sand beach. Yoga and surfing.",
-    "es": "Larga playa de arena blanca. Yoga y surf.",
-    "pt": "Longa praia de areia branca. Ioga e surf."
+    "en": "The country's busiest spot. Ideal for beginners.",
+    "es": "El spot más concurrido del país. Ideal para empezar.",
+    "pt": "O spot mais frequentado do país. Ideal para começar."
   },
   "peru-cabo-blanco": {
-    "en": "Point break history. Hemingway fished there.",
-    "es": "Historia de point break. Hemingway pescó allí.",
-    "pt": "História point break. Hemingway pescou lá."
+    "en": "Historic point break. Hemingway fished here.",
+    "es": "Point break histórico. Hemingway pescó aquí.",
+    "pt": "Point break histórico. Hemingway pescou aqui."
   },
   "peru-huanchaco": {
-    "en": "Fishing village. Totora horses, Peruvian culture.",
-    "es": "Pueblo pesquero. Caballos de totora, cultura peruana.",
-    "pt": "Vila de pescadores. Cavalos Totora, cultura peruana."
+    "en": "Fishing village. Caballitos de totora reed boats, Peruvian culture.",
+    "es": "Pueblo de pescadores. Caballitos de totora, cultura peruana.",
+    "pt": "Vila piscatória. Caballitos de totora, cultura peruana."
   },
   "chili-pichilemu": {
-    "en": "Big wave spot and legendary point break. Powerful left.",
-    "es": "Spot big wave y legendario point break. Una izquierda poderosa.",
-    "pt": "Local big wave e lendário point break. Esquerda poderosa."
+    "en": "Legendary big-wave spot and point break. Powerful left.",
+    "es": "Spot de big wave y point break legendario. Izquierda potente.",
+    "pt": "Spot de big wave e point break lendário. Esquerda potente."
   },
   "chili-matanzas": {
-    "en": "Beach break consistent. Good atmosphere, less demanding than Lobos.",
-    "es": "Beach break consistente. Buen ambiente, menos exigente que Lobos.",
-    "pt": "Beach break consistente. Bom ambiente, menos exigente que o Lobos."
+    "en": "Consistent beach break. Good vibe, less demanding than Punta de Lobos.",
+    "es": "Beach break constante. Buen ambiente, menos exigente que Punta de Lobos.",
+    "pt": "Beach break consistente. Bom ambiente, menos exigente do que Punta de Lobos."
   },
   "usa-new-york-montauk": {
     "en": "Eastern tip of Long Island. Hurricane swells.",
-    "es": "Extremo oriental de Long Island. El huracán se hincha.",
-    "pt": "Ponta oriental de Long Island. O furacão aumenta."
+    "es": "Extremo oriental de Long Island. Swells de huracán.",
+    "pt": "Ponta oriental de Long Island. Ondulações de furacão."
   },
   "usa-florida-sebastian-inlet": {
-    "en": "The most consistent spot on the east coast. Competitions.",
-    "es": "El lugar más consistente de la costa este. Competiciones.",
-    "pt": "O local mais consistente da costa leste. Competições."
+    "en": "The most consistent spot on the east coast. Contest venue.",
+    "es": "El spot más constante de la costa este. Sede de competiciones.",
+    "pt": "O spot mais consistente da costa leste. Recebe competições."
   },
   "france-wissant": {
     "en": "Large beach between the two capes. Opal Coast.",
     "es": "Gran playa entre los dos cabos. Costa de Ópalo.",
-    "pt": "Grande praia entre os dois cabos. Costa Opala."
+    "pt": "Grande praia entre os dois cabos. Costa de Opala."
   },
   "reunion-saint-leu": {
-    "en": "Reef break from the west. Watch out for sharks.",
-    "es": "Reef break desde el oeste. Cuidado con los tiburones.",
-    "pt": "Reef break do oeste. Cuidado com os tubarões."
+    "en": "West coast reef break. Beware of sharks.",
+    "es": "Reef break de la costa oeste. Cuidado con los tiburones.",
+    "pt": "Reef break da costa oeste. Atenção aos tubarões."
   },
   "sri-lanka-hikkaduwa": {
-    "en": "Tourist spot in the south. Reef and beach break.",
-    "es": "Punto turístico del sur. Arrecife y beach break.",
-    "pt": "Ponto turístico no sul. Recife e beach break."
-  },
-  "taiwan-jinzun": {
-    "en": "Main spot on the east coast. Typhoons in summer.",
-    "es": "Lugar principal de la costa este. Tifones en verano.",
-    "pt": "Ponto principal na costa leste. Tufões no verão."
+    "en": "Touristy spot in the south. Reef and beach breaks.",
+    "es": "Spot turístico del sur. Reef y beach break.",
+    "pt": "Spot turístico do sul. Reef e beach break."
   },
   "philippines-baler": {
-    "en": "Cradle of Filipino surfing. Beach break, good for starters.",
-    "es": "Cuna del surf filipino. Beach break, bueno para empezar.",
-    "pt": "Berço do surf filipino. Beach break, bom para começar."
-  },
-  "australie-byron-the-pass": {
-    "en": "Long soft straight. Longboard paradise.",
-    "es": "Lacio largo y suave. El paraíso del longboard.",
-    "pt": "Longo e macio em linha reta. Paraíso do longboard."
+    "en": "The cradle of Filipino surfing. Beach break, good for beginners.",
+    "es": "La cuna del surf filipino. Beach break, bueno para empezar.",
+    "pt": "O berço do surf filipino. Beach break, bom para começar."
   },
   "puerto-rico-jobos": {
-    "en": "Reef break from the north coast. Good atmosphere.",
+    "en": "North coast reef break. Good vibe.",
     "es": "Reef break de la costa norte. Buen ambiente.",
-    "pt": "Reef break da costa norte. Boa atmosfera."
+    "pt": "Reef break da costa norte. Bom ambiente."
   },
   "mexico-punta-mita": {
     "en": "Peninsula north of Puerto Vallarta. Several bays.",
     "es": "Península al norte de Puerto Vallarta. Varias bahías.",
-    "pt": "Península ao norte de Puerto Vallarta. Várias baías."
+    "pt": "Península a norte de Puerto Vallarta. Várias baías."
   },
   "mexico-san-blas": {
-    "en": "Historic village. Beach break, mangrove.",
+    "en": "Historic village. Beach break, mangroves.",
     "es": "Pueblo histórico. Beach break, manglar.",
-    "pt": "Aldeia histórica. Beach break, manguezal."
+    "pt": "Vila histórica. Beach break, mangal."
   },
   "afrique-sud-elands-bay": {
     "en": "Point break in front of the cave. Long left.",
-    "es": "Point break frente a la cueva. Larga izquierda.",
-    "pt": "Point break em frente à caverna. Muito tempo à esquerda."
+    "es": "Point break frente a la cueva. Izquierda larga.",
+    "pt": "Point break em frente à gruta. Esquerda longa."
   },
   "afrique-sud-scarborough": {
-    "en": "Arty village in the south of Cape Town. Beach break.",
-    "es": "Pueblo artístico en el sur de Ciudad del Cabo. Beach break.",
-    "pt": "Vila artística no sul da Cidade do Cabo. Beach break."
+    "en": "Arty village south of Cape Town. Beach break.",
+    "es": "Pueblo artístico al sur de Ciudad del Cabo. Beach break.",
+    "pt": "Vila artística a sul da Cidade do Cabo. Beach break."
   },
   "usa-california-san-onofre": {
-    "en": "Family spot. Longboard and beginners.",
-    "es": "Lugar familiar. Longboard y principiantes.",
-    "pt": "Local familiar. Longboard e iniciantes."
+    "en": "Family spot. Longboarders and beginners.",
+    "es": "Spot familiar. Longboard y principiantes.",
+    "pt": "Spot familiar. Longboard e iniciantes."
   },
   "usa-california-cardiff": {
     "en": "Reef break in front of the restaurant. Longboard friendly.",
-    "es": "Reef break frente al restaurante. Apto para longboard.",
-    "pt": "Reef break em frente ao restaurante. Longboard amigável."
+    "es": "Reef break frente al restaurante. Ideal para longboard.",
+    "pt": "Reef break em frente ao restaurante. Bom para longboard."
   },
   "costa-rica-hermosa": {
-    "en": "Powerful beach break. National competitions.",
-    "es": "Potente beach break. Competiciones nacionales.",
-    "pt": "Poderoso beach break. Competições nacionais."
+    "en": "Powerful beach break. National contest venue.",
+    "es": "Beach break potente. Sede de competiciones nacionales.",
+    "pt": "Beach break potente. Recebe competições nacionais."
   },
   "espagne-loredo": {
-    "en": "Great beach in Cantabria. Many peaks.",
+    "en": "Large beach in Cantabria. Lots of peaks.",
     "es": "Gran playa de Cantabria. Muchos picos.",
-    "pt": "Ótima praia na Cantábria. Muitos picos."
-  },
-  "portugal-ericeira-pedra-branca": {
-    "en": "Reef break technical. Hollow right.",
-    "es": "Reef break técnico. Derecha hueca.",
-    "pt": "Reef break técnico. Oco à direita."
+    "pt": "Grande praia da Cantábria. Muitos picos."
   },
   "maroc-agadir-anza": {
     "en": "Beach north of Agadir. Beach break, surf schools.",
     "es": "Playa al norte de Agadir. Beach break, escuelas de surf.",
-    "pt": "Praia ao norte de Agadir. Beach break, escolas de surf."
+    "pt": "Praia a norte de Agadir. Beach break, escolas de surf."
   },
   "indonesia-bali-dreamland": {
     "en": "Beach break at the foot of the cliffs. Good for all levels.",
     "es": "Beach break al pie de los acantilados. Bueno para todos los niveles.",
     "pt": "Beach break no sopé das falésias. Bom para todos os níveis."
   },
-  "fiji-tavarua": {
-    "en": "Heart-shaped island. Cloudbreak off.",
-    "es": "Isla en forma de corazón. Rompe la nube.",
-    "pt": "Ilha em forma de coração. Quebre a nuvem."
-  },
-  "nouvelle-zelande-gisborne-makorori": {
-    "en": "First city in the sun. Beach break.",
-    "es": "Primera ciudad bajo el sol. Beach break.",
-    "pt": "Primeira cidade ao sol. Beach break."
-  },
   "canada-vancouver-tofino-cox-bay": {
     "en": "One of the best beach breaks in Tofino.",
-    "es": "Uno de los mejores beach break de Tofino.",
+    "es": "Uno de los mejores beach breaks de Tofino.",
     "pt": "Um dos melhores beach breaks de Tofino."
   },
   "usa-outer-banks-nags-head": {
     "en": "Outer Banks. Hurricane swells, warm water.",
-    "es": "Bancos exteriores. Huracán se hincha, agua tibia.",
-    "pt": "Bancos Externos. Furacão aumenta, água quente."
+    "es": "Outer Banks. Swells de huracán, agua cálida.",
+    "pt": "Outer Banks. Ondulações de furacão, água quente."
   },
   "colombia-palomino": {
-    "en": "Bohemian village. Beach break, Sierra Nevada in the background.",
-    "es": "Pueblo bohemio. Beach break, Sierra Nevada al fondo.",
-    "pt": "Aldeia Boêmia. Beach break, Serra Nevada ao fundo."
+    "en": "Bohemian village. Beach break with the Sierra Nevada as a backdrop.",
+    "es": "Pueblo bohemio. Beach break con la Sierra Nevada al fondo.",
+    "pt": "Vila boémia. Beach break com a Sierra Nevada ao fundo."
   },
   "equateur-canoa": {
-    "en": "Long sandy beach. Relaxed atmosphere.",
-    "es": "Larga playa de arena. Ambiente relajado.",
-    "pt": "Longa praia de areia. Atmosfera descontraída."
+    "en": "Long sandy beach. Laid-back vibe.",
+    "es": "Playa larga de arena. Ambiente relajado.",
+    "pt": "Praia longa de areia. Ambiente descontraído."
   },
   "portugal-praia-grande-sintra": {
-    "en": "Large exposed beach just north of Guincho. Beach break powerful and consistent, bodyboard benchmark and competitions.",
-    "es": "Gran playa expuesta justo al norte de Guincho. Beach break potente y consistente, referente de bodyboard y competiciones.",
-    "pt": "Grande praia exposta a norte do Guincho. Beach break poderoso e consistente, referência e competições de bodyboard."
+    "en": "Large exposed beach just north of Guincho. Powerful, consistent beach break, a bodyboarding and contest reference.",
+    "es": "Gran playa expuesta justo al norte de Guincho. Beach break potente y constante, referencia del bodyboard y de las competiciones.",
+    "pt": "Grande praia exposta logo a norte do Guincho. Beach break potente e consistente, referência do bodyboard e das competições."
   },
   "france-le-pradet-la-garonne": {
-    "en": "Mediterranean spot in Pradet, to surf on east/southeast swell. Small, friendly waves, ideal for starting out and progressing.",
-    "es": "Spot mediterráneo en Pradet, para surfear con oleaje del este/sureste. Olas pequeñas y amigables, ideales para iniciarse y progresar.",
-    "pt": "Spot mediterrâneo em Pradet, para surfar nas ondas de leste/sudeste. Ondas pequenas e amigáveis, ideais para começar e progredir."
+    "en": "Mediterranean spot in Le Pradet, surfed on east to southeast swells. Small, friendly waves, ideal for learning and progressing.",
+    "es": "Spot mediterráneo de Le Pradet, se surfea con swell del este y sureste. Olas pequeñas y amables, ideal para empezar y progresar.",
+    "pt": "Spot mediterrânico de Le Pradet, surfa-se com ondulação de leste e sudeste. Ondas pequenas e simpáticas, ideal para começar e evoluir."
   },
   "usa-newjersey-manasquan": {
-    "en": "New Jersey Pier, one of the best beach breaks on the East Coast on hurricane swells.",
-    "es": "Muelle de Nueva Jersey, uno de los mejores beach break de la costa este con oleaje huracanado.",
-    "pt": "New Jersey Pier, um dos melhores beach breaks da Costa Leste em ondas de furacões."
+    "en": "New Jersey jetty, one of the best beach breaks on the East Coast on hurricane swells.",
+    "es": "Espigón de Nueva Jersey, uno de los mejores beach breaks de la costa este con swells de huracán.",
+    "pt": "Molhe de Nova Jérsia, um dos melhores beach breaks da costa leste com ondulações de furacão."
   },
   "usa-rhodeisland-narragansett": {
     "en": "New England's benchmark spot. Beach break, big on autumn swells.",
-    "es": "El lugar de referencia de Nueva Inglaterra. Beach break, grande en oleajes otoñales.",
-    "pt": "Ponto de referência da Nova Inglaterra. Beach break, grande nas ondas do outono."
+    "es": "El spot de referencia de Nueva Inglaterra. Beach break, grande con los swells de otoño.",
+    "pt": "O spot de referência da Nova Inglaterra. Beach break, grande com as ondulações de outono."
   },
   "usa-california-ventura-cstreet": {
-    "en": "Point break very long straight sand, ideal for longboarding and progression.",
-    "es": "Point break Arena muy larga y recta, ideal para longboard y progresión.",
-    "pt": "Point break Areia muito longa e reta, ideal para longboard e progressão."
+    "en": "Sand-bottom point break with a very long right, ideal for longboarding and progressing.",
+    "es": "Point break de fondo de arena con una derecha muy larga, ideal para longboard y para progresar.",
+    "pt": "Point break de fundo de areia com uma direita muito longa, ideal para longboard e para evoluir."
   },
   "usa-california-pismo": {
-    "en": "Long Central-California beach break around the pier. Accessible school spot.",
-    "es": "Largo centro de California beach break alrededor del muelle. Lugar escolar accesible.",
-    "pt": "Longo beach break da Califórnia Central ao redor do cais. Local escolar acessível."
+    "en": "Long Central California beach break around the pier. Accessible spot for surf schools.",
+    "es": "Largo beach break del centro de California alrededor del muelle. Spot accesible para escuelas de surf.",
+    "pt": "Longo beach break da Califórnia Central à volta do pontão. Spot acessível para escolas de surf."
   },
   "mexico-todos-santos-cerritos": {
-    "en": "Beach break of the Baja near Todos Santos. Regular waves, good for all levels.",
-    "es": "Beach break de la Baja cerca de Todos Santos. Olas regulares, buenas para todos los niveles.",
-    "pt": "Beach break da Baja perto de Todos Santos. Ondas regulares, boas para todos os níveis."
+    "en": "Baja beach break near Todos Santos. Regular waves, good for all levels.",
+    "es": "Beach break de Baja California cerca de Todos Santos. Olas regulares, bueno para todos los niveles.",
+    "pt": "Beach break da Baja Califórnia perto de Todos Santos. Ondas regulares, bom para todos os níveis."
   },
   "mexico-la-ticla": {
-    "en": "Powerful rivermouth from Michoacán. Left and right, authentic atmosphere.",
-    "es": "Potente desembocadura de Michoacán. Izquierda y derecha, ambiente auténtico.",
-    "pt": "Poderosa foz do rio de Michoacán. Esquerda e direita, atmosfera autêntica."
+    "en": "Powerful river mouth in Michoacán. Lefts and rights, authentic vibe.",
+    "es": "Desembocadura de río potente en Michoacán. Izquierdas y derechas, ambiente auténtico.",
+    "pt": "Foz de rio potente em Michoacán. Esquerdas e direitas, ambiente autêntico."
   },
   "nicaragua-playa-maderas": {
-    "en": "Popular beach break near San Juan del Sur. Wind offshore almost daily.",
-    "es": "Popular beach break cerca de San Juan del Sur. Viento offshore casi a diario.",
-    "pt": "Beach break popular perto de San Juan del Sur. Vento offshore quase diariamente."
+    "en": "Popular beach break near San Juan del Sur. Offshore wind almost every day.",
+    "es": "Beach break popular cerca de San Juan del Sur. Viento offshore casi a diario.",
+    "pt": "Beach break popular perto de San Juan del Sur. Vento offshore quase todos os dias."
   },
   "costa-rica-dominical": {
-    "en": "Powerful beach break of the Costa Rican South Pacific. Hollow waves on big swells.",
-    "es": "Potente beach break del Pacífico Sur Costarricense. Olas huecas sobre grandes oleajes.",
-    "pt": "Poderoso beach break do Pacífico Sul da Costa Rica. Ondas ocas em grandes ondas."
+    "en": "Powerful beach break on Costa Rica's southern Pacific coast. Hollow waves on big swells.",
+    "es": "Beach break potente del Pacífico sur de Costa Rica. Olas huecas con swells grandes.",
+    "pt": "Beach break potente do Pacífico sul da Costa Rica. Ondas cavadas com grandes ondulações."
   },
   "jamaique-boston-bay": {
-    "en": "Cradle of Jamaican surfing, small bay on the east coast. Beach break on Atlantic swell.",
-    "es": "Cuna del surf jamaicano, pequeña bahía en la costa este. Beach break sobre el oleaje del Atlántico.",
-    "pt": "Berço do surf jamaicano, pequena baía na costa leste. Beach break no swell do Atlântico."
+    "en": "The cradle of Jamaican surfing, a small bay on the east coast. Beach break on Atlantic swell.",
+    "es": "La cuna del surf jamaicano, una pequeña bahía de la costa este. Beach break con swell atlántico.",
+    "pt": "O berço do surf jamaicano, uma pequena baía na costa leste. Beach break com ondulação atlântica."
   },
   "martinique-basse-pointe": {
-    "en": "North Atlantic coast of Martinique. Reef break exposed to Caribbean winter swells.",
-    "es": "Costa atlántica norte de Martinica. Reef break expuesto al oleaje invernal del Caribe.",
-    "pt": "Costa do Atlântico Norte da Martinica. Reef break exposto às ondas do inverno caribenho."
+    "en": "Martinique's northern Atlantic coast. Reef break exposed to the Caribbean winter swells.",
+    "es": "Costa atlántica norte de Martinica. Reef break expuesto a los swells de invierno del Caribe.",
+    "pt": "Costa atlântica norte da Martinica. Reef break exposto às ondulações de inverno das Caraíbas."
   },
   "guadeloupe-le-moule": {
     "en": "Guadeloupe's flagship spot on the Atlantic coast. Exposed reef, best in winter.",
-    "es": "El lugar emblemático de Guadalupe en la costa atlántica. Arrecife expuesto, mejor en invierno.",
-    "pt": "O principal local de Guadalupe na costa atlântica. Recife exposto, melhor no inverno."
-  },
-  "bresil-praia-do-rosa": {
-    "en": "Famous bay in southern Brazil. Beach break in a preserved setting, whales in season.",
-    "es": "Bahía famosa en el sur de Brasil. Beach break en un entorno preservado, temporada de ballenas.",
-    "pt": "Famosa baía no sul do Brasil. Beach break em ambiente preservado, baleias na temporada."
-  },
-  "argentine-mar-del-plata": {
-    "en": "Capital of Argentinian surfing. Beach breaks varied, fresh water and Atlantic swells.",
-    "es": "Capital del surf argentino. Beach breaks variado, agua dulce y oleaje atlántico.",
-    "pt": "Capital do surf argentino. Beach breaks variados, água doce e ondas atlânticas."
+    "es": "El spot estrella de Guadalupe en la costa atlántica. Arrecife expuesto, mejor en invierno.",
+    "pt": "O spot de referência de Guadalupe na costa atlântica. Recife exposto, melhor no inverno."
   },
   "chili-arica-el-gringo": {
-    "en": "Tubular reef nicknamed the Chilean Pipeline. Hollow and fast tube on shallow bottom.",
-    "es": "Arrecife tubular apodado Oleoducto Chileno. Tubo hueco y rápido en fondo poco profundo.",
-    "pt": "Recife tubular apelidado de Oleoduto Chileno. Tubo oco e rápido em fundo raso."
+    "en": "Barrelling reef nicknamed the Chilean Pipeline. Hollow, fast barrel over a shallow bottom.",
+    "es": "Arrecife tubero apodado el Pipeline chileno. Tubo hueco y rápido sobre fondo poco profundo.",
+    "pt": "Recife tubular conhecido como o Pipeline chileno. Tubo cavado e rápido sobre fundo raso."
   },
   "perou-pacasmayo": {
-    "en": "Endless left of the Peruvian north, among the longest in the world on big swells.",
-    "es": "Izquierda interminable del norte peruano, entre las más largas del mundo sobre grandes swells.",
-    "pt": "Esquerda sem fim do norte peruano, uma das mais longas do mundo em grandes ondas."
-  },
-  "equateur-montanita": {
-    "en": "Festive point break from the Ecuadorian coast. Right at the northern tip, backpacker atmosphere.",
-    "es": "Point break festivo de la costa ecuatoriana. Justo en el extremo norte, ambiente de mochileros.",
-    "pt": "Point break festivo da costa equatoriana. Bem no extremo norte, clima de mochileiro."
+    "en": "Endless left in northern Peru, among the longest in the world on big swells.",
+    "es": "Izquierda interminable del norte de Perú, de las más largas del mundo con swells grandes.",
+    "pt": "Esquerda interminável do norte do Peru, das mais longas do mundo com grandes ondulações."
   },
   "espagne-el-palmar": {
-    "en": "Long beach break of Andalusia open to the Atlantic. Ideal outside the levante wind.",
-    "es": "Largo beach break de Andalucía abierto al Atlántico. Ideal fuera del viento de levante.",
-    "pt": "Longo beach break da Andaluzia aberto ao Atlântico. Ideal fora do vento levante."
+    "en": "Long Andalusian beach break open to the Atlantic. Ideal when the levante isn't blowing.",
+    "es": "Largo beach break andaluz abierto al Atlántico. Ideal cuando no sopla el levante.",
+    "pt": "Longo beach break andaluz aberto ao Atlântico. Ideal quando não sopra o levante."
   },
   "espagne-playa-de-laga": {
-    "en": "Protected Basque beach near Mundaka. Beach break clean by moderate swell.",
-    "es": "Playa vasca protegida cerca de Mundaka. Beach break limpio por oleaje moderado.",
-    "pt": "Praia basca protegida perto de Mundaka. Beach break limpo por ondulação moderada."
-  },
-  "uk-thurso-east": {
-    "en": "World class reef in the very north of Scotland. Hollow and icy right.",
-    "es": "Arrecife de clase mundial en el extremo norte de Escocia. Derecho hueco y helado.",
-    "pt": "Recife de classe mundial no extremo norte da Escócia. Oco e gelado, certo."
-  },
-  "irlande-lahinch": {
-    "en": "Iconic spot on the Irish west coast. Beach break consisting of close to the Cliffs of Moher.",
-    "es": "Lugar icónico de la costa oeste irlandesa. Beach break que consta de cerca de los Acantilados de Moher.",
-    "pt": "Local icônico na costa oeste da Irlanda. Beach break consistindo perto das Falésias de Moher."
+    "en": "Sheltered Basque beach near Mundaka. Clean beach break on moderate swells.",
+    "es": "Playa vasca resguardada cerca de Mundaka. Beach break limpio con swell moderado.",
+    "pt": "Praia basca abrigada perto de Mundaka. Beach break limpo com ondulação moderada."
   },
   "islande-sandvik": {
-    "en": "Beach break isolated from the Reykjanes Peninsula. Volcanic scenery, freezing water.",
+    "en": "Remote beach break on the Reykjanes peninsula. Volcanic scenery, freezing water.",
     "es": "Beach break aislado de la península de Reykjanes. Paisaje volcánico, agua helada.",
-    "pt": "Beach break isolado da Península de Reykjanes. Cenário vulcânico, água gelada."
+    "pt": "Beach break isolado da península de Reykjanes. Cenário vulcânico, água gelada."
   },
   "norvege-jaeren": {
-    "en": "South facing beaches of Stavanger. North Sea swell, cold water all year round.",
-    "es": "Playas orientadas al sur de Stavanger. Oleaje del Mar del Norte, agua fría durante todo el año.",
-    "pt": "Praias viradas a sul de Stavanger. Ondas do Mar do Norte, água fria o ano todo."
+    "en": "Exposed beaches south of Stavanger. North Sea swell, cold water all year round.",
+    "es": "Playas expuestas al sur de Stavanger. Swell del mar del Norte, agua fría todo el año.",
+    "pt": "Praias expostas a sul de Stavanger. Ondulação do mar do Norte, água fria todo o ano."
   },
   "france-vieux-boucau": {
-    "en": "Beach break Landes north of Hossegor. Changing sandbanks, fewer people.",
-    "es": "Beach break Landas al norte de Hossegor. Cambiando los bancos de arena, menos gente.",
-    "pt": "Beach break Landes ao norte de Hossegor. Mudando os bancos de areia, menos gente."
+    "en": "Landes beach break north of Hossegor. Shifting sandbanks, fewer people.",
+    "es": "Beach break de las Landas al norte de Hossegor. Bancos de arena cambiantes, menos gente.",
+    "pt": "Beach break das Landes a norte de Hossegor. Bancos de areia variáveis, menos gente."
   },
   "portugal-figueira-cabedelo": {
-    "en": "Left of famous dike in central Portugal. Long, well-organized sand wave.",
-    "es": "A la izquierda del famoso dique en el centro de Portugal. Ola de arena larga y bien organizada.",
-    "pt": "À esquerda do famoso dique no centro de Portugal. Onda de areia longa e bem organizada."
+    "en": "Famous jetty left in central Portugal. Long, well-organised wave over sand.",
+    "es": "Izquierda de espigón famosa del centro de Portugal. Ola larga y bien ordenada sobre arena.",
+    "pt": "Esquerda de molhe famosa do centro de Portugal. Onda longa e bem organizada sobre areia."
   },
   "italie-levanto": {
-    "en": "The most regular spot in Liguria, near the Cinque Terre. Beach break on southwest swell.",
-    "es": "El lugar más habitual de Liguria, cerca de las Cinque Terre. Beach break con oleaje del suroeste.",
-    "pt": "O local mais regular da Ligúria, perto de Cinque Terre. Beach break em ondulação de sudoeste."
+    "en": "The most consistent spot in Liguria, near the Cinque Terre. Beach break on southwest swells.",
+    "es": "El spot más constante de Liguria, cerca de las Cinque Terre. Beach break con swell del suroeste.",
+    "pt": "O spot mais regular da Ligúria, perto das Cinque Terre. Beach break com ondulação de sudoeste."
   },
   "maroc-mehdia": {
-    "en": "Atlantic beach north of Rabat. Beach break accessible and mouth of Wadi Sebou.",
-    "es": "Playa atlántica al norte de Rabat. Beach break accesible y desembocadura del Wadi Sebou.",
-    "pt": "Praia atlântica ao norte de Rabat. Beach break acessível e foz do Wadi Sebou."
-  },
-  "senegal-ngor-right": {
-    "en": "Right reef made famous by Endless Summer, off the island of Ngor.",
-    "es": "Arrecife derecho que se hizo famoso por Endless Summer, frente a la isla de Ngor.",
-    "pt": "Recife direito que ficou famoso por Endless Summer, na ilha de Ngor."
+    "en": "Atlantic beach north of Rabat. Accessible beach break and the mouth of the Sebou river.",
+    "es": "Playa atlántica al norte de Rabat. Beach break accesible y desembocadura del río Sebú.",
+    "pt": "Praia atlântica a norte de Rabat. Beach break acessível e foz do rio Sebou."
   },
   "liberia-robertsport": {
-    "en": "Point break of long, regular sand from West Africa. Spot still preserved.",
-    "es": "Point break de arena larga y regular procedente de África Occidental. Lugar aún conservado.",
-    "pt": "Point break de areia longa e regular da África Ocidental. Local ainda preservado."
+    "en": "Long, regular sand-bottom point break in West Africa. Still an unspoilt spot.",
+    "es": "Point break de fondo de arena, largo y regular, en África Occidental. Un spot todavía virgen.",
+    "pt": "Point break de fundo de areia, longo e regular, na África Ocidental. Um spot ainda preservado."
   },
   "cap-vert-ponta-preta": {
-    "en": "Right world-class point break on Sal Island. Powerful winter swells.",
-    "es": "Right World Class point break en la isla de Sal. Fuertes olas invernales.",
-    "pt": "Right World Class point break na Ilha do Sal. Ondas poderosas de inverno."
+    "en": "World-class right-hand point break on Sal island. Powerful winter swells.",
+    "es": "Point break de derecha de nivel mundial en la isla de Sal. Swells de invierno potentes.",
+    "pt": "Point break de direita de classe mundial na ilha do Sal. Ondulações de inverno potentes."
   },
   "afrique-sud-victoria-bay": {
-    "en": "Small bay on the Garden Route. Right point break coiled, softer water.",
-    "es": "Pequeña bahía en la Ruta Jardín. Derecha point break en espiral, agua más blanda.",
-    "pt": "Pequena baía na Garden Route. Direita point break água enrolada e mais macia."
-  },
-  "philippines-cloud-nine": {
-    "en": "Reef break the most famous in the Philippines. Hollow and powerful tube, competition stage.",
-    "es": "Reef break el más famoso de Filipinas. Tubo hueco y potente, escenario de competición.",
-    "pt": "Reef break o mais famoso das Filipinas. Tubo oco e poderoso, palco de competição."
+    "en": "Small bay on the Garden Route. Wrapping right-hand point break, milder water.",
+    "es": "Pequeña bahía de la Garden Route. Point break de derecha que se enrosca, agua más templada.",
+    "pt": "Pequena baía da Garden Route. Point break de direita que enrola, água mais amena."
   },
   "sri-lanka-weligama": {
-    "en": "Large sandy bay in southern Sri Lanka. Beach break sweet, beginner's paradise.",
-    "es": "Gran bahía de arena en el sur de Sri Lanka. Beach break dulce paraíso para principiantes.",
-    "pt": "Grande baía arenosa no sul do Sri Lanka. Beach break doce, paraíso para iniciantes."
+    "en": "Large sandy bay in southern Sri Lanka. Gentle beach break, a beginners' paradise.",
+    "es": "Gran bahía de arena en el sur de Sri Lanka. Beach break suave, el paraíso de los principiantes.",
+    "pt": "Grande baía de areia no sul do Sri Lanka. Beach break suave, o paraíso dos iniciantes."
   },
   "maldives-chickens": {
-    "en": "Long left reef of the North Atoll. Rapid and tubular sections.",
-    "es": "Arrecife largo izquierdo del atolón norte. Secciones rápidas y tubulares.",
-    "pt": "Longo recife esquerdo do Atol do Norte. Secções rápidas e tubulares."
+    "en": "Long reef left in North Malé Atoll. Fast, barrelling sections.",
+    "es": "Izquierda larga de arrecife en el atolón de Malé Norte. Secciones rápidas y tuberas.",
+    "pt": "Esquerda longa de recife no atol de Malé Norte. Secções rápidas e tubulares."
   },
   "japon-shonan-kugenuma": {
-    "en": "Urban spot near Tokyo, facing Mount Fuji. Popular beach break, small waves.",
-    "es": "Lugar urbano cerca de Tokio, frente al Monte Fuji. Popular beach break, olas pequeñas.",
-    "pt": "Local urbano perto de Tóquio, de frente para o Monte Fuji. Popular beach break, ondas pequenas."
+    "en": "City spot near Tokyo, facing Mount Fuji. Popular beach break, small waves.",
+    "es": "Spot urbano cerca de Tokio, frente al monte Fuji. Beach break popular, olas pequeñas.",
+    "pt": "Spot urbano perto de Tóquio, virado ao monte Fuji. Beach break popular, ondas pequenas."
   },
   "vietnam-da-nang-my-khe": {
-    "en": "Long beach in Da Nang. Beach break monsoon from November to March.",
-    "es": "Larga playa en Da Nang. Monzón beach break de noviembre a marzo.",
-    "pt": "Longa praia em Da Nang. Monção beach break de novembro a março."
-  },
-  "thailande-phuket-kata": {
-    "en": "Phuket's main beach for surfing. Monsoon season from May to October.",
-    "es": "La playa principal de Phuket para practicar surf. Temporada de monzones de mayo a octubre.",
-    "pt": "A principal praia de Phuket para o surf. Temporada de monções de maio a outubro."
-  },
-  "chine-hainan-riyue": {
-    "en": "Bay of the tropical island of Hainan, the heart of Chinese surfing. Point break and beach break.",
-    "es": "Bahía de la isla tropical de Hainan, corazón del surf chino. Point break y beach break.",
-    "pt": "Baía da ilha tropical de Hainan, coração do surf chinês. Point break e beach break."
+    "en": "Long beach in Da Nang. Monsoon-season beach break from November to March.",
+    "es": "Playa larga de Da Nang. Beach break de temporada del monzón, de noviembre a marzo.",
+    "pt": "Praia longa de Da Nang. Beach break da época das monções, de novembro a março."
   },
   "indonesie-batu-karas": {
-    "en": "Sweet point break from West Java, ideal for learning. Quiet setting far from Bali.",
-    "es": "Dulce point break de Java Occidental, ideal para aprender. Entorno tranquilo lejos de Bali.",
-    "pt": "Doce point break de West Java, ideal para aprender. Ambiente tranquilo longe de Bali."
-  },
-  "nouvelle-zelande-raglan": {
-    "en": "One of the longest lefts in the world, point break of legendary pebbles.",
-    "es": "Una de las izquierdas más largas del mundo, point break de guijarros legendarios.",
-    "pt": "Uma das esquerdas mais longas do mundo, point break de seixos lendários."
+    "en": "Gentle point break in West Java, ideal for learning. Quiet setting far from Bali.",
+    "es": "Point break suave del oeste de Java, ideal para aprender. Entorno tranquilo lejos de Bali.",
+    "pt": "Point break suave do oeste de Java, ideal para aprender. Cenário tranquilo longe de Bali."
   },
   "nouvelle-zelande-st-clair": {
-    "en": "Beach break from Dunedin, South Island. Powerful southern swells, cold water.",
-    "es": "Beach break de Dunedin, Isla Sur. Potente oleaje del sur, agua fría.",
-    "pt": "Beach break de Dunedin, Ilha Sul. Ondas poderosas do sul, água fria."
+    "en": "Dunedin beach break, South Island. Powerful southern swells, cold water.",
+    "es": "Beach break de Dunedin, Isla Sur. Swells australes potentes, agua fría.",
+    "pt": "Beach break de Dunedin, Ilha Sul. Ondulações austrais potentes, água fria."
   },
   "australie-lennox-head": {
-    "en": "Point break of world class shingle near Byron Bay. Long hollow right.",
-    "es": "Point break de tejas de clase mundial cerca de Byron Bay. Derecha larga y hueca.",
-    "pt": "Point break de telhas de classe mundial perto de Byron Bay. Longo oco à direita."
-  },
-  "australie-crescent-head": {
-    "en": "Point break of rolling sand, longboarding paradise on the NSW coast.",
-    "es": "Point break de arena ondulante, el paraíso del longboard en la costa de Nueva Gales del Sur.",
-    "pt": "Point break de areia ondulada, paraíso do longboard na costa de NSW."
+    "en": "World-class cobblestone point break near Byron Bay. Long, hollow right.",
+    "es": "Point break de cantos rodados de nivel mundial cerca de Byron Bay. Derecha larga y hueca.",
+    "pt": "Point break de calhau rolado de classe mundial perto de Byron Bay. Direita longa e cavada."
   },
   "australie-cactus-sa": {
-    "en": "Isolated and wild spot in South Australia. Powerful lefts and rights, sharks present.",
-    "es": "Lugar aislado y salvaje en el sur de Australia. Izquierdas y derechas poderosas, tiburones presentes.",
-    "pt": "Local isolado e selvagem no sul da Austrália. Esquerdas e direitas poderosas, tubarões presentes."
+    "en": "Remote, wild spot in South Australia. Powerful lefts and rights, sharks around.",
+    "es": "Spot aislado y salvaje del sur de Australia. Izquierdas y derechas potentes, hay tiburones.",
+    "pt": "Spot isolado e selvagem do sul da Austrália. Esquerdas e direitas potentes, há tubarões."
   },
   "fidji-frigates": {
-    "en": "Long left of reef off Beqa Pass. Consistent wave in the open sea.",
-    "es": "Mucho a la izquierda del arrecife frente al paso de Beqa. Ola constante en mar abierto.",
-    "pt": "Longe à esquerda do recife perto de Beqa Pass. Onda consistente em mar aberto."
-  },
-  "panama-santa-catalina": {
-    "en": "Best spot in Panama: reef break powerful with right and left, consistent on south swell.",
-    "es": "Mejor spot en Panamá: reef break potente con derecha e izquierda, consistente en swell del sur.",
-    "pt": "Melhor spot no Panamá: reef break poderoso com direita e esquerda, consistente no swell de sul."
+    "en": "Long reef left off the Beqa passage. A consistent wave out in the open ocean.",
+    "es": "Izquierda larga de arrecife frente al paso de Beqa. Una ola constante en mar abierto.",
+    "pt": "Esquerda longa de recife ao largo do passe de Beqa. Uma onda consistente em pleno oceano."
   },
   "cote-divoire-assouinde": {
-    "en": "Beach break from the Ivorian coast, regular swell from the Gulf of Guinea. Spot still confidential.",
-    "es": "Beach break de la costa de Costa de Marfil, oleaje regular del Golfo de Guinea. El anuncio sigue siendo confidencial.",
-    "pt": "Beach break da Costa do Marfim, ondulação regular do Golfo da Guiné. Local ainda confidencial."
+    "en": "Beach break on the Ivorian coast, steady swell from the Gulf of Guinea. Still a little-known spot.",
+    "es": "Beach break de la costa de Costa de Marfil, swell regular del golfo de Guinea. Un spot aún poco conocido.",
+    "pt": "Beach break da costa da Costa do Marfim, ondulação regular do golfo da Guiné. Um spot ainda pouco conhecido."
   },
   "oman-al-ashkharah": {
-    "en": "Exposed coast of the Arabian Sea. Beach break powered by the Indian monsoon (June-September).",
-    "es": "Costa expuesta del Mar Arábigo. Beach break impulsado por el monzón indio (junio-septiembre).",
-    "pt": "Costa exposta do Mar da Arábia. Beach break alimentado pelas monções indianas (junho-setembro)."
+    "en": "Exposed Arabian Sea coast. Beach break fed by the Indian monsoon (June to September).",
+    "es": "Costa expuesta del mar Arábigo. Beach break alimentado por el monzón índico (junio a septiembre).",
+    "pt": "Costa exposta do mar Arábico. Beach break alimentado pela monção do Índico (junho a setembro)."
+  },
+  "uk-gwithian": {
+    "en": "Long beach on St Ives Bay. Beach break ideal for beginners at low tide.",
+    "es": "Larga playa en la bahía de St Ives. Beach break ideal para iniciarse con marea baja.",
+    "pt": "Longa praia na Baía de St Ives. Beach break ideal para começar na maré baixa."
+  },
+  "uk-perranuthnoe": {
+    "en": "Small bay in Mount's Bay, on the south coast. Sheltered beach break that picks up southwest swells.",
+    "es": "Pequeña bahía de Mount's Bay, costa sur. Beach break abrigado que aprovecha el oleaje del suroeste.",
+    "pt": "Pequena baía em Mount's Bay, na costa sul. Beach break abrigado que apanha as ondulações de sudoeste."
+  },
+  "angola-cabo-ledo": {
+    "en": "Long left point break south of Luanda. Offshore in the morning, best swells from April to October.",
+    "es": "Larga izquierda en point break al sur de Luanda. Offshore por la mañana, mejores swells de abril a octubre.",
+    "pt": "Longa esquerda em point break a sul de Luanda. Offshore de manhã, melhores ondulações de abril a outubro."
+  },
+  "portugal-santa-rita": {
+    "en": "Exposed beach break south of Santa Cruz. Powerful, consistent waves that pick up west swell well, better suited to experienced surfers when it gets bigger.",
+    "es": "Beach break expuesto, al sur de Santa Cruz. Olas potentes y consistentes que recogen bien el oleaje del oeste, más adecuadas para surfistas con experiencia cuando crece.",
+    "pt": "Beach break exposto, a sul de Santa Cruz. Ondas potentes e consistentes que apanham bem o swell de oeste, mais indicadas para surfistas experientes quando cresce."
+  },
+  "espagne-camposoto": {
+    "en": "Long wild beach in San Fernando, south of Cádiz. Gentle beach break on southwest swell, well suited to beginners.",
+    "es": "Larga playa salvaje de San Fernando, al sur de Cádiz. Beach break suave con oleaje del suroeste, muy adecuado para principiantes.",
+    "pt": "Longa praia selvagem de San Fernando, ao sul de Cádiz. Beach break suave nas ondas de sudoeste, adequado para iniciantes."
+  },
+  "france-baie-des-trepasses": {
+    "en": "Wild bay between Pointe du Raz and Pointe du Van. Beach break very exposed to the west swell, which can grow quickly.",
+    "es": "Bahía salvaje entre Pointe du Raz y Pointe du Van. Beach break muy expuesto al oleaje del oeste, que puede crecer rápidamente.",
+    "pt": "Baía selvagem entre Pointe du Raz e Pointe du Van. Beach break muito exposto à ondulação de oeste, que pode crescer rapidamente."
+  },
+  "australie-north-wollongong": {
+    "en": "Main beach of Wollongong, south of Sydney. Accessible beach break that picks up south and southeast swells.",
+    "es": "Playa principal de Wollongong, al sur de Sydney. Beach break accesible que recoge los swells del sur y del sureste.",
+    "pt": "Praia principal de Wollongong, a sul de Sydney. Beach break acessível que apanha as ondulações de sul e sudeste."
+  },
+  "portugal-furadouro": {
+    "en": "Exposed beach break in Ovar, between Espinho and Aveiro. Powerful waves on west swell, shifting sandbanks.",
+    "es": "Beach break expuesto de Ovar, entre Espinho y Aveiro. Olas potentes con oleaje del oeste, bancos de arena cambiantes.",
+    "pt": "Beach break exposto de Ovar, entre Espinho e Aveiro. Ondas potentes com ondulação de oeste, bancos de areia variáveis."
+  },
+  "espagne-penarronda": {
+    "en": "Large beach in western Asturias, near Tapia de Casariego. Quality beach break that picks up northwest swell well.",
+    "es": "Amplia playa del occidente de Asturias, cerca de Tapia de Casariego. Beach break de calidad que recoge bien el oleaje del noroeste.",
+    "pt": "Grande praia no oeste das Astúrias, perto de Tapia de Casariego. Beach break de qualidade que apanha bem o swell de noroeste."
+  },
+  "espagne-xivares": {
+    "en": "Beach near Gijón, in Carreño. Fairly sheltered beach break, a good option to progress when the swell is moderate.",
+    "es": "Playa cercana a Gijón, en Carreño. Beach break bastante protegido, una buena opción para progresar cuando el swell es moderado.",
+    "pt": "Praia perto de Gijón, em Carreño. Beach break bastante protegido, boa opção para progredir quando a ondulação é moderada."
+  },
+  "espagne-xago": {
+    "en": "Very exposed beach at Cape Peñas, in Gozón. Captures all west and northwest swells, often the biggest in the area.",
+    "es": "Playa muy expuesta en Cabo Peñas, en Gozón. Capta todos los swells del oeste y noroeste, a menudo los más grandes de la zona.",
+    "pt": "Praia muito exposta no Cabo Peñas, em Gozón. Captura todas as ondas de oeste e noroeste, muitas vezes as maiores da região."
+  },
+  "mexique-revolcadero": {
+    "en": "Acapulco's big beach break, at Puerto Marqués. Powerful waves on South Pacific swell, violent shore break.",
+    "es": "El gran beach break de Acapulco, en Puerto Marqués. Olas potentes con swell del Pacífico sur, shore break violento.",
+    "pt": "O grande beach break de Acapulco, em Puerto Marqués. Ondas potentes com ondulação do Pacífico Sul, shore break violento."
+  },
+  "australie-hastings-point": {
+    "en": "Point break at the foot of the Hastings Point headland, between Cabarita and Pottsville. A right that peels on east and southeast swells.",
+    "es": "Point break al pie del promontorio de Hastings Point, entre Cabarita y Pottsville. Derecha que abre con oleaje del este y del sureste.",
+    "pt": "Point break no sopé do promontório de Hastings Point, entre Cabarita e Pottsville. Direita que abre com ondulação de leste e sudeste."
+  },
+  "espagne-son-serra-de-marina": {
+    "en": "Beach in the north of Majorca, on the bay of Alcúdia. Only works in northeast wind and swell, a few days a year in winter.",
+    "es": "Playa del norte de Mallorca, en la bahía de Alcúdia. Solo funciona con viento y oleaje del noreste, unos pocos días al año en invierno.",
+    "pt": "Praia no norte de Maiorca, na baía de Alcúdia. Só funciona com vento e ondulação de nordeste, alguns dias por ano no inverno."
+  },
+  "espagne-la-misericordia": {
+    "en": "Urban beach in Málaga. Only surfable in a strong levante or poniente, when the Mediterranean picks up for a few days.",
+    "es": "Playa urbana de Málaga. Surfeable solo con levante o poniente fuerte, cuando el Mediterráneo se levanta unos días.",
+    "pt": "Praia urbana de Málaga. Surfável apenas com levante ou poniente forte, quando o Mediterrâneo se levanta durante alguns dias."
+  },
+  "espagne-la-cala-de-mijas": {
+    "en": "Costa del Sol beach, between Fuengirola and Marbella. Small Mediterranean swell with the levante, rarely surfable.",
+    "es": "Playa de la Costa del Sol, entre Fuengirola y Marbella. Pequeño oleaje mediterráneo con levante, rara vez surfeable.",
+    "pt": "Praia da Costa del Sol, entre Fuengirola e Marbella. Pequena ondulação mediterrânica com levante, raramente surfável."
+  },
+  "espagne-benicassim": {
+    "en": "Castellón beach on the Mediterranean. Picks up levante swells, rare but sometimes a good size in autumn and winter.",
+    "es": "Playa de Castellón en el Mediterráneo. Recibe los temporales de levante, raros pero a veces de buen tamaño en otoño e invierno.",
+    "pt": "Praia de Castellón no Mediterrâneo. Apanha as ondulações de levante, raras mas por vezes de bom tamanho no outono e no inverno."
+  },
+  "espagne-sagunto": {
+    "en": "Beach at the port of Sagunto, north of Valencia. Surfable on east and levante swells, a few episodes a year.",
+    "es": "Playa del puerto de Sagunto, al norte de Valencia. Surfeable con oleaje del este y de levante, algunos episodios al año.",
+    "pt": "Praia do porto de Sagunto, a norte de Valência. Surfável com ondulação de leste e de levante, alguns episódios por ano."
+  },
+  "allemagne-hohwacht": {
+    "en": "Bay on the Baltic Sea. Waves only arrive with north and northeast storms, mostly in autumn and winter.",
+    "es": "Bahía del mar Báltico. Las olas solo llegan con temporales del norte y noreste, sobre todo en otoño e invierno.",
+    "pt": "Baía do mar Báltico. As ondas só chegam com tempestades de norte e nordeste, sobretudo no outono e no inverno."
+  },
+  "espagne-peguera": {
+    "en": "Seaside resort in southwest Majorca, in a very sheltered bay. Waves are rare there, only with a strong south swell.",
+    "es": "Localidad turística del suroeste de Mallorca, en una bahía muy protegida. Las olas son poco frecuentes, solo con un swell fuerte del sur.",
+    "pt": "Estância balnear no sudoeste de Maiorca, numa baía muito abrigada. As ondas são raras, apenas com uma ondulação forte de sul."
   }
 };
 
@@ -2001,9 +1901,21 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": ["Correntes fortes", "Shore break"]
   },
   "uk-joss-bay": {
-    "en": ["Cold water", "Tides", "Rocks at high tide"],
-    "es": ["Agua fría", "Mareas", "Rocas con marea alta"],
-    "pt": ["Água fria", "Marés", "Rochas na maré alta"]
+    "en": [
+      "Cold water",
+      "Tides",
+      "Rocks at high tide"
+    ],
+    "es": [
+      "Agua fría",
+      "Mareas",
+      "Rocas con marea alta"
+    ],
+    "pt": [
+      "Água fria",
+      "Marés",
+      "Rochas na maré cheia"
+    ]
   },
   "uk-viking-bay": {
     "en": ["Cold water", "Tides", "Summer crowds"],
@@ -2026,38 +1938,38 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "pt": [
       "Correntes laterais",
-      "Shore break na maré alta"
+      "Shore break na maré cheia"
     ]
   },
   "caparica-centro": {
     "en": [
-      "Baine currents",
+      "Baïne rip currents",
       "Lateral currents",
-      "Moving floor"
+      "Shifting bottom"
     ],
     "es": [
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Corrientes laterales",
-      "Piso móvil"
+      "Fondo cambiante"
     ],
     "pt": [
-      "Correntes de Baine",
+      "Correntes de baïne",
       "Correntes laterais",
-      "Piso móvel"
+      "Fundo instável"
     ]
   },
   "praia-do-norte-caparica": {
     "en": [
       "Strong currents",
-      "Moving floor"
+      "Shifting bottom"
     ],
     "es": [
       "Corrientes fuertes",
-      "Piso móvil"
+      "Fondo cambiante"
     ],
     "pt": [
       "Correntes fortes",
-      "Piso móvel"
+      "Fundo instável"
     ]
   },
   "fonte-da-telha": {
@@ -2069,12 +1981,12 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "es": [
       "Corrientes fuertes",
       "Acceso limitado",
-      "Poderoso shore break"
+      "Shore break potente"
     ],
     "pt": [
       "Correntes fortes",
       "Acesso limitado",
-      "Poderoso shore break"
+      "Shore break potente"
     ]
   },
   "carcavelos": {
@@ -2091,23 +2003,23 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Rochas do lado oeste",
       "Multidão densa",
-      "Shore break na maré alta"
+      "Shore break na maré cheia"
     ]
   },
   "ribeira-dilhas": {
     "en": [
       "Rocky bottom",
-      "Strong currents with big swell",
+      "Strong currents in big swells",
       "Sea urchins"
     ],
     "es": [
       "Fondo rocoso",
-      "Corrientes fuertes con gran oleaje.",
+      "Corrientes fuertes con swell grande",
       "Erizos de mar"
     ],
     "pt": [
       "Fundo rochoso",
-      "Correntes fortes com grande ondulação",
+      "Correntes fortes com ondulação grande",
       "Ouriços-do-mar"
     ]
   },
@@ -2119,13 +2031,13 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Difficult access"
     ],
     "es": [
-      "Arrecife afilado",
+      "Arrecife cortante",
       "Corrientes violentas",
       "Localismo",
       "Acceso difícil"
     ],
     "pt": [
-      "Recife afiado",
+      "Recife cortante",
       "Correntes violentas",
       "Localismo",
       "Acesso difícil"
@@ -2133,33 +2045,33 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   },
   "foz-do-lizandro": {
     "en": [
-      "Currents at the mouth",
+      "Currents at the river mouth",
       "Rocks on the sides"
     ],
     "es": [
-      "Corrientes en la boca",
+      "Corrientes en la desembocadura",
       "Rocas a los lados"
     ],
     "pt": [
-      "Correntes na boca",
+      "Correntes na foz",
       "Pedras nas laterais"
     ]
   },
   "supertubos": {
     "en": [
-      "Shore break violent",
+      "Violent shore break",
       "Very strong currents",
-      "Crowd during competitions"
+      "Crowded during contests"
     ],
     "es": [
       "Shore break violento",
       "Corrientes muy fuertes",
-      "Multitud durante las competiciones."
+      "Gente durante las competiciones"
     ],
     "pt": [
       "Shore break violento",
       "Correntes muito fortes",
-      "Multidão durante as competições"
+      "Muita gente durante as competições"
     ]
   },
   "baleal": {
@@ -2168,25 +2080,25 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Moderate currents"
     ],
     "es": [
-      "Rocas alrededor de la península.",
+      "Rocas alrededor de la península",
       "Corrientes moderadas"
     ],
     "pt": [
-      "Rochas ao redor da península",
+      "Rochas à volta da península",
       "Correntes moderadas"
     ]
   },
   "molho-leste": {
     "en": [
-      "Currents along the dike",
+      "Currents along the jetty",
       "Rocks"
     ],
     "es": [
-      "Corrientes a lo largo del dique",
+      "Corrientes a lo largo del espigón",
       "Rocas"
     ],
     "pt": [
-      "Correntes ao longo do dique",
+      "Correntes ao longo do molhe",
       "Rochas"
     ]
   },
@@ -2213,11 +2125,11 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Lateral currents"
     ],
     "es": [
-      "Poderoso shore break",
+      "Shore break potente",
       "Corrientes laterales"
     ],
     "pt": [
-      "Poderoso shore break",
+      "Shore break potente",
       "Correntes laterais"
     ]
   },
@@ -2296,36 +2208,36 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   },
   "anglet-cavaliers": {
     "en": [
-      "Baine currents",
+      "Baïne rip currents",
       "Rocks to the south"
     ],
     "es": [
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Rocas al sur"
     ],
     "pt": [
-      "Correntes de Baine",
+      "Correntes de baïne",
       "Rochas ao sul"
     ]
   },
   "biarritz-cote-basques": {
     "en": [
-      "Accessible only at low tide",
+      "Only accessible at low tide",
       "Rocks"
     ],
     "es": [
-      "Accesible sólo durante la marea baja.",
+      "Solo accesible con marea baja",
       "Rocas"
     ],
     "pt": [
-      "Acessível apenas na maré baixa",
+      "Só acessível na maré baixa",
       "Rochas"
     ]
   },
   "biarritz-grande-plage": {
     "en": [
       "Crowd",
-      "Rocks at the ends",
+      "Rocks at both ends",
       "Currents"
     ],
     "es": [
@@ -2335,7 +2247,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "pt": [
       "Multidão",
-      "Pedras nas extremidades",
+      "Rochas nas extremidades",
       "Correntes"
     ]
   },
@@ -2379,31 +2291,31 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "hendaye": {
     "en": [
       "Moderate currents",
-      "Sea wall"
+      "Jetty"
     ],
     "es": [
       "Corrientes moderadas",
-      "Malecón"
+      "Espigón"
     ],
     "pt": [
       "Correntes moderadas",
-      "Paredão"
+      "Molhe"
     ]
   },
   "hossegor-graviere": {
     "en": [
-      "Shore break violent",
-      "Baine currents",
+      "Violent shore break",
+      "Baïne rip currents",
       "Crowd"
     ],
     "es": [
       "Shore break violento",
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Multitud"
     ],
     "pt": [
       "Shore break violento",
-      "Correntes de Baine",
+      "Correntes de baïne",
       "Multidão"
     ]
   },
@@ -2416,95 +2328,95 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "es": [
       "Olas poderosas",
       "Corrientes extremas",
-      "Sólo expertos"
+      "Solo expertos"
     ],
     "pt": [
       "Ondas poderosas",
       "Correntes extremas",
-      "Apenas especialistas"
+      "Só para experientes"
     ]
   },
   "hossegor-centrale": {
     "en": [
-      "Baine currents",
+      "Baïne rip currents",
       "Shore break"
     ],
     "es": [
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Shore break"
     ],
     "pt": [
-      "Correntes de Baine",
+      "Correntes de baïne",
       "Shore break"
     ]
   },
   "capbreton-santosha": {
     "en": [
-      "Baine currents",
-      "Variable background"
+      "Baïne rip currents",
+      "Changing bottom"
     ],
     "es": [
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Fondo variable"
     ],
     "pt": [
-      "Correntes de Baine",
-      "Plano de fundo variável"
+      "Correntes de baïne",
+      "Fundo variável"
     ]
   },
   "seignosse-penon": {
     "en": [
-      "Baine currents",
+      "Baïne rip currents",
       "Shore break"
     ],
     "es": [
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Shore break"
     ],
     "pt": [
-      "Correntes de Baine",
+      "Correntes de baïne",
       "Shore break"
     ]
   },
   "mimizan": {
     "en": [
-      "Baine currents",
+      "Baïne rip currents",
       "Shore break"
     ],
     "es": [
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Shore break"
     ],
     "pt": [
-      "Correntes de Baine",
+      "Correntes de baïne",
       "Shore break"
     ]
   },
   "lacanau": {
     "en": [
-      "Baine currents",
+      "Baïne rip currents",
       "Crowd in summer"
     ],
     "es": [
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Multitud en verano"
     ],
     "pt": [
-      "Correntes de Baine",
+      "Correntes de baïne",
       "Multidão no verão"
     ]
   },
   "le-porge": {
     "en": [
-      "Baine currents",
-      "Isolation"
+      "Baïne rip currents",
+      "Remoteness"
     ],
     "es": [
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Aislamiento"
     ],
     "pt": [
-      "Correntes de Baine",
+      "Correntes de baïne",
       "Isolamento"
     ]
   },
@@ -2563,24 +2475,24 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "es": [
       "Corrientes",
-      "Fondo rocoso en algunos lugares"
+      "Fondo rocoso en algunas zonas"
     ],
     "pt": [
       "Correntes",
-      "Fundo rochoso em alguns lugares"
+      "Fundo rochoso em alguns sítios"
     ]
   },
   "rodiles": {
     "en": [
-      "Currents at the mouth",
+      "Currents at the river mouth",
       "Limited access"
     ],
     "es": [
-      "Corrientes en la boca",
+      "Corrientes en la desembocadura",
       "Acceso limitado"
     ],
     "pt": [
-      "Correntes na boca",
+      "Correntes na foz",
       "Acesso limitado"
     ]
   },
@@ -2647,12 +2559,12 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Localism"
     ],
     "es": [
-      "Arrecife afilado",
+      "Arrecife cortante",
       "Corrientes violentas",
       "Localismo"
     ],
     "pt": [
-      "Recife afiado",
+      "Recife cortante",
       "Correntes violentas",
       "Localismo"
     ]
@@ -2691,31 +2603,31 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "taghazout-killers": {
     "en": [
       "Sea urchins",
-      "Climbing access",
+      "Access requires climbing",
       "Violent currents"
     ],
     "es": [
       "Erizos de mar",
-      "Acceso de escalada",
+      "Acceso trepando por las rocas",
       "Corrientes violentas"
     ],
     "pt": [
       "Ouriços-do-mar",
-      "Acesso de escalada",
+      "Acesso a trepar pelas rochas",
       "Correntes violentas"
     ]
   },
   "tamri": {
     "en": [
-      "Currents at the mouth",
-      "Isolation"
+      "Currents at the river mouth",
+      "Remoteness"
     ],
     "es": [
-      "Corrientes en la boca",
+      "Corrientes en la desembocadura",
       "Aislamiento"
     ],
     "pt": [
-      "Correntes na boca",
+      "Correntes na foz",
       "Isolamento"
     ]
   },
@@ -2729,7 +2641,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Corrientes moderadas"
     ],
     "pt": [
-      "Pedras na baía",
+      "Rochas na baía",
       "Correntes moderadas"
     ]
   },
@@ -2751,17 +2663,17 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "en": [
       "Sharp coral reef",
       "Strong currents",
-      "Access via cave"
+      "Access through a cave"
     ],
     "es": [
-      "Arrecife de coral afilado",
+      "Arrecife de coral cortante",
       "Corrientes fuertes",
-      "Acceso a través de cueva"
+      "Acceso por una cueva"
     ],
     "pt": [
-      "Recife de coral afiado",
+      "Recife de coral cortante",
       "Correntes fortes",
-      "Acesso via caverna"
+      "Acesso por uma gruta"
     ]
   },
   "padang-padang": {
@@ -2785,17 +2697,17 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "en": [
       "Crowd",
       "Currents",
-      "Beginner boards"
+      "Loose beginner boards"
     ],
     "es": [
       "Multitud",
       "Corrientes",
-      "Tableros para principiantes"
+      "Tablas de principiantes"
     ],
     "pt": [
       "Multidão",
       "Correntes",
-      "Quadros para iniciantes"
+      "Pranchas de iniciantes"
     ]
   },
   "canggu": {
@@ -2807,12 +2719,12 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "es": [
       "Corrientes",
       "Multitud",
-      "Fondo rocoso en algunos lugares"
+      "Fondo rocoso en algunas zonas"
     ],
     "pt": [
       "Correntes",
       "Multidão",
-      "Fundo rochoso em alguns lugares"
+      "Fundo rochoso em alguns sítios"
     ]
   },
   "keramas": {
@@ -2837,16 +2749,16 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Sharp reef",
       "Currents",
       "Sea urchins",
-      "Isolation"
+      "Remoteness"
     ],
     "es": [
-      "Arrecife afilado",
+      "Arrecife cortante",
       "Corrientes",
       "Erizos de mar",
       "Aislamiento"
     ],
     "pt": [
-      "Recife afiado",
+      "Recife cortante",
       "Correntes",
       "Ouriços-do-mar",
       "Isolamento"
@@ -2856,7 +2768,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "en": [
       "Reef",
       "Currents",
-      "Isolation"
+      "Remoteness"
     ],
     "es": [
       "Arrecife",
@@ -2873,13 +2785,13 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "en": [
       "Reef",
       "Violent currents",
-      "Jungle isolation",
+      "Remote jungle location",
       "Sea urchins"
     ],
     "es": [
       "Arrecife",
       "Corrientes violentas",
-      "Aislamiento de la selva",
+      "Aislamiento en la selva",
       "Erizos de mar"
     ],
     "pt": [
@@ -2892,32 +2804,32 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "mentawai-macaronis": {
     "en": [
       "Reef",
-      "Access by boat only"
+      "Boat access only"
     ],
     "es": [
       "Arrecife",
-      "Acceso solo en barco"
+      "Solo en barco"
     ],
     "pt": [
       "Recife",
-      "Acesso somente por barco"
+      "Só de barco"
     ]
   },
   "mentawai-lance-right": {
     "en": [
       "Sharp reef",
       "Currents",
-      "Access by boat only"
+      "Boat access only"
     ],
     "es": [
-      "Arrecife afilado",
+      "Arrecife cortante",
       "Corrientes",
-      "Acceso solo en barco"
+      "Solo en barco"
     ],
     "pt": [
-      "Recife afiado",
+      "Recife cortante",
       "Correntes",
-      "Acesso somente por barco"
+      "Só de barco"
     ]
   },
   "nias-sorake": {
@@ -3005,17 +2917,17 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "bondi-beach": {
     "en": [
       "Crowd",
-      "Baine currents",
+      "Baïne rip currents",
       "Sharks (rare)"
     ],
     "es": [
       "Multitud",
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Tiburones (raro)"
     ],
     "pt": [
       "Multidão",
-      "Correntes de Baine",
+      "Correntes de baïne",
       "Tubarões (raro)"
     ]
   },
@@ -3058,7 +2970,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Sharks (common)",
       "Reef",
       "Violent currents",
-      "Isolation"
+      "Remoteness"
     ],
     "es": [
       "Tiburones (comunes)",
@@ -3092,7 +3004,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   },
   "pipeline": {
     "en": [
-      "Deadly Reef",
+      "Deadly reef",
       "Extreme currents",
       "Intense localism",
       "Crowd"
@@ -3104,7 +3016,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Multitud"
     ],
     "pt": [
-      "Recife Mortal",
+      "Recife mortal",
       "Correntes extremas",
       "Localismo intenso",
       "Multidão"
@@ -3130,7 +3042,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "waimea-bay": {
     "en": [
       "Giant waves",
-      "Shore break deadly",
+      "Deadly shore break",
       "Extreme currents"
     ],
     "es": [
@@ -3199,17 +3111,17 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "en": [
       "Intense crowd",
       "Localism",
-      "Long access walk"
+      "Long walk in"
     ],
     "es": [
       "Multitud intensa",
       "Localismo",
-      "Largo paseo de acceso"
+      "Caminata de acceso larga"
     ],
     "pt": [
       "Multidão intensa",
       "Localismo",
-      "Longa caminhada de acesso"
+      "Caminhada de acesso longa"
     ]
   },
   "rincon": {
@@ -3257,12 +3169,12 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "es": [
       "Multitud",
-      "Pilotes de muelle",
+      "Pilotes del muelle",
       "Corrientes"
     ],
     "pt": [
       "Multidão",
-      "Estacas de cais",
+      "Pilares do pontão",
       "Correntes"
     ]
   },
@@ -3319,7 +3231,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   },
   "witch-rock": {
     "en": [
-      "Isolation",
+      "Remoteness",
       "Crocodiles",
       "Access by boat"
     ],
@@ -3355,18 +3267,18 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "es": [
       "Corrientes",
-      "Rocas en algunos lugares"
+      "Rocas en algunas zonas"
     ],
     "pt": [
       "Correntes",
-      "Pedras em alguns lugares"
+      "Rochas em alguns sítios"
     ]
   },
   "pavones": {
     "en": [
       "Crocodiles",
       "Currents",
-      "Isolation"
+      "Remoteness"
     ],
     "es": [
       "Cocodrilos",
@@ -3433,20 +3345,20 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "durban-north-beach": {
     "en": [
       "Currents",
-      "Sharks (nets)"
+      "Sharks (nets in place)"
     ],
     "es": [
       "Corrientes",
-      "Tiburones (redes)"
+      "Tiburones (hay redes)"
     ],
     "pt": [
       "Correntes",
-      "Tubarões (redes)"
+      "Tubarões (há redes)"
     ]
   },
   "puerto-escondido": {
     "en": [
-      "Shore break deadly",
+      "Deadly shore break",
       "Extreme currents",
       "Giant waves"
     ],
@@ -3478,7 +3390,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "pascuales": {
     "en": [
       "Extreme waves",
-      "Shore break deadly",
+      "Deadly shore break",
       "Currents"
     ],
     "es": [
@@ -3496,7 +3408,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "en": [
       "Currents",
       "Crocodiles in the lagoon",
-      "Isolation"
+      "Remoteness"
     ],
     "es": [
       "Corrientes",
@@ -3627,7 +3539,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   },
   "teahupoo": {
     "en": [
-      "Deadly Reef",
+      "Deadly reef",
       "Extreme currents",
       "Giant waves"
     ],
@@ -3637,7 +3549,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Olas gigantes"
     ],
     "pt": [
-      "Recife Mortal",
+      "Recife mortal",
       "Correntes extremas",
       "Ondas gigantes"
     ]
@@ -3659,15 +3571,15 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "pasta-point": {
     "en": [
       "Reef",
-      "Reserved resort access"
+      "Resort guests only"
     ],
     "es": [
       "Arrecife",
-      "Acceso reservado al resort"
+      "Acceso solo por el resort"
     ],
     "pt": [
       "Recife",
-      "Acesso reservado ao resort"
+      "Acesso só pelo resort"
     ]
   },
   "arugam-bay": {
@@ -3677,11 +3589,11 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "es": [
       "Corrientes",
-      "Fondo rocoso en algunos lugares"
+      "Fondo rocoso en algunas zonas"
     ],
     "pt": [
       "Correntes",
-      "Fundo rochoso em alguns lugares"
+      "Fundo rochoso em alguns sítios"
     ]
   },
   "tsurigasaki": {
@@ -3702,7 +3614,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "en": [
       "Strong currents",
       "Cold water",
-      "Isolation"
+      "Remoteness"
     ],
     "es": [
       "Corrientes fuertes",
@@ -3788,17 +3700,17 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   },
   "fistral-beach": {
     "en": [
-      "Baine currents",
+      "Baïne rip currents",
       "Crowd in summer",
       "Cold water"
     ],
     "es": [
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Multitud en verano",
       "Agua fría"
     ],
     "pt": [
-      "Correntes de Baine",
+      "Correntes de baïne",
       "Multidão no verão",
       "Água fria"
     ]
@@ -3807,7 +3719,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "en": [
       "Freezing water",
       "Reef",
-      "Insulation"
+      "Remoteness"
     ],
     "es": [
       "Agua helada",
@@ -3871,21 +3783,21 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "skeleton-bay": {
     "en": [
       "Extreme isolation",
-      "No help",
+      "No rescue services",
       "Skeletons on the beach",
-      "Sand wind"
+      "Blowing sand"
     ],
     "es": [
       "Aislamiento extremo",
-      "Sin ayuda",
+      "Sin servicios de rescate",
       "Esqueletos en la playa",
-      "Viento de arena"
+      "Viento con arena"
     ],
     "pt": [
       "Isolamento extremo",
-      "Sem ajuda",
+      "Sem socorro",
       "Esqueletos na praia",
-      "Vento de areia"
+      "Vento com areia"
     ]
   },
   "jardim-do-mar": {
@@ -3909,7 +3821,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "en": [
       "Reef",
       "Currents",
-      "Safety in the city"
+      "Personal safety in town"
     ],
     "es": [
       "Arrecife",
@@ -3926,7 +3838,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "en": [
       "Reef",
       "Currents",
-      "Insulation"
+      "Remoteness"
     ],
     "es": [
       "Arrecife",
@@ -3948,7 +3860,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "es": [
       "Arrecife",
       "Corrientes",
-      "Cocodrilos en el río."
+      "Cocodrilos en el río"
     ],
     "pt": [
       "Recife",
@@ -3970,51 +3882,17 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Tufões na temporada"
     ]
   },
-  "nazare-norte": {
-    "en": [
-      "Giant waves",
-      "Reef",
-      "Extreme currents",
-      "Tow-in only beyond 6m"
-    ],
-    "es": [
-      "Olas gigantes",
-      "Arrecife",
-      "Corrientes extremas",
-      "Remolque sólo más allá de 6 m"
-    ],
-    "pt": [
-      "Ondas gigantes",
-      "Recife",
-      "Correntes extremas",
-      "Reboque somente além de 6m"
-    ]
-  },
-  "lacanau-ocean": {
-    "en": [
-      "Baine currents",
-      "Crowd in summer"
-    ],
-    "es": [
-      "Corrientes de baine",
-      "Multitud en verano"
-    ],
-    "pt": [
-      "Correntes de Baine",
-      "Multidão no verão"
-    ]
-  },
   "moliets": {
     "en": [
-      "Baine currents",
+      "Baïne rip currents",
       "Crowd in summer"
     ],
     "es": [
-      "Corrientes de baine",
+      "Corrientes de baïne",
       "Multitud en verano"
     ],
     "pt": [
-      "Correntes de Baine",
+      "Correntes de baïne",
       "Multidão no verão"
     ]
   },
@@ -4080,11 +3958,11 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Crowd"
     ],
     "es": [
-      "Rocas en algunos lugares",
+      "Rocas en algunas zonas",
       "Multitud"
     ],
     "pt": [
-      "Pedras em alguns lugares",
+      "Rochas em alguns sítios",
       "Multidão"
     ]
   },
@@ -4185,11 +4063,11 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "es": [
       "Rocas",
-      "Corrientes de luz"
+      "Corrientes leves"
     ],
     "pt": [
       "Rochas",
-      "Correntes leves"
+      "Correntes fracas"
     ]
   },
   "yallingup": {
@@ -4206,57 +4084,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Recife",
       "Tubarões",
-      "Correntes"
-    ]
-  },
-  "trestles-lowers": {
-    "en": [
-      "Intense crowd",
-      "Localism",
-      "Access on foot"
-    ],
-    "es": [
-      "Multitud intensa",
-      "Localismo",
-      "Acceso a pie"
-    ],
-    "pt": [
-      "Multidão intensa",
-      "Localismo",
-      "Acesso a pé"
-    ]
-  },
-  "malibu-first-point": {
-    "en": [
-      "Extreme crowd",
-      "Localism",
-      "Parking"
-    ],
-    "es": [
-      "Multitud extrema",
-      "Localismo",
-      "Aparcamiento"
-    ],
-    "pt": [
-      "Multidão extrema",
-      "Localismo",
-      "Estacionamento"
-    ]
-  },
-  "huntington-pier": {
-    "en": [
-      "Crowd",
-      "Pier of the pier",
-      "Currents"
-    ],
-    "es": [
-      "Multitud",
-      "Muelle del muelle",
-      "Corrientes"
-    ],
-    "pt": [
-      "Multidão",
-      "Cais do cais",
       "Correntes"
     ]
   },
@@ -4336,23 +4163,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Correntes"
     ]
   },
-  "cloud-nine": {
-    "en": [
-      "Reef",
-      "Currents",
-      "Tide"
-    ],
-    "es": [
-      "Arrecife",
-      "Corrientes",
-      "Marea"
-    ],
-    "pt": [
-      "Recife",
-      "Correntes",
-      "Maré"
-    ]
-  },
   "ichinomiya": {
     "en": [
       "Crowd",
@@ -4415,7 +4225,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "lobitos": {
     "en": [
       "Currents",
-      "Insulation"
+      "Remoteness"
     ],
     "es": [
       "Corrientes",
@@ -4475,11 +4285,11 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "es": [
       "Multitud en verano",
-      "Corrientes de luz"
+      "Corrientes leves"
     ],
     "pt": [
       "Multidão no verão",
-      "Correntes leves"
+      "Correntes fracas"
     ]
   },
   "ericeira-pedra-branca": {
@@ -4538,34 +4348,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Rochas"
     ]
   },
-  "capbreton-hossegor": {
-    "en": [
-      "Baïnes",
-      "Currents"
-    ],
-    "es": [
-      "Baines",
-      "Corrientes"
-    ],
-    "pt": [
-      "Baïnes",
-      "Correntes"
-    ]
-  },
-  "vieux-boucau": {
-    "en": [
-      "Currents",
-      "Baïnes"
-    ],
-    "es": [
-      "Corrientes",
-      "Baines"
-    ],
-    "pt": [
-      "Correntes",
-      "Baïnes"
-    ]
-  },
   "getxo-arbolatza": {
     "en": [
       "Crowd",
@@ -4578,23 +4360,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Multidão",
       "Rochas"
-    ]
-  },
-  "mexico-puerto-escondido": {
-    "en": [
-      "Shore break violent",
-      "Currents",
-      "Crowd"
-    ],
-    "es": [
-      "Shore break violento",
-      "Corrientes",
-      "Multitud"
-    ],
-    "pt": [
-      "Shore break violento",
-      "Correntes",
-      "Multidão"
     ]
   },
   "nicaragua-colorados": {
@@ -4637,20 +4402,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Multidão",
       "Possível poluição"
-    ]
-  },
-  "fiji-restaurants": {
-    "en": [
-      "Reef",
-      "Paid access"
-    ],
-    "es": [
-      "Arrecife",
-      "Acceso pago"
-    ],
-    "pt": [
-      "Recife",
-      "Acesso pago"
     ]
   },
   "usa-california-pacific-beach": {
@@ -4734,20 +4485,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Água fria"
     ]
   },
-  "canary-lanzarote-famara": {
-    "en": [
-      "Wind",
-      "Currents"
-    ],
-    "es": [
-      "Viento",
-      "Corrientes"
-    ],
-    "pt": [
-      "Vento",
-      "Correntes"
-    ]
-  },
   "canary-fuerteventura-corralejo": {
     "en": [
       "Wind",
@@ -4807,15 +4544,15 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "australie-byron-tallow": {
     "en": [
       "Currents",
-      "Rip"
+      "Rip current"
     ],
     "es": [
       "Corrientes",
-      "Rotura"
+      "Corriente de resaca"
     ],
     "pt": [
       "Correntes",
-      "Rasgar"
+      "Corrente de retorno"
     ]
   },
   "usa-florida-cocoa-beach": {
@@ -4891,15 +4628,15 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "maldives-cokes": {
     "en": [
       "Reef",
-      "Boat only"
+      "Boat access only"
     ],
     "es": [
       "Arrecife",
-      "Sólo barco"
+      "Solo en barco"
     ],
     "pt": [
       "Recife",
-      "Apenas barco"
+      "Só de barco"
     ]
   },
   "reunion-etang-sale": {
@@ -5006,7 +4743,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "ghana-busua": {
     "en": [
       "Currents",
-      "Insulation"
+      "Remoteness"
     ],
     "es": [
       "Corrientes",
@@ -5103,7 +4840,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   },
   "venezuela-playa-moa": {
     "en": [
-      "Security",
+      "Personal safety",
       "Small swell"
     ],
     "es": [
@@ -5255,23 +4992,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Correntes"
     ]
   },
-  "usa-california-santa-cruz": {
-    "en": [
-      "Crowd",
-      "Rocks",
-      "Cold water"
-    ],
-    "es": [
-      "Multitud",
-      "Rocas",
-      "Agua fría"
-    ],
-    "pt": [
-      "Multidão",
-      "Rochas",
-      "Água fria"
-    ]
-  },
   "usa-california-morro-bay": {
     "en": [
       "Wind",
@@ -5300,20 +5020,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Recife"
     ]
   },
-  "afrique-sud-durban": {
-    "en": [
-      "Sharks",
-      "Crowd"
-    ],
-    "es": [
-      "Tiburones",
-      "Multitud"
-    ],
-    "pt": [
-      "Tubarões",
-      "Multidão"
-    ]
-  },
   "uk-bude": {
     "en": [
       "Cold water",
@@ -5326,23 +5032,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Água fria",
       "Correntes"
-    ]
-  },
-  "ireland-mullaghmore": {
-    "en": [
-      "Reef",
-      "Big waves",
-      "Cold water"
-    ],
-    "es": [
-      "Arrecife",
-      "Grandes olas",
-      "Agua fría"
-    ],
-    "pt": [
-      "Recife",
-      "Ondas grandes",
-      "Água fria"
     ]
   },
   "italie-sardaigne-chia": {
@@ -5366,11 +5055,11 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "es": [
       "Pequeño oleaje",
-      "Viento derretido"
+      "Viento meltemi"
     ],
     "pt": [
       "Ondulação pequena",
-      "Vento Meltemi"
+      "Vento meltemi"
     ]
   },
   "turquie-alaçati": {
@@ -5446,18 +5135,18 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "russie-kamchatka": {
     "en": [
       "Freezing water",
-      "Insulation",
-      "Bear"
+      "Remoteness",
+      "Bears"
     ],
     "es": [
       "Agua helada",
       "Aislamiento",
-      "Oso"
+      "Osos"
     ],
     "pt": [
       "Água gelada",
       "Isolamento",
-      "Urso"
+      "Ursos"
     ]
   },
   "algerie-kouali": {
@@ -5569,24 +5258,24 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Recife raso",
       "Correntes fortes",
       "Vento",
-      "Nível de especialista necessário"
+      "Nível avançado exigido"
     ]
   },
   "maurice-manawa": {
     "en": [
       "Reef",
       "Currents",
-      "Offshore access"
+      "Offshore peak, long paddle"
     ],
     "es": [
       "Arrecife",
       "Corrientes",
-      "Acceso costa afuera"
+      "Pico mar adentro, remada larga"
     ],
     "pt": [
       "Recife",
       "Correntes",
-      "Acesso offshore"
+      "Pico ao largo, remada longa"
     ]
   },
   "maurice-small-reef": {
@@ -5661,84 +5350,84 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "en": [
       "Sharp coral reef",
       "Localism",
-      "Poor spot",
-      "Off the edge"
+      "Inconsistent spot",
+      "Far from shore"
     ],
     "es": [
-      "Arrecife de coral afilado",
+      "Arrecife de coral cortante",
       "Localismo",
-      "Mal lugar",
-      "Fuera del borde"
+      "Spot poco constante",
+      "Lejos de la orilla"
     ],
     "pt": [
-      "Recife de coral afiado",
+      "Recife de coral cortante",
       "Localismo",
-      "Lugar ruim",
-      "Fora da borda"
+      "Spot pouco consistente",
+      "Longe da costa"
     ]
   },
   "maurice-le-goulet": {
     "en": [
       "Reef",
       "Currents",
-      "Off the edge"
+      "Far from shore"
     ],
     "es": [
       "Arrecife",
       "Corrientes",
-      "Fuera del borde"
+      "Lejos de la orilla"
     ],
     "pt": [
       "Recife",
       "Correntes",
-      "Fora da borda"
+      "Longe da costa"
     ]
   },
   "maurice-roches-noires": {
     "en": [
       "Reef",
-      "Wind onshore",
+      "Onshore wind",
       "Currents",
-      "Off the edge"
+      "Far from shore"
     ],
     "es": [
       "Arrecife",
       "Viento onshore",
       "Corrientes",
-      "Fuera del borde"
+      "Lejos de la orilla"
     ],
     "pt": [
       "Recife",
       "Vento onshore",
       "Correntes",
-      "Fora da borda"
+      "Longe da costa"
     ]
   },
   "maurice-belle-mare": {
     "en": [
       "Reef",
-      "Wind onshore",
+      "Onshore wind",
       "Currents",
-      "Off the edge"
+      "Far from shore"
     ],
     "es": [
       "Arrecife",
       "Viento onshore",
       "Corrientes",
-      "Fuera del borde"
+      "Lejos de la orilla"
     ],
     "pt": [
       "Recife",
       "Vento onshore",
       "Correntes",
-      "Fora da borda"
+      "Longe da costa"
     ]
   },
   "norvege-hoddevik": {
     "en": [
       "Freezing water",
       "Currents",
-      "Insulation"
+      "Remoteness"
     ],
     "es": [
       "Agua helada",
@@ -5807,24 +5496,10 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Correntes"
     ]
   },
-  "espagne-galice-pantin": {
-    "en": [
-      "Wind",
-      "Currents"
-    ],
-    "es": [
-      "Viento",
-      "Corrientes"
-    ],
-    "pt": [
-      "Vento",
-      "Correntes"
-    ]
-  },
   "maroc-safi": {
     "en": [
       "Reef",
-      "Port"
+      "Harbour traffic"
     ],
     "es": [
       "Arrecife",
@@ -5832,7 +5507,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "pt": [
       "Recife",
-      "Porta"
+      "Porto"
     ]
   },
   "canada-nouvelle-ecosse-lawrencetown": {
@@ -5880,20 +5555,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Correntes"
     ]
   },
-  "mexico-puerto-escondido-zicatela": {
-    "en": [
-      "Shore break violent",
-      "Currents"
-    ],
-    "es": [
-      "Shore break violento",
-      "Corrientes"
-    ],
-    "pt": [
-      "Shore break violento",
-      "Correntes"
-    ]
-  },
   "peru-mancora": {
     "en": [
       "Currents",
@@ -5906,20 +5567,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Correntes",
       "Sol"
-    ]
-  },
-  "peru-punta-hermosa": {
-    "en": [
-      "Crowd",
-      "Rocks"
-    ],
-    "es": [
-      "Multitud",
-      "Rocas"
-    ],
-    "pt": [
-      "Multidão",
-      "Rochas"
     ]
   },
   "bresil-praia-da-tiririca": {
@@ -5981,7 +5628,7 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "indonesia-sumbawa-supersuck": {
     "en": [
       "Reef",
-      "Insulation"
+      "Remoteness"
     ],
     "es": [
       "Arrecife",
@@ -5995,43 +5642,29 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "indonesia-mentawai-thunders": {
     "en": [
       "Reef",
-      "Boat only"
+      "Boat access only"
     ],
     "es": [
       "Arrecife",
-      "Sólo barco"
+      "Solo en barco"
     ],
     "pt": [
       "Recife",
-      "Apenas barco"
-    ]
-  },
-  "sri-lanka-arugam-bay": {
-    "en": [
-      "Currents",
-      "Past conflicts"
-    ],
-    "es": [
-      "Corrientes",
-      "Conflictos pasados"
-    ],
-    "pt": [
-      "Correntes",
-      "Conflitos passados"
+      "Só de barco"
     ]
   },
   "maldives-honkeys": {
     "en": [
       "Reef",
-      "Boat only"
+      "Boat access only"
     ],
     "es": [
       "Arrecife",
-      "Sólo barco"
+      "Solo en barco"
     ],
     "pt": [
       "Recife",
-      "Apenas barco"
+      "Só de barco"
     ]
   },
   "fiji-namotu-left": {
@@ -6107,8 +5740,8 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "papouasie-nouvelle-guinee-tupira": {
     "en": [
       "Reef",
-      "Insulation",
-      "Security"
+      "Remoteness",
+      "Personal safety"
     ],
     "es": [
       "Arrecife",
@@ -6119,23 +5752,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Recife",
       "Isolamento",
       "Segurança"
-    ]
-  },
-  "australie-western-australia-margarets": {
-    "en": [
-      "Sharks",
-      "Reef",
-      "Cold water"
-    ],
-    "es": [
-      "Tiburones",
-      "Arrecife",
-      "Agua fría"
-    ],
-    "pt": [
-      "Tubarões",
-      "Recife",
-      "Água fria"
     ]
   },
   "australie-tasmanie-clifton": {
@@ -6155,17 +5771,17 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "nouvelle-zelande-piha": {
     "en": [
       "Currents",
-      "Rip",
+      "Rip current",
       "Cold water"
     ],
     "es": [
       "Corrientes",
-      "Rotura",
+      "Corriente de resaca",
       "Agua fría"
     ],
     "pt": [
       "Correntes",
-      "Rasgar",
+      "Corrente de retorno",
       "Água fria"
     ]
   },
@@ -6181,20 +5797,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Tubarões",
       "Multidão"
-    ]
-  },
-  "afrique-sud-cape-town-muizenberg": {
-    "en": [
-      "Sharks",
-      "Cold water"
-    ],
-    "es": [
-      "Tiburones",
-      "Agua fría"
-    ],
-    "pt": [
-      "Tubarões",
-      "Água fria"
     ]
   },
   "namibie-skeleton-coast": {
@@ -6251,20 +5853,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Correntes",
       "Vento"
-    ]
-  },
-  "france-bretagne-la-torche": {
-    "en": [
-      "Wind",
-      "Currents"
-    ],
-    "es": [
-      "Viento",
-      "Corrientes"
-    ],
-    "pt": [
-      "Vento",
-      "Correntes"
     ]
   },
   "france-noirmoutier": {
@@ -6340,15 +5928,15 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "el-salvador-la-libertad": {
     "en": [
       "Currents",
-      "Safety to check"
+      "Check local safety"
     ],
     "es": [
       "Corrientes",
-      "Seguridad para comprobar"
+      "Infórmate sobre la seguridad"
     ],
     "pt": [
       "Correntes",
-      "Segurança para verificar"
+      "Informa-te sobre a segurança"
     ]
   },
   "guatemala-sipacate": {
@@ -6443,20 +6031,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Correntes"
     ]
   },
-  "usa-california-swamis": {
-    "en": [
-      "Reef",
-      "Crowd"
-    ],
-    "es": [
-      "Arrecife",
-      "Multitud"
-    ],
-    "pt": [
-      "Recife",
-      "Multidão"
-    ]
-  },
   "usa-california-ocean-beach-sf": {
     "en": [
       "Currents",
@@ -6488,24 +6062,10 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Correntes"
     ]
   },
-  "costa-rica-nosara": {
-    "en": [
-      "Currents",
-      "Rip"
-    ],
-    "es": [
-      "Corrientes",
-      "Rotura"
-    ],
-    "pt": [
-      "Correntes",
-      "Rasgar"
-    ]
-  },
   "peru-cabo-blanco": {
     "en": [
       "Currents",
-      "Insulation"
+      "Remoteness"
     ],
     "es": [
       "Corrientes",
@@ -6625,20 +6185,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Multidão"
     ]
   },
-  "taiwan-jinzun": {
-    "en": [
-      "Typhoons",
-      "Currents"
-    ],
-    "es": [
-      "Tifones",
-      "Corrientes"
-    ],
-    "pt": [
-      "Tufões",
-      "Correntes"
-    ]
-  },
   "philippines-baler": {
     "en": [
       "Currents",
@@ -6651,20 +6197,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Correntes",
       "Monção"
-    ]
-  },
-  "australie-byron-the-pass": {
-    "en": [
-      "Crowd",
-      "Rocks"
-    ],
-    "es": [
-      "Multitud",
-      "Rocas"
-    ],
-    "pt": [
-      "Multidão",
-      "Rochas"
     ]
   },
   "puerto-rico-jobos": {
@@ -6790,20 +6322,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Correntes"
     ]
   },
-  "portugal-ericeira-pedra-branca": {
-    "en": [
-      "Reef",
-      "Currents"
-    ],
-    "es": [
-      "Arrecife",
-      "Corrientes"
-    ],
-    "pt": [
-      "Recife",
-      "Correntes"
-    ]
-  },
   "maroc-agadir-anza": {
     "en": [
       "Wind",
@@ -6830,34 +6348,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Correntes",
       "Multidão"
-    ]
-  },
-  "fiji-tavarua": {
-    "en": [
-      "Reef",
-      "Reserved access"
-    ],
-    "es": [
-      "Arrecife",
-      "Acceso reservado"
-    ],
-    "pt": [
-      "Recife",
-      "Acesso reservado"
-    ]
-  },
-  "nouvelle-zelande-gisborne-makorori": {
-    "en": [
-      "Currents",
-      "Cold water"
-    ],
-    "es": [
-      "Corrientes",
-      "Agua fría"
-    ],
-    "pt": [
-      "Correntes",
-      "Água fria"
     ]
   },
   "canada-vancouver-tofino-cox-bay": {
@@ -6934,11 +6424,11 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "es": [
       "Pequeño oleaje",
-      "Rocas en algunos lugares"
+      "Rocas en algunas zonas"
     ],
     "pt": [
       "Ondulação pequena",
-      "Pedras em alguns lugares"
+      "Rochas em alguns sítios"
     ]
   },
   "usa-newjersey-manasquan": {
@@ -7014,17 +6504,17 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "mexico-la-ticla": {
     "en": [
       "Currents",
-      "Mouth",
-      "Isolation"
+      "River mouth",
+      "Remoteness"
     ],
     "es": [
       "Corrientes",
-      "Boca",
+      "Desembocadura",
       "Aislamiento"
     ],
     "pt": [
       "Correntes",
-      "Boca",
+      "Foz",
       "Isolamento"
     ]
   },
@@ -7098,74 +6588,32 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Correntes"
     ]
   },
-  "bresil-praia-do-rosa": {
-    "en": [
-      "Currents",
-      "Rocks"
-    ],
-    "es": [
-      "Corrientes",
-      "Rocas"
-    ],
-    "pt": [
-      "Correntes",
-      "Rochas"
-    ]
-  },
-  "argentine-mar-del-plata": {
-    "en": [
-      "Cold water",
-      "Currents"
-    ],
-    "es": [
-      "Agua fría",
-      "Corrientes"
-    ],
-    "pt": [
-      "Água fria",
-      "Correntes"
-    ]
-  },
   "chili-arica-el-gringo": {
     "en": [
       "Sharp reef",
       "Powerful waves"
     ],
     "es": [
-      "Arrecife afilado",
+      "Arrecife cortante",
       "Olas poderosas"
     ],
     "pt": [
-      "Recife afiado",
+      "Recife cortante",
       "Ondas poderosas"
     ]
   },
   "perou-pacasmayo": {
     "en": [
       "Currents",
-      "Long oars"
+      "Long paddle-outs"
     ],
     "es": [
       "Corrientes",
-      "Remos largos"
+      "Remadas largas"
     ],
     "pt": [
       "Correntes",
-      "Remos longos"
-    ]
-  },
-  "equateur-montanita": {
-    "en": [
-      "Crowd",
-      "Currents"
-    ],
-    "es": [
-      "Multitud",
-      "Corrientes"
-    ],
-    "pt": [
-      "Multidão",
-      "Correntes"
+      "Remadas longas"
     ]
   },
   "espagne-el-palmar": {
@@ -7196,42 +6644,11 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Rochas"
     ]
   },
-  "uk-thurso-east": {
-    "en": [
-      "Freezing water",
-      "Reef",
-      "Isolation"
-    ],
-    "es": [
-      "Agua helada",
-      "Arrecife",
-      "Aislamiento"
-    ],
-    "pt": [
-      "Água gelada",
-      "Recife",
-      "Isolamento"
-    ]
-  },
-  "irlande-lahinch": {
-    "en": [
-      "Cold water",
-      "Currents"
-    ],
-    "es": [
-      "Agua fría",
-      "Corrientes"
-    ],
-    "pt": [
-      "Água fria",
-      "Correntes"
-    ]
-  },
   "islande-sandvik": {
     "en": [
       "Freezing water",
       "Currents",
-      "Isolation"
+      "Remoteness"
     ],
     "es": [
       "Agua helada",
@@ -7278,15 +6695,15 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "portugal-figueira-cabedelo": {
     "en": [
       "Currents",
-      "Sea wall"
+      "Jetty"
     ],
     "es": [
       "Corrientes",
-      "Malecón"
+      "Espigón"
     ],
     "pt": [
       "Correntes",
-      "Paredão"
+      "Molhe"
     ]
   },
   "italie-levanto": {
@@ -7306,38 +6723,21 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
   "maroc-mehdia": {
     "en": [
       "Currents",
-      "Mouth"
+      "River mouth"
     ],
     "es": [
       "Corrientes",
-      "Boca"
+      "Desembocadura"
     ],
     "pt": [
       "Correntes",
-      "Boca"
-    ]
-  },
-  "senegal-ngor-right": {
-    "en": [
-      "Reef",
-      "Sea urchins",
-      "Currents"
-    ],
-    "es": [
-      "Arrecife",
-      "Erizos de mar",
-      "Corrientes"
-    ],
-    "pt": [
-      "Recife",
-      "Ouriços-do-mar",
-      "Correntes"
+      "Foz"
     ]
   },
   "liberia-robertsport": {
     "en": [
       "Currents",
-      "Isolation"
+      "Remoteness"
     ],
     "es": [
       "Corrientes",
@@ -7379,20 +6779,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Multidão"
     ]
   },
-  "philippines-cloud-nine": {
-    "en": [
-      "Shallow reef",
-      "Currents"
-    ],
-    "es": [
-      "Arrecife poco profundo",
-      "Corrientes"
-    ],
-    "pt": [
-      "Recife raso",
-      "Correntes"
-    ]
-  },
   "sri-lanka-weligama": {
     "en": [
       "Crowd",
@@ -7400,11 +6786,11 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     ],
     "es": [
       "Multitud",
-      "Rocas en algunos lugares"
+      "Rocas en algunas zonas"
     ],
     "pt": [
       "Multidão",
-      "Pedras em alguns lugares"
+      "Rochas em alguns sítios"
     ]
   },
   "maldives-chickens": {
@@ -7449,34 +6835,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Monção"
     ]
   },
-  "thailande-phuket-kata": {
-    "en": [
-      "Currents",
-      "Crowd"
-    ],
-    "es": [
-      "Corrientes",
-      "Multitud"
-    ],
-    "pt": [
-      "Correntes",
-      "Multidão"
-    ]
-  },
-  "chine-hainan-riyue": {
-    "en": [
-      "Typhoons",
-      "Currents"
-    ],
-    "es": [
-      "Tifones",
-      "Corrientes"
-    ],
-    "pt": [
-      "Tufões",
-      "Correntes"
-    ]
-  },
   "indonesie-batu-karas": {
     "en": [
       "Currents",
@@ -7489,23 +6847,6 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Correntes",
       "Rochas"
-    ]
-  },
-  "nouvelle-zelande-raglan": {
-    "en": [
-      "Rocks",
-      "Currents",
-      "Crowd"
-    ],
-    "es": [
-      "Rocas",
-      "Corrientes",
-      "Multitud"
-    ],
-    "pt": [
-      "Rochas",
-      "Correntes",
-      "Multidão"
     ]
   },
   "nouvelle-zelande-st-clair": {
@@ -7542,24 +6883,10 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Multidão"
     ]
   },
-  "australie-crescent-head": {
-    "en": [
-      "Rocks",
-      "Crowd"
-    ],
-    "es": [
-      "Rocas",
-      "Multitud"
-    ],
-    "pt": [
-      "Rochas",
-      "Multidão"
-    ]
-  },
   "australie-cactus-sa": {
     "en": [
       "Sharks",
-      "Isolation",
+      "Remoteness",
       "Reef"
     ],
     "es": [
@@ -7590,41 +6917,24 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Correntes"
     ]
   },
-  "panama-santa-catalina": {
-    "en": [
-      "Reef",
-      "Currents",
-      "Long oars"
-    ],
-    "es": [
-      "Arrecife",
-      "Corrientes",
-      "Remos largos"
-    ],
-    "pt": [
-      "Recife",
-      "Correntes",
-      "Remos longos"
-    ]
-  },
   "cote-divoire-assouinde": {
     "en": [
       "Currents",
-      "Mouth"
+      "River mouth"
     ],
     "es": [
       "Corrientes",
-      "Boca"
+      "Desembocadura"
     ],
     "pt": [
       "Correntes",
-      "Boca"
+      "Foz"
     ]
   },
   "oman-al-ashkharah": {
     "en": [
       "Currents",
-      "Isolation",
+      "Remoteness",
       "Monsoon"
     ],
     "es": [
@@ -7636,6 +6946,304 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
       "Correntes",
       "Isolamento",
       "Monção"
+    ]
+  },
+  "uk-gwithian": {
+    "en": [
+      "Cold water",
+      "Currents",
+      "Rocks at high tide"
+    ],
+    "es": [
+      "Agua fría",
+      "Corrientes",
+      "Rocas con marea alta"
+    ],
+    "pt": [
+      "Água fria",
+      "Correntes",
+      "Rochas na maré cheia"
+    ]
+  },
+  "uk-perranuthnoe": {
+    "en": [
+      "Cold water",
+      "Currents",
+      "Rocks"
+    ],
+    "es": [
+      "Agua fría",
+      "Corrientes",
+      "Rocas"
+    ],
+    "pt": [
+      "Água fria",
+      "Correntes",
+      "Rochas"
+    ]
+  },
+  "angola-cabo-ledo": {
+    "en": [
+      "Currents",
+      "Remoteness"
+    ],
+    "es": [
+      "Corrientes",
+      "Aislamiento"
+    ],
+    "pt": [
+      "Correntes",
+      "Isolamento"
+    ]
+  },
+  "portugal-santa-rita": {
+    "en": [
+      "Currents",
+      "Rocks",
+      "Shore break"
+    ],
+    "es": [
+      "Corrientes",
+      "Rocas",
+      "Shore break"
+    ],
+    "pt": [
+      "Correntes",
+      "Rochas",
+      "Shore break"
+    ]
+  },
+  "espagne-camposoto": {
+    "en": [
+      "Currents",
+      "Levante wind"
+    ],
+    "es": [
+      "Corrientes",
+      "Viento de levante"
+    ],
+    "pt": [
+      "Correntes",
+      "Vento de levante"
+    ]
+  },
+  "france-baie-des-trepasses": {
+    "en": [
+      "Strong currents",
+      "Cold water",
+      "Swell that builds fast"
+    ],
+    "es": [
+      "Corrientes fuertes",
+      "Agua fría",
+      "Oleaje que crece rápido"
+    ],
+    "pt": [
+      "Correntes fortes",
+      "Água fria",
+      "Ondulação que cresce rápido"
+    ]
+  },
+  "australie-north-wollongong": {
+    "en": [
+      "Currents",
+      "Bluebottles"
+    ],
+    "es": [
+      "Corrientes",
+      "Fisalias"
+    ],
+    "pt": [
+      "Correntes",
+      "Fisálias"
+    ]
+  },
+  "portugal-furadouro": {
+    "en": [
+      "Strong currents",
+      "Shore break"
+    ],
+    "es": [
+      "Corrientes fuertes",
+      "Shore break"
+    ],
+    "pt": [
+      "Correntes fortes",
+      "Shore break"
+    ]
+  },
+  "espagne-penarronda": {
+    "en": [
+      "Currents",
+      "Cold water"
+    ],
+    "es": [
+      "Corrientes",
+      "Agua fría"
+    ],
+    "pt": [
+      "Correntes",
+      "Água fria"
+    ]
+  },
+  "espagne-xivares": {
+    "en": [
+      "Currents",
+      "Rocks at both ends"
+    ],
+    "es": [
+      "Corrientes",
+      "Rocas en los extremos"
+    ],
+    "pt": [
+      "Correntes",
+      "Rochas nas extremidades"
+    ]
+  },
+  "espagne-xago": {
+    "en": [
+      "Strong currents",
+      "Wind",
+      "Shore break"
+    ],
+    "es": [
+      "Corrientes fuertes",
+      "Viento",
+      "Shore break"
+    ],
+    "pt": [
+      "Correntes fortes",
+      "Vento",
+      "Shore break"
+    ]
+  },
+  "mexique-revolcadero": {
+    "en": [
+      "Violent shore break",
+      "Strong currents",
+      "Close-outs"
+    ],
+    "es": [
+      "Shore break violento",
+      "Corrientes fuertes",
+      "Olas que se cierran"
+    ],
+    "pt": [
+      "Shore break violento",
+      "Correntes fortes",
+      "Ondas que fecham"
+    ]
+  },
+  "australie-hastings-point": {
+    "en": [
+      "Rocks",
+      "Current along the point"
+    ],
+    "es": [
+      "Rocas",
+      "Corriente a lo largo del point"
+    ],
+    "pt": [
+      "Rochas",
+      "Corrente ao longo do point"
+    ]
+  },
+  "espagne-son-serra-de-marina": {
+    "en": [
+      "Rare surf (Mediterranean swell)",
+      "Rocks"
+    ],
+    "es": [
+      "Surf raro (oleaje mediterráneo)",
+      "Rocas"
+    ],
+    "pt": [
+      "Surf raro (swell mediterrâneo)",
+      "Rochas"
+    ]
+  },
+  "espagne-la-misericordia": {
+    "en": [
+      "Rare surf (Mediterranean swell)",
+      "Bathers"
+    ],
+    "es": [
+      "Surf raro (oleaje mediterráneo)",
+      "Bañistas"
+    ],
+    "pt": [
+      "Surf raro (swell mediterrâneo)",
+      "Banhistas"
+    ]
+  },
+  "espagne-la-cala-de-mijas": {
+    "en": [
+      "Rare surf (Mediterranean swell)",
+      "Bathers"
+    ],
+    "es": [
+      "Surf raro (oleaje mediterráneo)",
+      "Bañistas"
+    ],
+    "pt": [
+      "Surf raro (swell mediterrâneo)",
+      "Banhistas"
+    ]
+  },
+  "espagne-benicassim": {
+    "en": [
+      "Rare surf (Mediterranean swell)",
+      "Rock groynes"
+    ],
+    "es": [
+      "Surf raro (oleaje mediterráneo)",
+      "Espigones de roca"
+    ],
+    "pt": [
+      "Surf raro (swell mediterrâneo)",
+      "Esporões de pedra"
+    ]
+  },
+  "espagne-sagunto": {
+    "en": [
+      "Rare surf (Mediterranean swell)",
+      "Harbor breakwaters"
+    ],
+    "es": [
+      "Surf raro (oleaje mediterráneo)",
+      "Rompeolas del puerto"
+    ],
+    "pt": [
+      "Surf raro (swell mediterrâneo)",
+      "Quebra-mares do porto"
+    ]
+  },
+  "allemagne-hohwacht": {
+    "en": [
+      "Rare surf (Baltic Sea)",
+      "Very cold water"
+    ],
+    "es": [
+      "Surf raro (mar Báltico)",
+      "Agua muy fría"
+    ],
+    "pt": [
+      "Surf raro (mar Báltico)",
+      "Água muito fria"
+    ]
+  },
+  "espagne-peguera": {
+    "en": [
+      "Very rare surf",
+      "Bathers"
+    ],
+    "es": [
+      "Surf muy raro",
+      "Bañistas"
+    ],
+    "pt": [
+      "Surf muito raro",
+      "Banhistas"
     ]
   }
 };

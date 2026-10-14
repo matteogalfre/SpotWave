@@ -33,6 +33,24 @@ describe('findTideExtrema', () => {
     expect(findTideExtrema(seaLevel, times).length).toBe(0);
   });
 
+  it('alternates high and low on a mixed tide (shallow "higher low")', () => {
+    // Semi-diurnal + diurnal mix, as on the US west coast: the two lows of a
+    // day differ a lot and one of them is shallow. The water barely moves in
+    // the hours around that shallow low, and the old per-hour check dropped
+    // it, listing two high tides back to back.
+    const times = Array.from({ length: 48 }, (_, i) =>
+      `2025-03-${(10 + Math.floor(i / 24)).toString().padStart(2, '0')}T${(i % 24).toString().padStart(2, '0')}:00`,
+    );
+    const seaLevel = times.map((_, i) =>
+      0.5 * Math.cos((2 * Math.PI * i) / 12.42) + 0.45 * Math.cos((2 * Math.PI * (i - 3)) / 24.84),
+    );
+    const extrema = findTideExtrema(seaLevel, times);
+    expect(extrema.length).toBeGreaterThanOrEqual(6);
+    for (let k = 1; k < extrema.length; k++) {
+      expect(extrema[k].type).not.toBe(extrema[k - 1].type);
+    }
+  });
+
   it('handles null values gracefully', () => {
     const times = Array.from({ length: 13 }, (_, i) =>
       `2025-03-10T${i.toString().padStart(2, '0')}:00`,

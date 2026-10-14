@@ -18,7 +18,7 @@ import { scoreColor, scoreShort } from '../theme';
 import { useWebLayout, isWebPlatform, webTabBarClearance } from '../utils/webLayout';
 import { MapScreenProps } from '../navigation/types';
 import { log } from '../utils/logger';
-import { useI18n } from '../i18n';
+import { useI18n, fmtDec } from '../i18n';
 
 interface MapSpot {
   lat: number;
@@ -52,9 +52,9 @@ function buildAllMapSpots(
         lat: spot.latitude, lon: spot.longitude, name: spot.name,
         region: spot.region, country: spot.country, id: spot.id,
         level: spot.recommendedLevel, hasData: true,
-        score: f.currentScore.toFixed(1), color: scoreColor(f.currentScore),
+        score: fmtDec(f.currentScore), color: scoreColor(f.currentScore),
         label: scoreShort(f.currentScore, t),
-        swell: f.currentCondition.swellHeight.toFixed(1) + 'm',
+        swell: fmtDec(f.currentCondition.swellHeight) + 'm',
         wind: f.currentCondition.windSpeed.toFixed(0) + ' km/h',
         fav,
       };
@@ -148,6 +148,10 @@ function buildMapHtml(
     box-shadow: ${themeStyle.popupShadow} !important;
   }
   .leaflet-popup-tip { background: ${bgColor} !important; }
+  .leaflet-control-attribution {
+    font-size: 10px; line-height: 14px; padding: 0 5px; border-radius: 6px 0 0 0;
+    background: ${bgColor} !important; color: ${themeStyle.textColor} !important; opacity: 0.8;
+  }
   .popup-title { font-size: 15px; font-weight: 800; margin-bottom: 3px; color: ${themeStyle.textColor}; }
   .popup-region { font-size: 11px; opacity: 0.6; margin-bottom: 6px; color: ${themeStyle.textColor}; }
   .popup-score { font-size: 20px; font-weight: 900; margin-bottom: 2px; }
@@ -205,10 +209,14 @@ function scoreColorJs(s) {
   return lc(52,184,96,35,199,194,(s-7.5)/2.5);
 }
 
-var map = L.map('map', { zoomControl: false, attributionControl: false });
+var map = L.map('map', { zoomControl: false, attributionControl: true });
+// Attribution is required by the OpenStreetMap licence and by the CARTO
+// Basemaps terms (the key is granted on that condition). Plain text, no links:
+// a tap would navigate the WebView away from the map.
+map.attributionControl.setPrefix(false);
 // noWrap keeps a single world copy so spot markers (which only exist on the
 // primary copy) don't disappear when panning into a repeated map.
-L.tileLayer('${tileSrc}', { maxZoom: 18, noWrap: true }).addTo(map);
+L.tileLayer('${tileSrc}', { maxZoom: 18, noWrap: true, attribution: '© OpenStreetMap contributors © CARTO' }).addTo(map);
 ${initView}
 
 // User marker is set/moved imperatively so the map never reloads when GPS
@@ -311,7 +319,7 @@ var clusters = L.markerClusterGroup({
       if (!d) continue;
       if (d.fav) favCount++;
       if (d.hasData) {
-        var sc = parseFloat(d.score);
+        var sc = parseFloat(String(d.score).replace(',', '.')); // scores are localized ("7,8" in French)
         if (!isNaN(sc) && (best === null || sc > best)) best = sc;
       }
     }
@@ -484,10 +492,10 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
     name: forecast.spot.name,
     region: forecast.spot.region,
     country: forecast.spot.country,
-    score: forecast.currentScore.toFixed(1),
+    score: fmtDec(forecast.currentScore),
     color: scoreColor(forecast.currentScore),
     label: scoreShort(forecast.currentScore, t),
-    swell: forecast.currentCondition ? forecast.currentCondition.swellHeight.toFixed(1) + 'm' : '—',
+    swell: forecast.currentCondition ? fmtDec(forecast.currentCondition.swellHeight) + 'm' : '—',
     wind: forecast.currentCondition ? forecast.currentCondition.windSpeed.toFixed(0) + ' km/h' : '—',
   }), [t]);
 
@@ -638,8 +646,8 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
               accessibilityRole="button"
               accessibilityLabel={t.retry}
             >
-              <MaterialCommunityIcons name="reload" size={16} color="#06121F" />
-              <Text style={s.retryTxt}>{t.retry}</Text>
+              <MaterialCommunityIcons name="reload" size={16} color={colors.onAccent} />
+              <Text style={[s.retryTxt, { color: colors.onAccent }]}>{t.retry}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -656,7 +664,7 @@ const s = StyleSheet.create({
   },
   hCenter: { alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '800' },
-  hSub: { fontSize: 11, fontWeight: '500', marginTop: 2 },
+  hSub: { fontSize: 12, fontWeight: '500', marginTop: 2 },
   loaderOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
   loaderTxt: { marginTop: 12, fontSize: 13, fontWeight: '500' },
   errTxt: { marginTop: 12, fontSize: 15, fontWeight: '700', textAlign: 'center' },
@@ -664,5 +672,5 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     marginTop: 20, paddingHorizontal: 22, height: 46, borderRadius: 14,
   },
-  retryTxt: { color: '#06121F', fontSize: 15, fontWeight: '800' },
+  retryTxt: { fontSize: 15, fontWeight: '800' },
 });

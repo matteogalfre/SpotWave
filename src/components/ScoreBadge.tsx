@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, memo } from 'react';
 import { Text, StyleSheet, Animated, AccessibilityInfo, Platform } from 'react-native';
-import { scoreColor as getScoreColor, scoreBg as getScoreBg } from '../theme';
-import { useI18n } from '../i18n';
+import { scoreColor as getScoreColor, scoreInk, scoreBg as getScoreBg } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { useI18n, fmtDec } from '../i18n';
 
 interface Props {
   score: number;
@@ -18,7 +19,9 @@ const DIM = {
 
 export default memo(function ScoreBadge({ score, size = 'md', animated = false }: Props) {
   const { t } = useI18n();
+  const { isDark } = useTheme();
   const color = getScoreColor(score);
+  const ink = scoreInk(score, isDark);
   const bg = getScoreBg(score);
   const d = DIM[size];
 
@@ -84,10 +87,10 @@ export default memo(function ScoreBadge({ score, size = 'md', animated = false }
   return (
     <Animated.View
       style={[s.box, halo, { width: d.box, height: d.box, borderRadius: d.box / 2, backgroundColor: bg, borderColor: color, transform: [{ scale: Animated.multiply(scaleAnim, pulseAnim) }] }]}
-      accessibilityLabel={t.a11yScore(displayVal.toFixed(1))}
+      accessibilityLabel={t.a11yScore(fmtDec(displayVal))}
       accessibilityRole="text"
     >
-      <Text style={[s.txt, { fontSize: d.font, color }]}>{displayVal.toFixed(1)}</Text>
+      <Text style={[s.txt, { fontSize: d.font, color: ink }]}>{fmtDec(displayVal)}</Text>
     </Animated.View>
   );
 });

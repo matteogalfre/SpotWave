@@ -1,8 +1,30 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import { log } from '../utils/logger';
 
 const THEME_KEY = '@spotwave_theme';
+
+/**
+ * CARTO exige desormais une cle pour ses fonds de carte : sans elle, les tuiles
+ * reviennent tatouees "API KEY REQUIRED" en diagonale, avec un code HTTP 200.
+ *
+ * La cle se recupere sur carto.com/basemaps/apikey. Plan gratuit : 5 millions de
+ * tuiles par mois, usage non commercial. Elle est necessairement visible cote
+ * client (la WebView charge les tuiles directement), donc restreindre son domaine
+ * depuis le dashboard CARTO est indispensable.
+ *
+ * Renseignee dans app.json sous `expo.extra.cartoApiKey`. Sans cle, on retombe
+ * sur l'URL nue plutot que de casser la carte : les tuiles restent tatouees mais
+ * la carte fonctionne.
+ */
+const CARTO_API_KEY = (
+  (Constants.expoConfig?.extra as { cartoApiKey?: string } | undefined)?.cartoApiKey ?? ''
+).trim();
+
+const cartoTile = (style: 'light_all' | 'dark_all'): string =>
+  `https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png` +
+  (CARTO_API_KEY ? `?key=${encodeURIComponent(CARTO_API_KEY)}` : '');
 
 /**
  * Palette tokens.
@@ -41,6 +63,7 @@ export const DARK = {
   white08: 'rgba(234,238,246,0.08)',
 
   accent: '#23C7C2',
+  onAccent: '#06121F',     // text/icons on an accent-filled button
   accentDim: 'rgba(35,199,194,0.18)',
   red: '#FF5A5A',
   redDim: 'rgba(255,90,90,0.15)',
@@ -49,7 +72,7 @@ export const DARK = {
   blue: '#2BA8DC',
   blueDim: 'rgba(43,168,220,0.18)',
   statusBar: 'light' as 'light' | 'dark',
-  mapTile: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  mapTile: cartoTile('dark_all'),
   mapFilter: 'contrast(1.15) brightness(1.1) saturate(1.4)',
   mapSea: '#0B0F1A',
 };
@@ -82,8 +105,12 @@ export const LIGHT: ThemePalette = {
   white15: 'rgba(14,58,69,0.14)',
   white08: 'rgba(14,58,69,0.05)',
 
-  accent: '#0E9488',
-  accentDim: 'rgba(14,148,136,0.14)',
+  // Deeper than the dark-theme turquoise: #0E9488 only reached 3.5:1 as text on
+  // the sand background and 3.0:1 on tinted chips. #0A6E65 clears 4.5:1 on
+  // every light surface, and white text on it reaches 6:1.
+  accent: '#0A6E65',
+  accentDim: 'rgba(10,110,101,0.12)',
+  onAccent: '#FFFFFF',
   red: '#E0524C',
   redDim: 'rgba(224,82,76,0.12)',
   yellow: '#E0982C',
@@ -91,7 +118,7 @@ export const LIGHT: ThemePalette = {
   blue: '#1488B5',
   blueDim: 'rgba(20,136,181,0.14)',
   statusBar: 'dark',
-  mapTile: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  mapTile: cartoTile('light_all'),
   mapFilter: 'contrast(1.06) saturate(1.25)',
   mapSea: '#DCEFEA',
 };

@@ -64,9 +64,21 @@ const I18nContext = createContext<I18nContextType>({
   ready: false,
 });
 
+// Locale of the running app, mirrored here so plain helpers (chart labels,
+// summaries) can format numbers without threading the locale through.
+let activeLocale: Locale = getDeviceLocale();
+const COMMA_LOCALES: Locale[] = ['fr', 'es', 'pt', 'de', 'it'];
+
+/** One-decimal display ("0,9" in French, "0.9" in English/Japanese). */
+export function fmtDec(value: number, digits = 1, l: Locale = activeLocale): string {
+  const s = value.toFixed(digits);
+  return COMMA_LOCALES.includes(l) ? s.replace('.', ',') : s;
+}
+
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(getDeviceLocale());
   const [ready, setReady] = useState(false);
+  activeLocale = locale;
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)

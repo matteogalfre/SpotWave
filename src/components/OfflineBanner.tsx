@@ -41,5 +41,5 @@ const s = StyleSheet.create({
   },
   txtRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   txt: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  sub: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '500', marginTop: 2 },
+  sub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '500', marginTop: 2 },
 });

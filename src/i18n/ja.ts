@@ -30,6 +30,14 @@ export default {
   spotsSearchLoading: 'コンディションを読み込み中…',
   spotsSearchError: 'コンディションを読み込めませんでした',
   spotsWhereToSurf: '今日はどこでサーフィン？',
+  spotsPickZoneTitle: 'どこでサーフィンしますか？',
+  spotsPickZoneSub: '位置情報がないため、世界のスポットを表示しています。国を選んでください（プロフィールで変更できます）。',
+  spotsWorldPick: '世界セレクションのベスト',
+  spotsUpdating: 'コンディションを更新中…',
+  spotsSlowLoading: 'いつもより時間がかかっています。気象サービスの応答が遅いため、再試行中です。',
+  spotsWeekTop: 'ベスト',
+  spotsConfLegend: '黄色・赤の点：3日目以降は予報の精度が下がります',
+  spotsGustShort: '突風',
   spotsNoConditions: '今日は良いコンディションがありません',
   spotsNextSlot: (day: string, spot: string) => `次のベストタイミング：${day}・${spot}`,
   spotsNoSlotWeek: '今週は良いタイミングがありません',
@@ -77,11 +85,11 @@ export default {
   favRemoved: 'お気に入りから削除しました',
   favRemovedUndo: '削除 · 元に戻す',
   favLoadFail: (n: number) => `${n}件のお気に入りを読み込めませんでした`,
-  favEmptyAction: 'マップを探索',
+  favEmptyAction: 'スポットを見る',
 
   // Map screen
   mapTitle: '世界地図',
-  mapLoaded: (total: number, loaded: number) => `${total}スポット · ${loaded}件読み込み済み`,
+  mapLoaded: (total: number, loaded: number) => loaded > 0 ? `${total}スポット · ${loaded}件の予報` : `${total}スポット`,
   mapLoadingSpot: '読み込み中…',
   mapLoadingMap: 'マップを読み込み中…',
   mapViewDetails: '詳細を見る',
@@ -123,6 +131,8 @@ export default {
   detailSwellM: 'スウェル (m)',
   detailWindDiv: '風 (÷10 km/h)',
   detailNow: '現在',
+  detailNight: '夜',
+  detailLoadFailed: 'このスポットを読み込めませんでした。',
   // Profile screen
   profileTitle: 'プロフィール',
   profileSub: 'おすすめをカスタマイズ',
@@ -197,6 +207,7 @@ export default {
   // Short tags (badges, compact lists)
   scoreShortPerfect: '完璧',
   scoreShortVeryGood: '最高',
+  scoreShortGo: '良い',
   scoreShortOk: 'まあまあ',
   scoreShortAverage: '普通',
   scoreShortMediocre: 'いまいち',
@@ -355,6 +366,8 @@ export default {
   rateQueued: '評価を保存しました。後で送信されます 🙏',
   rateAlready: '今日はすでにこのスポットを評価しました',
   rateHint: 'あなたの評価は、みんなのためにスコアアルゴリズムの改善に役立ちます。',
+  rateTapToRate: 'バーをタップして評価してください',
+  rateNight: 'スポットは夜です。日中にコンディションを評価してください。',
 
   // ── In-app spot suggestion ──────────────────────────────────────
   suggestTitle: 'スポットを提案',

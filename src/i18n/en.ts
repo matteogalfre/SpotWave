@@ -30,6 +30,14 @@ export default {
   spotsSearchLoading: 'Loading conditions…',
   spotsSearchError: 'Unable to load conditions',
   spotsWhereToSurf: 'Where to surf today?',
+  spotsPickZoneTitle: 'Where do you surf?',
+  spotsPickZoneSub: 'Without your location, the app shows a worldwide selection of spots. Pick a country (you can change it in your profile).',
+  spotsWorldPick: 'Best of the worldwide selection',
+  spotsUpdating: 'Updating conditions…',
+  spotsSlowLoading: 'This is taking longer than usual: the weather service is slow to respond. Still trying.',
+  spotsWeekTop: 'Best',
+  spotsConfLegend: 'Yellow or red dot: less reliable forecast from day 3',
+  spotsGustShort: 'gust',
   spotsNoConditions: 'No good conditions today',
   spotsNextSlot: (day: string, spot: string) => `Next good slot: ${day} at ${spot}`,
   spotsNoSlotWeek: 'No good slot this week',
@@ -77,11 +85,11 @@ export default {
   favRemoved: 'Removed from favorites',
   favRemovedUndo: 'Removed · Undo',
   favLoadFail: (n: number) => `${n} favorite${n > 1 ? 's' : ''} failed to load`,
-  favEmptyAction: 'Explore the map',
+  favEmptyAction: 'Browse spots',
 
   // Map screen
   mapTitle: 'World map',
-  mapLoaded: (total: number, loaded: number) => `${total} spots · ${loaded} loaded`,
+  mapLoaded: (total: number, loaded: number) => loaded > 0 ? `${total} spots · forecast for ${loaded}` : `${total} spots`,
   mapLoadingSpot: 'Loading…',
   mapLoadingMap: 'Loading map…',
   mapViewDetails: 'View details',
@@ -123,6 +131,8 @@ export default {
   detailSwellM: 'Swell (m)',
   detailWindDiv: 'Wind (÷10 km/h)',
   detailNow: 'Now',
+  detailNight: 'Night',
+  detailLoadFailed: 'Couldn\'t load this spot.',
   // Profile screen
   profileTitle: 'Profile',
   profileSub: 'Customize your recommendations',
@@ -197,7 +207,8 @@ export default {
   // Short tags (badges, compact lists)
   scoreShortPerfect: 'Perfect',
   scoreShortVeryGood: 'Top',
-  scoreShortOk: 'Good',
+  scoreShortGo: 'Good',
+  scoreShortOk: 'Decent',
   scoreShortAverage: 'Average',
   scoreShortMediocre: 'Poor',
   scoreShortBad: 'Bad',
@@ -355,6 +366,8 @@ export default {
   rateQueued: 'Rating saved, it will be sent later 🙏',
   rateAlready: 'You already rated this spot today',
   rateHint: 'Your rating helps improve the scoring algorithm for everyone.',
+  rateTapToRate: 'Tap the bar to give your score',
+  rateNight: 'It\'s night at the spot: come back to rate the conditions in daylight.',
 
   // ── In-app spot suggestion ──────────────────────────────────────
   suggestTitle: 'Suggest a spot',

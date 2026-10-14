@@ -17,10 +17,10 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { purgeOldCache } from './src/services/api';
 import { maybeRequestReview } from './src/services/review';
 import { flushPendingRatings } from './src/services/ratings';
-import { initCrashReporter, sentryWrap } from './src/services/crashReporter';
+import { initCrashReporter } from './src/services/crashReporter';
 
-// Init Sentry (if a DSN is set) + local crash persistence before anything
-// renders, so an early crash is captured.
+// Persistance locale des erreurs avant tout rendu, pour capturer un crash
+// survenant au demarrage.
 initCrashReporter();
 
 // iOS PWA: with a black-translucent status bar, content draws under the Dynamic
@@ -116,6 +116,4 @@ function App() {
   );
 }
 
-// Sentry.wrap adds the native crash/JS error hooks around the root component.
-// It's a no-op passthrough when Sentry has no DSN, so this is always safe.
-export default sentryWrap(App);
+export default App;

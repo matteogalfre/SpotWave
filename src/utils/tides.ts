@@ -67,8 +67,17 @@ export function findTideExtrema(
     const offset = parabolicOffset(yPrev, y, yNext);
     const peakLevel = parabolicPeakValue(yPrev, y, yNext, offset);
 
-    // Validate amplitude vs neighbours to avoid noise around plateaus.
-    const swing = Math.max(Math.abs(peakLevel - yPrev), Math.abs(peakLevel - yNext));
+    // Amplitude against the surrounding ±3 h, not the adjacent hours: at any
+    // turn of the tide the water barely moves from one hour to the next, so the
+    // old neighbour check dropped gentle extremes (the shallow "higher low" of
+    // a mixed tide) and two high tides ended up listed back to back.
+    let ref = y;
+    for (let j = Math.max(0, i - 3); j <= Math.min(n - 1, i + 3); j++) {
+      const v = seaLevel[j];
+      if (v == null) continue;
+      ref = isMax ? Math.min(ref, v) : Math.max(ref, v);
+    }
+    const swing = Math.abs(peakLevel - ref);
     if (swing < MIN_AMPLITUDE_M) continue;
 
     const base = parseIsoLocal(times[i]);

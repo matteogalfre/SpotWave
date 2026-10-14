@@ -181,8 +181,13 @@ function heightFactor(height: number, spot: SpotConfig, profile: SurferProfile):
 }
 
 function directionFactor(direction: number, spot: SpotConfig): number {
-  const center = ((spot.optimalSwellDirMin + spot.optimalSwellDirMax) / 2) % 360;
-  const halfRange = Math.max(angleDiff(spot.optimalSwellDirMin, center), 1);
+  // Window width measured clockwise from min to max. A window crossing north
+  // (320° → 30°) is 70° wide and centred on 355°; the naive (min + max) / 2
+  // put its centre at 175° (due south), so every in-window direction got the
+  // edge value and north-facing spots lost their direction gradient.
+  const span = (((spot.optimalSwellDirMax - spot.optimalSwellDirMin) % 360) + 360) % 360;
+  const center = (spot.optimalSwellDirMin + span / 2) % 360;
+  const halfRange = Math.max(span / 2, 1);
 
   if (isAngleInRange(direction, spot.optimalSwellDirMin, spot.optimalSwellDirMax)) {
     // Inside the window: 0.92 at centre → 0.66 at the edge.
@@ -265,9 +270,22 @@ function swellQuality(
   const d = directionFactor(direction, spot);
   const p = periodFactor(period, profile);
   const syn = powerSynergy(height, period);
+  const carry = sizeCarry(height, profile);
 
   // height 40% (boosted by synergy), period 35%, direction 25%.
-  return clamp01(h * syn) * 0.40 + d * 0.25 + p * 0.35;
+  return clamp01(h * syn) * 0.40 + (d * 0.25 + p * 0.35) * carry;
+}
+
+// Direction and period qualify the swell that reaches the beach. As plain
+// additive terms they still brought up to 60% of the swell score on a
+// knee-high day: a 0.5 m, perfectly aligned swell on a glassy morning reached
+// RIDABLE_SCORE while surfers rated it ~1/10 (Aveiro, Aug 2026). Their share
+// now fades in with the PHYSICAL height, not the level-adjusted height factor,
+// so overhead days for beginners are untouched. Beginners keep more of it on
+// small days: knee-high reforms are where they surf.
+function sizeCarry(height: number, profile: SurferProfile): number {
+  if (profile.level === 'beginner') return piecewise(height, [[0.3, 0.75], [0.6, 1.0]]);
+  return piecewise(height, [[0.3, 0.45], [0.8, 1.0]]);
 }
 
 // ── WIND QUALITY (0-1) ───────────────────────────────────────────────────────
@@ -466,14 +484,21 @@ function profileMatch(
 ): number {
   const h = swellHeight || waveHeight;
 
-  let heightM = 0.95;
+  // Each preferred band gives full credit inside it and fades out over 0.2 m on
+  // both sides. The old in/out test was a step: crossing 0.9 m with a "1-2"
+  // preference multiplied the score by 1.12 in one go (up to +0.6 point
+  // between two neighbouring hours), against the no-cliff rule of this file.
+  const FADE = 0.2;
+  const band = (lo: number, hi: number) =>
+    clamp01(Math.min((h - (lo - FADE)) / FADE, ((hi + FADE) - h) / FADE));
+  let fit = 0;
   for (const pref of profile.preferredHeight) {
-    if (pref === '0.5-1' && h >= 0.4 && h <= 1.1) { heightM = 1.06; break; }
-    if (pref === '1-2' && h >= 0.9 && h <= 2.1) { heightM = 1.06; break; }
-    if (pref === '2+' && h >= 1.8) { heightM = 1.06; break; }
+    if (pref === '0.5-1') fit = Math.max(fit, band(0.4, 1.1));
+    if (pref === '1-2') fit = Math.max(fit, band(0.9, 2.1));
+    if (pref === '2+') fit = Math.max(fit, band(1.8, Infinity));
   }
 
-  return heightM;
+  return 0.95 + 0.11 * fit;
 }
 
 // ── CLEAN FACTOR ─────────────────────────────────────────────────────────────
@@ -756,6 +781,7 @@ export function computeHourlyScore(
     swellHeight: rawSwellHeight,
     swellDirection: swellDir,
     swellPeriod: swellPeriodRaw,
+    swellPeakPeriod: peakPeriod,
     windSpeed,
     windDirection: windDir,
     windGusts,
@@ -781,6 +807,9 @@ export function computeHourlyScore(
       rawScore: Math.round(rawScore * 10) / 10,
       cappedScore: Math.round(capped * 10) / 10,
       caps,
+      effectiveHeight,
+      effectivePeriod: period,
+      smallSurfDamp: smallDamp,
     },
   };
 }

@@ -313,7 +313,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
             accessibilityLabel={step === TOTAL_STEPS - 1 ? t.onboardNotifEnable : t.onboardNext}
             accessibilityRole="button"
           >
-            <Text style={s.nextTxt}>{step === TOTAL_STEPS - 1 ? t.onboardNotifEnable : t.onboardNext}</Text>
+            <Text style={[s.nextTxt, { color: colors.onAccent }]}>{step === TOTAL_STEPS - 1 ? t.onboardNotifEnable : t.onboardNext}</Text>
           </TouchableOpacity>
         </View>
         {step > 0 && (
@@ -442,5 +442,5 @@ const s = StyleSheet.create({
     minHeight: touchTarget.min + 8,
     justifyContent: 'center',
   },
-  nextTxt: { color: '#000', ...typography.h3, fontSize: 16, fontWeight: '800' },
+  nextTxt: { ...typography.h3, fontSize: 16, fontWeight: '800' },
 });

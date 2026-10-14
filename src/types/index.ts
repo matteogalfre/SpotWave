@@ -92,6 +92,11 @@ export interface ScoreFactors {
   rawScore: number;          // before deal-breaker cap (0..10)
   cappedScore: number;       // after deal-breaker cap (0..10)
   caps: ScoreCap[];          // list of deal-breakers that capped this hour
+  // Inputs as the model actually used them (logged with ratings so a rating
+  // can be replayed exactly).
+  effectiveHeight?: number;  // m, after the swell/total-sea blend
+  effectivePeriod?: number | null; // s, robust swell/peak period (null = unknown)
+  smallSurfDamp?: number;    // ~0.8..1.0
 }
 
 export interface HourlyCondition {
@@ -101,6 +106,7 @@ export interface HourlyCondition {
   swellHeight: number;
   swellDirection: number;
   swellPeriod: number;
+  swellPeakPeriod?: number;
   windSpeed: number;
   windDirection: number;
   windGusts: number;

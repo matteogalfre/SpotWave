@@ -49,6 +49,8 @@ import AboutScreen from '../screens/AboutScreen';
 import GuideScreen from '../screens/GuideScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 
+import type { SpotForecast } from '../types';
+
 const ONBOARDING_KEY = '@spotwave_onboarded';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -67,6 +69,11 @@ const linking: LinkingOptions<RootStackParamList> = {
         },
       },
       About: 'about',
+      // Only the spot id goes in the URL; the screen rebuilds the forecast.
+      SpotDetail: {
+        path: 'spot/:forecast',
+        stringify: { forecast: (f: SpotForecast | string) => (typeof f === 'string' ? f : f.spot.id) },
+      },
     },
   },
 };

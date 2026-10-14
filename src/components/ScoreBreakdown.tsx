@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScoreFactors, ScoreCap } from '../types';
 import { useTheme } from '../context/ThemeContext';
-import { useI18n } from '../i18n';
+import { useI18n, fmtDec } from '../i18n';
 import { spacing, radius, typography } from '../utils/tokens';
 
 interface Props {
@@ -84,12 +84,12 @@ export default function ScoreBreakdown({ factors, finalScore }: Props) {
           <View style={s.summaryRow}>
             <View style={s.summaryItem}>
               <Text style={[s.summaryLbl, { color: colors.textMuted ?? colors.white40 }]}>{t.detailWhyRaw}</Text>
-              <Text style={[s.summaryVal, { color: colors.white }]}>{factors.rawScore.toFixed(1)}</Text>
+              <Text style={[s.summaryVal, { color: colors.white }]}>{fmtDec(factors.rawScore)}</Text>
             </View>
             <Ionicons name="arrow-forward" size={14} color={colors.textMuted ?? colors.white40} />
             <View style={s.summaryItem}>
               <Text style={[s.summaryLbl, { color: colors.accent }]}>{t.detailWhyFinal}</Text>
-              <Text style={[s.summaryVal, { color: colors.accent }]}>{finalScore.toFixed(1)}</Text>
+              <Text style={[s.summaryVal, { color: colors.accent }]}>{fmtDec(finalScore)}</Text>
             </View>
           </View>
         )}
@@ -184,7 +184,7 @@ const s = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   summaryItem: { alignItems: 'center', flex: 1 },
-  summaryLbl: { ...typography.micro, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+  summaryLbl: { ...typography.micro, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 },
   summaryVal: { ...typography.h1, fontSize: 22, marginTop: 2 },
 
   capsBox: {

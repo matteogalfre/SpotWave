@@ -1,60 +1,97 @@
-// One-off generator: translates FR spot descriptions + dangers into EN/ES/PT.
-// Reads src/data/spots.ts (source of truth, FR) and writes
-// src/data/spotDescriptions.ts. Re-run only when descriptions change.
+// Generator: translates FR spot descriptions + dangers into EN/ES/PT.
+// Reads src/data/spots.ts (source of truth, FR) and updates
+// src/data/spotDescriptions.ts.
 //
-// Usage (with corporate proxy):
-//   $env:HTTPS_PROXY='...'; node tools/translate-descriptions.mjs
-//   Optional: $env:LIMIT='3' to test on the first N spots.
+// By default only spots missing from spotDescriptions.ts are translated, and
+// every existing entry is kept byte for byte (hand fixes included).
+//
+// Usage:
+//   node tools/translate-descriptions.mjs              missing spots only
+//   ONLY='id-a,id-b' node tools/translate-descriptions.mjs
+//                                                      retranslate these spots (after a FR edit)
+//   FORCE=1 node tools/translate-descriptions.mjs      retranslate every spot
+//   LIMIT=3 ...                                        stop after N spots (test run)
+//   DRY=1 ...                                          print what would be translated, write nothing
+//   PRUNE=1 ...                                        also drop entries whose spot left spots.ts
+//
+// HTTP goes through the curl binary, which honours HTTPS_PROXY. Node's own
+// https client gets HTTP 429 from the Google endpoint whatever the headers.
 
 import fs from 'node:fs';
 import path from 'node:path';
-import https from 'node:https';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
-import { HttpsProxyAgent } from 'https-proxy-agent';
+
+const execFileAsync = promisify(execFile);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const SRC = path.join(ROOT, 'src', 'data', 'spots.ts');
 const OUT = path.join(ROOT, 'src', 'data', 'spotDescriptions.ts');
 
-const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
-const agent = proxy ? new HttpsProxyAgent(proxy) : undefined;
+const CURL = process.platform === 'win32' ? 'curl.exe' : 'curl';
 const LIMIT = process.env.LIMIT ? parseInt(process.env.LIMIT, 10) : Infinity;
+const FORCE = process.env.FORCE === '1';
+const DRY = process.env.DRY === '1';
+const PRUNE = process.env.PRUNE === '1';
+const ONLY = new Set((process.env.ONLY || '').split(',').map((s) => s.trim()).filter(Boolean));
+const LANGS = ['en', 'es', 'pt'];
 
 const unescapeSrc = (s) => s.replace(/\\(['"\\])/g, '$1');
+const STR = /'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/;
 
 function parseSpots(text) {
-  // Each spot object lists `id` before `description` before `dangers`.
-  const idRe = /\bid:\s*'([^']+)'/g;
-  const descRe = /\bdescription:\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g;
-  const dangRe = /\bdangers:\s*\[([^\]]*)\]/g;
-
-  const ids = [...text.matchAll(idRe)].map((m) => m[1]);
-  const descs = [...text.matchAll(descRe)].map((m) => unescapeSrc(m[1] ?? m[2] ?? ''));
-  const dangs = [...text.matchAll(dangRe)].map((m) => {
-    const inner = m[1];
-    const items = [...inner.matchAll(/'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/g)].map(
-      (x) => unescapeSrc(x[1] ?? x[2] ?? '')
-    );
-    return items;
+  // Cut the file at each `id:` so a spot without `dangers` can never shift the
+  // dangers of the following spots onto the wrong id.
+  const starts = [...text.matchAll(/\bid:\s*'([^']+)'/g)];
+  return starts.map((m, i) => {
+    const block = text.slice(m.index, starts[i + 1]?.index ?? text.length);
+    const desc = block.match(new RegExp(`\\bdescription:\\s*(?:${STR.source})`));
+    if (!desc) throw new Error(`No description for spot ${m[1]}`);
+    const dang = block.match(/\bdangers:\s*\[([^\]]*)\]/);
+    const dangers = dang
+      ? [...dang[1].matchAll(new RegExp(STR.source, 'g'))].map((x) => unescapeSrc(x[1] ?? x[2] ?? ''))
+      : [];
+    return { id: m[1], description: unescapeSrc(desc[1] ?? desc[2] ?? ''), dangers };
   });
-
-  if (ids.length !== descs.length) {
-    throw new Error(`Mismatch: ${ids.length} ids vs ${descs.length} descriptions`);
-  }
-  return ids.map((id, i) => ({ id, description: descs[i], dangers: dangs[i] ?? [] }));
 }
 
-function httpGet(url) {
-  return new Promise((resolve, reject) => {
-    const req = https.get(url, { agent, timeout: 20000 }, (res) => {
-      let data = '';
-      res.on('data', (c) => (data += c));
-      res.on('end', () => resolve({ status: res.statusCode, body: data }));
-    });
-    req.on('error', reject);
-    req.on('timeout', () => req.destroy(new Error('timeout')));
-  });
+// ── existing output, kept as raw text per entry ─────────────────────────────
+
+function readSection(text, name) {
+  const m = text.match(new RegExp(`(export const ${name}[^=]*= )(\\{[\\s\\S]*?\\n\\});`));
+  if (!m) throw new Error(`Section ${name} not found in ${OUT}`);
+  const data = JSON.parse(m[2]);
+  const raw = new Map();
+  for (const e of m[2].matchAll(/\n {2}("(?:[^"\\]|\\.)*"): \{[\s\S]*?\n {2}\}/g)) {
+    raw.set(JSON.parse(e[1]), e[0].slice(1));
+  }
+  if (raw.size !== Object.keys(data).length) {
+    throw new Error(`${name}: ${raw.size} raw entries vs ${Object.keys(data).length} parsed, file layout changed`);
+  }
+  return { prefix: m[1], raw };
+}
+
+function formatEntry(id, value) {
+  // Same layout as JSON.stringify(obj, null, 2), the format of the bulk of the file.
+  return JSON.stringify({ [id]: value }, null, 2).split('\n').slice(1, -1).join('\n');
+}
+
+function buildSection(prefix, entries) {
+  return prefix + '{\n' + entries.join(',\n') + '\n};';
+}
+
+// ── translation ─────────────────────────────────────────────────────────────
+
+async function httpGet(url) {
+  const { stdout } = await execFileAsync(
+    CURL,
+    ['-sS', '--max-time', '20', '-w', '\n%{http_code}', url],
+    { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 },
+  );
+  const i = stdout.lastIndexOf('\n');
+  return { status: parseInt(stdout.slice(i + 1), 10), body: stdout.slice(0, i) };
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -71,6 +108,9 @@ const PROTECT = [
   { term: 'big wave', token: 'ZZJARGONEEZZ', word: false, restore: 'big wave' },
   { term: 'offshore', token: 'ZZJARGONFFZZ', word: false, restore: 'offshore' },
   { term: 'onshore', token: 'ZZJARGONGGZZ', word: false, restore: 'onshore' },
+  // Mediterranean wind names, otherwise rendered "rising" / "setting".
+  { term: 'levante', token: 'ZZJARGONJJZZ', word: true, restore: 'levante' },
+  { term: 'poniente', token: 'ZZJARGONKKZZ', word: true, restore: 'poniente' },
   // "pic(s)" = surf peak in FR, often mistranslated as "photo".
   { term: 'pics', token: 'ZZJARGONHHZZ', word: true, restore: { en: 'peaks', es: 'picos', pt: 'picos' } },
   { term: 'pic', token: 'ZZJARGONIIZZ', word: true, restore: { en: 'peak', es: 'pico', pt: 'pico' } },
@@ -124,6 +164,8 @@ async function rawTranslate(text, tl) {
     try {
       const { status, body } = await httpGet(url);
       if (status === 429 || status >= 500) {
+        // Keep the reason, otherwise five 429 in a row end with `throw undefined`.
+        lastErr = new Error(`HTTP ${status} after ${attempt + 1} attempt(s)`);
         await sleep(800 * (attempt + 1));
         continue;
       }
@@ -136,7 +178,7 @@ async function rawTranslate(text, tl) {
       await sleep(500 * (attempt + 1));
     }
   }
-  throw lastErr;
+  throw new Error(`Translation to ${tl} failed for "${text.slice(0, 60)}": ${lastErr?.message ?? lastErr}`);
 }
 
 async function translate(text, tl) {
@@ -148,55 +190,77 @@ async function translate(text, tl) {
   return result;
 }
 
+// ── main ────────────────────────────────────────────────────────────────────
+
 async function main() {
-  const text = fs.readFileSync(SRC, 'utf8');
-  let spots = parseSpots(text);
+  const spots = parseSpots(fs.readFileSync(SRC, 'utf8'));
   console.log(`Parsed ${spots.length} spots.`);
-  if (LIMIT !== Infinity) spots = spots.slice(0, LIMIT);
 
-  const langs = ['en', 'es', 'pt'];
-  const descOut = {};
-  const dangOut = {};
+  const outText = fs.readFileSync(OUT, 'utf8');
+  const desc = readSection(outText, 'SPOT_DESCRIPTIONS');
+  const dang = readSection(outText, 'SPOT_DANGERS');
+
+  const wanted = (s) =>
+    FORCE || ONLY.has(s.id) || !desc.raw.has(s.id) || (s.dangers.length > 0 && !dang.raw.has(s.id));
+  let todo = spots.filter(wanted);
+  if (LIMIT !== Infinity) todo = todo.slice(0, LIMIT);
+
+  const unknown = [...ONLY].filter((id) => !spots.some((s) => s.id === id));
+  if (unknown.length) console.warn(`ONLY: unknown id(s) ignored: ${unknown.join(', ')}`);
+  const known = new Set(spots.map((s) => s.id));
+  const orphans = [...new Set([...desc.raw.keys(), ...dang.raw.keys()])].filter((id) => !known.has(id));
+  if (orphans.length && !PRUNE) {
+    console.warn(`Kept ${orphans.length} entr(y/ies) with no spot in spots.ts (PRUNE=1 drops them): ${orphans.join(', ')}`);
+  }
+  const pruning = PRUNE && orphans.length > 0;
+
+  if (todo.length === 0 && !pruning) {
+    console.log('Nothing to translate, spotDescriptions.ts is up to date.');
+    return;
+  }
+  if (todo.length) console.log(`${todo.length} spot(s) to translate: ${todo.map((s) => s.id).join(', ')}`);
+  if (pruning) console.log(`${orphans.length} orphan entr(y/ies) to drop: ${orphans.join(', ')}`);
+  if (DRY) return;
+  if (pruning) for (const id of orphans) { desc.raw.delete(id); dang.raw.delete(id); }
+
   let done = 0;
-
-  for (const spot of spots) {
-    const d = { en: '', es: '', pt: '' };
-    await Promise.all(langs.map(async (tl) => { d[tl] = await translate(spot.description, tl); }));
-    descOut[spot.id] = d;
+  for (const spot of todo) {
+    // Pre-filled so the key order stays en/es/pt whatever request answers first.
+    const d = Object.fromEntries(LANGS.map((l) => [l, '']));
+    await Promise.all(LANGS.map(async (tl) => { d[tl] = await translate(spot.description, tl); }));
+    desc.raw.set(spot.id, formatEntry(spot.id, d));
 
     if (spot.dangers.length) {
-      const dd = { en: [], es: [], pt: [] };
+      const dd = Object.fromEntries(LANGS.map((l) => [l, []]));
       await Promise.all(
-        langs.map(async (tl) => {
+        LANGS.map(async (tl) => {
           const arr = [];
           for (const item of spot.dangers) arr.push(await translate(item, tl));
           dd[tl] = arr;
-        })
+        }),
       );
-      dangOut[spot.id] = dd;
+      dang.raw.set(spot.id, formatEntry(spot.id, dd));
+    } else {
+      dang.raw.delete(spot.id);
     }
 
     done++;
-    if (done % 20 === 0) console.log(`  ${done}/${spots.length}…`);
+    if (done % 20 === 0) console.log(`  ${done}/${todo.length}…`);
     await sleep(20);
   }
 
-  const header =
-    '// AUTO-GENERATED by tools/translate-descriptions.mjs — do not edit by hand.\n' +
-    '// Source of truth: src/data/spots.ts (French). Machine-assisted translation.\n\n';
+  // Map insertion order = existing entries in place, new spots appended.
+  const header = outText.slice(0, outText.indexOf('export const SPOT_DESCRIPTIONS'));
   const body =
-    'export const SPOT_DESCRIPTIONS: Record<string, { en: string; es: string; pt: string }> = ' +
-    JSON.stringify(descOut, null, 2) +
-    ';\n\n' +
-    'export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: string[] }> = ' +
-    JSON.stringify(dangOut, null, 2) +
-    ';\n';
-
+    buildSection(desc.prefix, [...desc.raw.values()]) +
+    '\n\n' +
+    buildSection(dang.prefix, [...dang.raw.values()]) +
+    '\n';
   fs.writeFileSync(OUT, header + body, 'utf8');
-  console.log(`Wrote ${OUT} (${Object.keys(descOut).length} descriptions, ${Object.keys(dangOut).length} danger sets).`);
+  console.log(`Wrote ${OUT} (${desc.raw.size} descriptions, ${dang.raw.size} danger sets, ${done} spot(s) translated).`);
 }
 
 main().catch((e) => {
-  console.error(e);
+  console.error(e.message ?? e);
   process.exit(1);
 });
