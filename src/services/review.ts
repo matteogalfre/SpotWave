@@ -95,3 +95,12 @@ export async function requestReviewOnPositiveMoment(): Promise<void> {
     log.warn('In-app review skipped:', (e as Error)?.message);
   }
 }
+
+/**
+ * Same as requestReviewOnPositiveMoment, but after a short pause so the prompt
+ * never covers the toast that confirms the user's action (favorite added,
+ * session rated).
+ */
+export function requestReviewAfterAction(delayMs = 1500): void {
+  setTimeout(() => { requestReviewOnPositiveMoment(); }, delayMs);
+}

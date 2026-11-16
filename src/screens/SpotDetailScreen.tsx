@@ -9,7 +9,7 @@ import RateSpotModal from '../components/RateSpotModal';
 import AlertSpotModal from '../components/AlertSpotModal';
 import { buildRatingPayload, submitRating, hasRatedToday } from '../services/ratings';
 import { getSpotAlert, setSpotAlert, removeSpotAlert } from '../services/alerts';
-import { requestReviewOnPositiveMoment } from '../services/review';
+import { requestReviewOnPositiveMoment, requestReviewAfterAction } from '../services/review';
 import { requestNotifPermission, rescheduleSpotAlert } from '../services/notifications';
 import { useTheme } from '../context/ThemeContext';
 import { useProfile } from '../context/ProfileContext';
@@ -437,6 +437,8 @@ function SpotDetailContent({ route, navigation }: SpotDetailScreenProps) {
     const nowFav = next.includes(spot.id);
     setIsFav(nowFav);
     showToast(nowFav ? t.spotsAddedFav : t.spotsRemovedFav, 'success');
+    // Adding a favorite = the user found a spot worth following: a good time to ask for a review.
+    if (nowFav) requestReviewAfterAction();
   }, [spot.id, showToast, t]);
 
   const openAlert = useCallback(async () => {
@@ -494,6 +496,8 @@ function SpotDetailContent({ route, navigation }: SpotDetailScreenProps) {
     const payload = buildRatingPayload(spot, forecast, currentCondition, score, locale, spotTodayStr, profile.level);
     const sent = await submitRating(payload).catch(() => false);
     showToast(sent ? t.rateThanks : t.rateQueued, 'success');
+    // A user who rates a session they enjoyed is the most likely to leave a good review.
+    if (score >= 6) requestReviewAfterAction();
   }, [spot, forecast, currentCondition, locale, spotTodayStr, profile.level, showToast, t]);
   const slice = useMemo(() => getDaySlice(forecast.hourlyConditions, nowKey, profile.availableFrom, profile.availableTo), [forecast.hourlyConditions, nowKey, profile.availableFrom, profile.availableTo]);
   const scrollRef = useRef<ScrollView>(null);

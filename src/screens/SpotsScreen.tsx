@@ -40,6 +40,8 @@ import { useI18n, fmtDec } from '../i18n';
 import { scheduleGoodConditionAlerts } from '../services/notifications';
 import { getLevelBadge, getLevelLabel, fmtDayLabel, fmtRange } from '../utils/constants';
 import { countryLabel } from '../utils/countries';
+import { searchSpots } from '../utils/search';
+import { requestReviewAfterAction } from '../services/review';
 import { spacing, radius, typography, touchTarget, elevation } from '../utils/tokens';
 import { getConfidenceForDate, confidenceColor, confidenceLabel } from '../utils/confidence';
 import { useWebLayout, webCenter, chunk, WEB_CONTENT_MAX, WEB_HOME_MAX, isWebPlatform, webTabBarClearance } from '../utils/webLayout';
@@ -224,6 +226,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
       });
     } else {
       showToast(t.spotsAddedFav, 'success');
+      requestReviewAfterAction();
     }
   }, [favs, showToast, t]);
 
@@ -346,15 +349,7 @@ export default function SpotsScreen({ navigation }: SpotsScreenProps) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const searchResults = useMemo(() => {
-    if (!debouncedQuery.trim()) return [];
-    const q = debouncedQuery.toLowerCase().trim();
-    return SPOTS.filter(s =>
-      s.name.toLowerCase().includes(q) ||
-      s.region.toLowerCase().includes(q) ||
-      s.country.toLowerCase().includes(q)
-    ).slice(0, 15);
-  }, [debouncedQuery]);
+  const searchResults = useMemo(() => searchSpots(SPOTS, debouncedQuery), [debouncedQuery]);
 
   const { bestToday, bestWeek, nightNow, outsideHoursNow } = useMemo(() => findBestPicks(forecasts, profile, locale), [forecasts, profile, locale]);
   // The list is chronological; flag the week's best slot instead of numbering

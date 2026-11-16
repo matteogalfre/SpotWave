@@ -1,13 +1,16 @@
 import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, Keyboard } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AppWebView, { AppWebViewHandle } from '../components/AppWebView';
+import { LEAFLET_CSS, LEAFLET_JS, MARKERCLUSTER_CSS, MARKERCLUSTER_JS } from '../utils/leafletBundle';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { useLocation } from '../context/LocationContext';
 import { useProfile } from '../context/ProfileContext';
 import { useNetwork } from '../context/NetworkContext';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import { searchSpots } from '../utils/search';
+import { countryLabel } from '../utils/countries';
 import { getStoredForecasts, setStoredForecasts } from '../context/ForecastStore';
 import { fetchSpotData } from '../services/api';
 import { computeSpotForecast } from '../utils/scoring';
@@ -132,11 +135,10 @@ function buildMapHtml(
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"><\/script>
+<style>${LEAFLET_CSS}</style>
+<style>${MARKERCLUSTER_CSS}</style>
+<script>${LEAFLET_JS}<\/script>
+<script>${MARKERCLUSTER_JS}<\/script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: ${seaColor}; }
@@ -367,9 +369,18 @@ spots.forEach(function(s) {
 
 map.addLayer(clusters);
 
-// Signal a successful init: if Leaflet/tiles failed to load (offline, blocked
-// CDN), the script above throws before reaching here and this never fires — the
-// RN layer then shows a retry state instead of a blank sea.
+// Called from the RN search bar: zooms to a spot (opening its cluster) and
+// shows its popup.
+function focusSpot(id) {
+  var e = spotMarkers[id];
+  if (!e) return;
+  clusters.zoomToShowLayer(e.marker, function () { e.marker.openPopup(); });
+}
+
+// Signal a successful init: if Leaflet failed to initialise, the script above
+// throws before reaching here and this never fires — the RN layer then shows a
+// retry state instead of a blank sea. Leaflet ships inside the app, so this
+// also works offline (spots without tiles).
 sendMsg('ready', '');
 </script>
 </body>
@@ -383,13 +394,20 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
   const { offline } = useNetwork();
   const { t, locale } = useI18n();
   const [mapLoading, setMapLoading] = useState(true);
-  // The map lib + tiles come from a CDN, so a cold offline start would otherwise
-  // show a blank sea forever. We track a hard error and let the user retry.
+  // If Leaflet fails to initialise we'd show a blank sea forever, so we track a
+  // hard error and let the user retry.
   const [mapError, setMapError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [loadingSpot, setLoadingSpot] = useState<string | null>(null);
   const [loadedCount, setLoadedCount] = useState(() => getStoredForecasts().length);
   const webviewRef = useRef<AppWebViewHandle>(null);
+  const [query, setQuery] = useState('');
+  const results = useMemo(() => searchSpots(SPOTS, query, 6), [query]);
+  const pickSpot = useCallback((id: string) => {
+    Keyboard.dismiss();
+    setQuery('');
+    webviewRef.current?.injectJavaScript(`focusSpot(${JSON.stringify(id)}); true;`);
+  }, []);
   const insets = useSafeAreaInsets();
   const { isWide } = useWebLayout();
   // On mobile web the bottom tab bar floats (frosted glass) over content. The
@@ -608,6 +626,52 @@ export default function MapScreen({ navigation, route }: MapScreenProps) {
           </Text>
         </View>
       </View>
+      <View style={s.searchArea}>
+        <View style={[s.searchWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Ionicons name="search" size={18} color={colors.textMuted} />
+          <TextInput
+            style={[s.searchInput, { color: colors.white }]}
+            placeholder={t.spotsSearchPlaceholder}
+            placeholderTextColor={colors.textMuted}
+            value={query}
+            onChangeText={setQuery}
+            accessibilityLabel={t.spotsSearch}
+            accessibilityRole="search"
+            returnKeyType="search"
+            onSubmitEditing={() => { if (results[0]) pickSpot(results[0].id); }}
+          />
+          {query.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setQuery('')}
+              accessibilityLabel={t.spotsClearSearch}
+              accessibilityRole="button"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close-circle" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+          )}
+        </View>
+        {query.trim().length > 0 && (
+          <View style={[s.results, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {results.length === 0 ? (
+              <Text style={[s.resultEmpty, { color: colors.textMuted }]}>{t.spotsSearchEmpty(query)}</Text>
+            ) : results.map((spot) => (
+              <TouchableOpacity
+                key={spot.id}
+                style={s.resultRow}
+                onPress={() => pickSpot(spot.id)}
+                accessibilityRole="button"
+                accessibilityLabel={spot.name}
+              >
+                <Text style={[s.resultName, { color: colors.white }]} numberOfLines={1}>{spot.name}</Text>
+                <Text style={[s.resultSub, { color: colors.textMuted }]} numberOfLines={1}>
+                  {spot.region} · {countryLabel(spot.country, locale)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
       <View style={{ flex: 1, paddingBottom: mapBottomInset }}>
         {favIds !== null && (
           <AppWebView
@@ -673,4 +737,18 @@ const s = StyleSheet.create({
     marginTop: 20, paddingHorizontal: 22, height: 46, borderRadius: 14,
   },
   retryTxt: { fontSize: 15, fontWeight: '800' },
+  searchArea: { paddingHorizontal: 16, paddingBottom: 8, zIndex: 10 },
+  searchWrap: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    height: 44, borderRadius: 12, borderWidth: 1, paddingHorizontal: 12,
+  },
+  searchInput: { flex: 1, fontSize: 15, paddingVertical: 0 },
+  results: {
+    position: 'absolute', top: 48, left: 16, right: 16,
+    borderRadius: 12, borderWidth: 1, paddingVertical: 4, elevation: 6,
+  },
+  resultRow: { paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },
+  resultName: { fontSize: 15, fontWeight: '700' },
+  resultSub: { fontSize: 12, marginTop: 2 },
+  resultEmpty: { paddingHorizontal: 14, paddingVertical: 12, fontSize: 13 },
 });

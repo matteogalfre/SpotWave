@@ -103,3 +103,9 @@ export function countryLabel(frName: string, locale: Locale): string {
   // German falls back to the English display name (country names are close).
   return (tri as Record<string, string>)[locale] ?? tri.en;
 }
+
+/** Every name a country is known by in the app (French key + EN/ES/PT labels), for search. */
+export function countryNames(frName: string): string[] {
+  const tri = MAP[frName];
+  return tri ? [frName, tri.en, tri.es, tri.pt] : [frName];
+}

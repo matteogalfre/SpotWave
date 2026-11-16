@@ -1841,6 +1841,21 @@ export const SPOT_DESCRIPTIONS: Record<string, { en: string; es: string; pt: str
     "en": "Seaside resort in southwest Majorca, in a very sheltered bay. Waves are rare there, only with a strong south swell.",
     "es": "Localidad turística del suroeste de Mallorca, en una bahía muy protegida. Las olas son poco frecuentes, solo con un swell fuerte del sur.",
     "pt": "Estância balnear no sudoeste de Maiorca, numa baía muito abrigada. As ondas são raras, apenas com uma ondulação forte de sul."
+  },
+  "france-saint-brevin-ermitage": {
+    "en": "Exposed beach break south of the Loire estuary, facing the Atlantic. Accessible waves, surf school on the beach.",
+    "es": "Beach break expuesto al sur del estuario del Loira, frente al Atlántico. Olas accesibles, escuela de surf en la playa.",
+    "pt": "Beach break exposto a sul do estuário do Loire, virado para o Atlântico. Ondas acessíveis, escola de surf na praia."
+  },
+  "bresil-cotovelo": {
+    "en": "Beach below the cliffs, south of Natal. Mellow beach break, warm water all year round.",
+    "es": "Playa al pie de los acantilados, al sur de Natal. Beach break tranquilo, agua cálida todo el año.",
+    "pt": "Praia ao pé das falésias, a sul de Natal. Beach break tranquilo, água quente o ano todo."
+  },
+  "bresil-tabatinga": {
+    "en": "Beach break south of Natal with lefts and rights. Best with a northeast swell and a southwest wind.",
+    "es": "Beach break al sur de Natal, con izquierdas y derechas. Mejor con oleaje del noreste y viento del suroeste.",
+    "pt": "Beach break a sul de Natal, com esquerdas e direitas. Melhor com ondulação de nordeste e vento de sudoeste."
   }
 };
 
@@ -7244,6 +7259,48 @@ export const SPOT_DANGERS: Record<string, { en: string[]; es: string[]; pt: stri
     "pt": [
       "Surf muito raro",
       "Banhistas"
+    ]
+  },
+  "france-saint-brevin-ermitage": {
+    "en": [
+      "Currents",
+      "Strong tide"
+    ],
+    "es": [
+      "Corrientes",
+      "Marea fuerte"
+    ],
+    "pt": [
+      "Correntes",
+      "Maré forte"
+    ]
+  },
+  "bresil-cotovelo": {
+    "en": [
+      "Currents",
+      "Rocks"
+    ],
+    "es": [
+      "Corrientes",
+      "Rocas"
+    ],
+    "pt": [
+      "Correntes",
+      "Rochas"
+    ]
+  },
+  "bresil-tabatinga": {
+    "en": [
+      "Rocks",
+      "Currents"
+    ],
+    "es": [
+      "Rocas",
+      "Corrientes"
+    ],
+    "pt": [
+      "Rochas",
+      "Correntes"
     ]
   }
 };

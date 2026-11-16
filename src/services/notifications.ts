@@ -6,6 +6,8 @@ import { windLabel } from '../theme';
 import { log } from '../utils/logger';
 import { getSpotAlerts } from './alerts';
 import { spotLocalNowKey } from '../utils/scoring';
+import { getFavorites } from './favorites';
+import { nextDigestDate, pickWeeklyBest, buildDigestContent } from '../utils/weeklyDigest';
 
 // Push notifications are native-only. On web we keep Notifications null so every
 // guard below short-circuits and no scheduling / permission code ever runs.
@@ -81,7 +83,8 @@ async function cancelGenericAlerts(): Promise<void> {
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
     await Promise.all(
       scheduled
-        .filter((n: any) => typeof n?.identifier === 'string' && n.identifier.startsWith('good-cond:'))
+        .filter((n: any) => typeof n?.identifier === 'string'
+          && (n.identifier.startsWith('good-cond:') || n.identifier === WEEKLY_DIGEST_ID))
         .map((n: any) => Notifications.cancelScheduledNotificationAsync(n.identifier).catch(() => {})),
     );
   } catch {
@@ -258,9 +261,20 @@ export async function scheduleGoodConditionAlerts(
     }
   }
 
+  // 3) Weekly « best slot of the week » (Sunday evening), for users who opted
+  //    into alerts: a reason to come back even when no alert fires. Rescheduled
+  //    at every run, so it always reflects the latest forecast.
+  if (globalEnabled && scheduled < MAX_NOTIFICATIONS) {
+    const at = nextDigestDate(now);
+    const favIds = await getFavorites().catch(() => [] as string[]);
+    const best = pickWeeklyBest(forecasts, favIds, at.getTime(), at.getTime() + 7 * 24 * 3600 * 1000);
+    if (best) await schedule(WEEKLY_DIGEST_ID, buildDigestContent(best, locale), at);
+  }
+
   return scheduled;
 }
 
+const WEEKLY_DIGEST_ID = 'week-best';
 const spotAlertId = (spotId: string) => `spot-alert:${spotId}`;
 const genericAlertId = (spotId: string) => `good-cond:${spotId}`;
 
