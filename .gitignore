@@ -61,3 +61,11 @@ tools/reddit-testers/.venv/
 
 # Artefact de build, ne doit pas etre versionne
 deploy.zip
+
+# Kept out of the public repo: store assets and ASO work, competitor research, tester recruiting
+/marketing/
+/tools/out/
+/tools/reddit-testers/
+/tools/scrape-app-reviews.mjs
+/tools/scrape-surfline-reviews.mjs
+/tools/track-aso.mjs
