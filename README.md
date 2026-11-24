@@ -3,9 +3,9 @@
   <h1>SpotWave</h1>
   <p>Surf forecasts boiled down to one score.</p>
 
-  <img alt="License" src="https://img.shields.io/github/license/matteogalfre/SpotWave?color=23c7c2&style=flat-square">
-  <img alt="Last commit" src="https://img.shields.io/github/last-commit/matteogalfre/SpotWave?color=23c7c2&style=flat-square">
-  <img alt="Stars" src="https://img.shields.io/github/stars/matteogalfre/SpotWave?color=23c7c2&style=flat-square">
+  <img alt="License: GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-23c7c2?style=flat-square">
+  <img alt="Android" src="https://img.shields.io/badge/platform-Android-23c7c2?style=flat-square">
+  <img alt="Version 1.4.0" src="https://img.shields.io/badge/version-1.4.0-23c7c2?style=flat-square">
   <img alt="370+ spots" src="https://img.shields.io/badge/spots-370%2B-23c7c2?style=flat-square">
   <img alt="7 languages" src="https://img.shields.io/badge/languages-7-23c7c2?style=flat-square">
 </div>
