@@ -63,6 +63,8 @@ npm test            # scoring, tides, search and weekly summary tests
 npm run build:web   # PWA build in dist/
 ```
 
+The map uses CARTO basemaps. Copy `.env.example` to `.env.local` and put your own `CARTO_API_KEY` in it (optional: without a key the map still works, with watermarked tiles). Keys never go in the repo.
+
 Android release builds go through EAS (`eas.json`). For local signing, copy `credentials.json.example` to `credentials.json` and fill it in: it is git-ignored.
 
 ## Privacy

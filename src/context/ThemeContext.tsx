@@ -14,7 +14,8 @@ const THEME_KEY = '@spotwave_theme';
  * client (la WebView charge les tuiles directement), donc restreindre son domaine
  * depuis le dashboard CARTO est indispensable.
  *
- * Renseignee dans app.json sous `expo.extra.cartoApiKey`. Sans cle, on retombe
+ * Lue dans la variable d'environnement CARTO_API_KEY (voir app.config.js et .env.example),
+ * jamais ecrite dans le depot. Sans cle, on retombe
  * sur l'URL nue plutot que de casser la carte : les tuiles restent tatouees mais
  * la carte fonctionne.
  */

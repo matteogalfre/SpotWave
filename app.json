@@ -54,8 +54,7 @@
     "extra": {
       "eas": {
         "projectId": "6502e0d2-178b-42ce-835e-fb60f71ef237"
-      },
-      "cartoApiKey": ""
+      }
     }
   }
 }
